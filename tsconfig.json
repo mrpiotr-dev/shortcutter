@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "diagnostics": false,
+    "downlevelIteration": true,
+    "esModuleInterop": true,
+    "moduleResolution": "Node",
+    "module": "ESNext",
+    "lib": ["ES2015", "DOM"],
+    "outDir": "lib",
+    "removeComments": true,
+    "strict": true,
+    "sourceMap": true,
+    "target": "ES5",
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/@types"
+    ]
+  },
+  "include": [
+    "src/**/*"
+, "test/dev.ts"  ]
+}
