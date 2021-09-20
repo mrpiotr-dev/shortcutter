@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "declaration": false,
+    "module": "CommonJS",
+    "outDir": "bundle",
+    "rootDir": "src",
+    "sourceMap": false
+  },
+  "include": [
+    "src/**/*",
+  ],
+  "exclude": [
+    "src/__tests__"
+  ]
+}

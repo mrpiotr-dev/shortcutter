@@ -1,0 +1,65 @@
+{
+  "name": "shortcutter",
+  "version": "0.1.0",
+  "description": "Tiny, dependency-free library to manage keyboard shortcuts in your application.",
+  "main": "lib/index.js",
+  "type": "module",
+  "typings": "lib/index.d.ts",
+  "scripts": {
+    "lint": "eslint ./src",
+    "test": "jest",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs",
+    "prebuild": "rimraf coverage bundle",
+    "build": "npm-run-all build:cjs build:esm build:umd",
+    "build:umd": "cross-env NODE_ENV=production webpack",
+    "build:umd.dev": "cross-env NODE_ENV=development webpack",
+    "build:cjs": "tsc --project tsconfig.cjs.json",
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "serve": "cross-env NODE_ENV=serve webpack-dev-server "
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrpiotr-dev/shortcutter.git"
+  },
+  "keywords": [
+    "shortcuts",
+    "hotkeys",
+    "hotkey",
+    "keyboard",
+    "shortcut",
+    "keydown",
+    "keypress",
+    "keyup",
+    "key-binding"
+  ],
+  "author": "Piotr Laszczkowski <contact@mrpiotr.dev>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mrpiotr-dev/shortcutter/issues"
+  },
+  "homepage": "https://shortcutter.dev",
+  "devDependencies": {
+    "@types/jest": "^27.0.1",
+    "@typescript-eslint/eslint-plugin": "^4.31.1",
+    "@typescript-eslint/parser": "^4.31.1",
+    "cross-env": "^7.0.3",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-typescript": "^14.0.0",
+    "eslint-plugin-license-header": "^0.2.1",
+    "jest": "^27.2.0",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^27.0.5",
+    "ts-loader": "^9.2.5",
+    "ts-node": "^10.2.1",
+    "typedoc": "^0.22.3",
+    "typedoc-plugin-markdown": "^3.11.0",
+    "typescript": "^4.4.3",
+    "vuepress": "^1.8.2",
+    "vuepress-plugin-typedoc": "^0.9.1",
+    "webpack": "^5.53.0",
+    "webpack-cli": "^4.8.0",
+    "webpack-dev-server": "^4.2.1"
+  }
+}
