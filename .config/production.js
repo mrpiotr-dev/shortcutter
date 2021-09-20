@@ -10,7 +10,7 @@ export function create() {
     mode: 'production',
     output: {
       filename: 'shortcutter.umd.js',
-      path: path.resolve(process.cwd(), 'bundle'),
+      path: path.resolve(process.cwd(), 'bundle/umd'),
       library: 'Shortcutter',
     },
   }

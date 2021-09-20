@@ -1,30 +1,11 @@
 {
   "private": true,
-  "name": "shortcutter",
-  "version": "0.1.0",
+  "author": "Piotr Laszczkowski <contact@mrpiotr.dev>",
+  "bugs": {
+    "url": "https://github.com/mrpiotr-dev/shortcutter/issues"
+  },
   "description": "Tiny, dependency-free library to manage keyboard shortcuts in your application.",
-  "main": "lib/index.js",
-  "type": "module",
-  "typings": "lib/index.d.ts",
-  "scripts": {
-    "lint": "eslint ./src",
-    "test": "jest",
-    "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs",
-    "prebuild": "rimraf coverage bundle",
-    "build": "npm-run-all build:cjs build:esm build:jsnext build:umd build:types",
-    "build:umd": "cross-env NODE_ENV=production webpack",
-    "build:umd.dev": "cross-env NODE_ENV=development webpack",
-    "build:cjs": "tsc --project tsconfig.cjs.json",
-    "build:esm": "tsc --project tsconfig.esm.json",
-    "build:jsnext": "tsc --project tsconfig.jsnext.json",
-    "build:types": "tsc --project tsconfig.types.json",
-    "serve": "cross-env NODE_ENV=serve webpack-dev-server "
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mrpiotr-dev/shortcutter.git"
-  },
+  "homepage": "https://shortcutter.dev",
   "keywords": [
     "shortcuts",
     "hotkeys",
@@ -36,12 +17,30 @@
     "keyup",
     "key-binding"
   ],
-  "author": "Piotr Laszczkowski <contact@mrpiotr.dev>",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/mrpiotr-dev/shortcutter/issues"
+  "name": "shortcutter",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrpiotr-dev/shortcutter.git"
   },
-  "homepage": "https://shortcutter.dev",
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "lint": "eslint ./src",
+    "test": "jest",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs",
+    "prebuild": "rimraf coverage bundle",
+    "postbuild": "node ./.scripts/copy-assets.js",
+    "build": "npm-run-all build:cjs build:esm build:jsnext build:umd build:types",
+    "build:umd": "cross-env NODE_ENV=production webpack",
+    "build:umd.dev": "cross-env NODE_ENV=development webpack",
+    "build:cjs": "tsc --project tsconfig.cjs.json",
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:jsnext": "tsc --project tsconfig.jsnext.json",
+    "build:types": "tsc --project tsconfig.types.json",
+    "serve": "cross-env NODE_ENV=serve webpack-dev-server "
+  },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
