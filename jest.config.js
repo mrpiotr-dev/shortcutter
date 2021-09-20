@@ -1,6 +1,4 @@
-import type { Config } from '@jest/types';
-
-export default async (): Promise<Config.InitialOptions> => {
+export default async () => {
   return {
     collectCoverage: true,
     collectCoverageFrom: [
