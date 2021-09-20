@@ -1,31 +1,6 @@
-const path = require('path');
+const env = process.env.NODE_ENV;
+const { create } = await import(`./.config/${env}.js`);
 
-module.exports = {
-  entry: './test/dev.ts',
-  devtool: 'inline-source-map',
-  
-  devServer: {
-    static: {
-      directory: path.join(__dirname, 'dist'),
-    },
-    compress: true,
-    port: 9000,
-  },
-  mode: 'development',
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-  },
-  output: {
-    filename: 'dev.js',
-    path: path.resolve(__dirname, 'dist'),
-  },
+export default {
+  ...create(),
 };

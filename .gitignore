@@ -4,3 +4,5 @@ coverage
 dist
 dev*.*
 lib
+!.config/*
+bundle

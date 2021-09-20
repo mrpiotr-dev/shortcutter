@@ -19,6 +19,7 @@ export default async (): Promise<Config.InitialOptions> => {
     transform: {
       '\\.ts$': 'ts-jest'
     },
-    testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.[jt]s?$'
+    testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.[jt]s?$',
+    testEnvironment: 'jsdom'
   };
 };

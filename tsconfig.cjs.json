@@ -1,11 +1,14 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
+    "declaration": false,
+    "module": "CommonJS",
+    "outDir": "bundle",
+    "rootDir": "src",
+    "sourceMap": false
   },
   "include": [
     "src/**/*",
-    "test/dev.ts"
   ],
   "exclude": [
     "src/__tests__"

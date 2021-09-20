@@ -1,8 +1,17 @@
+/**
+ * @license
+ * Copyright SLAVICTECH PIOTR LASZCZKOWSKI
+ *
+ * Use of this source code is governed by an MIT license that can be
+ * found in the LICENSE file at https://github.com/mrpiotr-dev/shortcutter/blob/master/LICENSE
+ */
+
 import { createContext } from './context';
 
 const ERROR_NOT_ADDED = (name: string) => `Context '${name}' is not added.`;
 const ERROR_ALREADY_ADDED = (name: string) => `Context '${name}' is already added.`;
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function useContexts() {
   const ACTIVE_CONTEXTS: Set<string> = new Set();
   const AVAILABLE_CONTEXTS: Map<string, ReturnType<typeof createContext>> = new Map();
