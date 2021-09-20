@@ -1,16 +1,9 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "declaration": false,
     "module": "ESNext",
     "outDir": "bundle/esm",
     "rootDir": "src",
     "sourceMap": false,
   },
-  "include": [
-    "src/**/*",
-  ],
-  "exclude": [
-    "src/__tests__"
-  ]
 }
