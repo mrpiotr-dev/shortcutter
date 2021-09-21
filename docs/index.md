@@ -1,5 +1,6 @@
 ---
 layout: default
+title: shortcutter
 ---
 
 ## Getting started
@@ -105,6 +106,6 @@ Sets passed context as the active one.
 This library follows [Semantic Versioning](https://semver.org/).
 
 ## License
-`Shortcutter` is available under the MIT license. See the [LICENSE](./LICENSE) file for more details.
+`Shortcutter` is available under the MIT license. See the [LICENSE]({{ site.github.repository_url }}/blob/develop/LICENSE) file for more details.
 
 Crafted with :heart: to :clipboard: and :key:
