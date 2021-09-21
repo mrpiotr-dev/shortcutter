@@ -128,7 +128,7 @@ export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}
 
       ctx?.add(keys, callback, phases);
 
-      return ctx?.remove(keys, phases);
+      return () => ctx?.remove(keys, phases);
     },
     unlisten: (context: string, keys: string[], phases?: PHASES) => {
       const ctx = contexts.get(context);
