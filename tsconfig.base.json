@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "declaration": false,
+    "diagnostics": false,
+    "downlevelIteration": true,
+    "esModuleInterop": true,
+    "moduleResolution": "Node",
+    "preserveConstEnums": true,
+    "module": "ESNext",
+    "lib": ["ES2015", "DOM"],
+    "removeComments": true,
+    "strict": true,
+    "sourceMap": false,
+    "target": "ES5",
+    "typeRoots": [
+      "./node_modules/@types",
+    ]
+  },
+  "include": [
+    "src/**/*",
+  ],
+  "exclude": [
+    "src/__tests__"
+  ]
+}

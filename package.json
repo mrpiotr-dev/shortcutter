@@ -1,0 +1,66 @@
+{
+  "private": true,
+  "author": "Piotr Laszczkowski <contact@mrpiotr.dev>",
+  "bugs": {
+    "url": "https://github.com/mrpiotr-dev/shortcutter/issues"
+  },
+  "description": "Tiny, dependency-free library to manage keyboard shortcuts in your application.",
+  "homepage": "https://shortcutter.dev",
+  "keywords": [
+    "shortcuts",
+    "hotkeys",
+    "hotkey",
+    "keyboard",
+    "shortcut",
+    "keydown",
+    "keypress",
+    "keyup",
+    "key-binding"
+  ],
+  "license": "MIT",
+  "name": "shortcutter",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrpiotr-dev/shortcutter.git"
+  },
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "lint": "eslint ./src",
+    "test": "jest",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs",
+    "prebuild": "rimraf coverage bundle",
+    "postbuild": "node ./.scripts/copy-assets.js",
+    "build": "npm-run-all build:cjs build:esm build:jsnext build:umd build:types",
+    "build:umd": "cross-env NODE_ENV=production webpack",
+    "build:umd.dev": "cross-env NODE_ENV=development webpack",
+    "build:cjs": "tsc --project tsconfig.cjs.json",
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:jsnext": "tsc --project tsconfig.jsnext.json",
+    "build:types": "tsc --project tsconfig.types.json",
+    "serve": "cross-env NODE_ENV=serve webpack-dev-server "
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.1",
+    "@typescript-eslint/eslint-plugin": "^4.31.1",
+    "@typescript-eslint/parser": "^4.31.1",
+    "cross-env": "^7.0.3",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-typescript": "^14.0.0",
+    "eslint-plugin-license-header": "^0.2.1",
+    "fs-extra": "^10.0.0",
+    "jest": "^27.2.0",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^27.0.5",
+    "ts-loader": "^9.2.5",
+    "ts-node": "^10.2.1",
+    "typedoc": "^0.22.3",
+    "typedoc-plugin-markdown": "^3.11.0",
+    "typescript": "^4.4.3",
+    "webpack": "^5.53.0",
+    "webpack-cli": "^4.8.0",
+    "webpack-dev-server": "^4.2.1"
+  }
+}
