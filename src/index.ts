@@ -6,5 +6,5 @@
  * found in the LICENSE file at https://github.com/mrpiotr-dev/shortcutter/blob/master/LICENSE
  */
 
-export { PHASES } from './types';
+export { PHASES_SEPARATOR, PHASES } from './types';
 export { useShortcutter } from './shortcutter';

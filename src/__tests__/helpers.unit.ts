@@ -6,8 +6,7 @@
  * found in the LICENSE file at https://github.com/mrpiotr-dev/shortcutter/blob/master/LICENSE
  */
 
-import { normalizeShortcut, phasesIterator } from '../helpers';
-import { PHASES } from '../types';
+import { normalizeShortcut } from '../helpers';
 
 describe('helpers', () => {
   describe('normalizeShortcut', () => {
@@ -19,19 +18,6 @@ describe('helpers', () => {
       expect(normalizeShortcut(['z', 'ctrl', 'shift'])).toBe('ctrl+shift+z');
       expect(normalizeShortcut(['shift', 'z', 'ctrl'])).toBe('ctrl+shift+z');
       expect(normalizeShortcut(['shift', 'ctrl', 'z'])).toBe('ctrl+shift+z');
-    });
-  });
-
-  describe('phasesIterator', () => {
-    it('should iteratee after each phase', () => {
-      const mock = jest.fn();
-
-      phasesIterator(PHASES.DOWN_PRESS_UP, 'ctrl+shift+z', mock);
-
-      expect(mock).toBeCalledTimes(3);
-      expect(mock).toHaveBeenNthCalledWith(1, 'ctrl+shift+z_down', 'down');
-      expect(mock).toHaveBeenNthCalledWith(2, 'ctrl+shift+z_press', 'press');
-      expect(mock).toHaveBeenNthCalledWith(3, 'ctrl+shift+z_up', 'up');
     });
   });
 });

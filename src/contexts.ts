@@ -6,19 +6,18 @@
  * found in the LICENSE file at https://github.com/mrpiotr-dev/shortcutter/blob/master/LICENSE
  */
 
-import { createContext } from './context';
+import { createGroup } from './group';
 
-const ERROR_NOT_ADDED = (name: string) => `Context '${name}' is not added.`;
-const ERROR_ALREADY_ADDED = (name: string) => `Context '${name}' is already added.`;
+const ERROR_NOT_ADDED = (name: string) => `Group '${name}' is not added.`;
+const ERROR_ALREADY_ADDED = (name: string) => `Group '${name}' is already added.`;
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function useContexts() {
   const ACTIVE_CONTEXTS: Set<string> = new Set();
-  const AVAILABLE_CONTEXTS: Map<string, ReturnType<typeof createContext>> = new Map();
+  const AVAILABLE_CONTEXTS: Map<string, ReturnType<typeof createGroup>> = new Map();
 
   return {
     /**
-     * Creates the new ShortcutContext.
+     * Creates a new shortcuts' group.
      *
      * @param name The name of adding context. It will be used as its ID in getContext().
      */
@@ -27,11 +26,11 @@ export function useContexts() {
         throw new Error(ERROR_ALREADY_ADDED(name));
       }
 
-      const shortcutContext = createContext(name);
+      const group = createGroup(name);
 
-      AVAILABLE_CONTEXTS.set(name, shortcutContext);
+      AVAILABLE_CONTEXTS.set(name, group);
 
-      return shortcutContext;
+      return group;
     },
     /**
      * TODO
@@ -54,7 +53,7 @@ export function useContexts() {
         throw new Error(ERROR_NOT_ADDED(name));
       }
 
-      return AVAILABLE_CONTEXTS.get(name);
+      return AVAILABLE_CONTEXTS.get(name)!;
     },
     /**
      * TODO

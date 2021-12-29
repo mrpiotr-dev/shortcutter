@@ -8,8 +8,7 @@
 
 import { PHASES } from '.';
 import { useContexts } from './contexts';
-import { useController } from './controller';
-import { normalizeKeyCode } from './helpers';
+import { useObserver } from './observer';
 
 type Config = {
   eventTarget: EventTarget,
@@ -34,7 +33,7 @@ export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}
   const { eventTarget, defaultContext } = CONFIG;
 
   const contexts = useContexts();
-  const keysRecorder = useController();
+  const observer = useObserver();
 
   contexts.add(defaultContext);
   contexts.setActive(defaultContext);
@@ -45,34 +44,34 @@ export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}
   eventTarget.addEventListener('blur', onblur as EventListener);
   eventTarget.addEventListener('unload', onunload);
 
-  const invokeClbck = (keys: string[], event: Event, phase: PHASES) => {
+  const invokeClbck = (keys: string[], event: Event, phase: PHASES.START|PHASES.CONTINUE|PHASES.END) => {
     contexts.getActive().forEach(context => {
       const ctx = contexts.get(context);
 
-      if (ctx?.has(keys, phase)) {
+      if (ctx.has(keys, phase)) {
         (ctx.get(keys, phase) as (...args: unknown[]) => void)(event, phase);
       }
     });
   };
 
   function onkeydown(event: KeyboardEvent): void {
-    const previousCombination = keysRecorder.getPressed().join('+');
+    const previousCombination = observer.getPressed().join('+');
 
-    keysRecorder.press(normalizeKeyCode(event.code));
+    observer.press(event.key);
 
-    const nextCombination = keysRecorder.getPressed().join('+');
+    const nextCombination = observer.getPressed().join('+');
 
     if (previousCombination !== nextCombination) {
       if (previousCombination.length) {
-        invokeClbck(previousCombination.split('+'), event, PHASES.UP);
+        invokeClbck(previousCombination.split('+'), event, PHASES.START);
         // console.log('shortcut_up', previousCombination);
       }
 
       // console.log('shortcut_down', nextCombination);
-      invokeClbck(nextCombination.split('+'), event, PHASES.DOWN);
+      invokeClbck(nextCombination.split('+'), event, PHASES.START);
 
     } else {
-      invokeClbck(previousCombination.split('+'), event, PHASES.PRESS);
+      invokeClbck(previousCombination.split('+'), event, PHASES.CONTINUE);
       // console.log('shortcut_press', previousCombination);
     }
 
@@ -80,18 +79,18 @@ export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}
   }
 
   function onkeyup(event: KeyboardEvent): void {
-    const previousCombination = keysRecorder.getPressed().join('+');
+    const previousCombination = observer.getPressed().join('+');
 
-    keysRecorder.release(normalizeKeyCode(event.code));
+    observer.release(event.key);
 
-    const nextCombination = keysRecorder.getPressed().join('+');
+    const nextCombination = observer.getPressed().join('+');
 
     if (previousCombination.length) {
-      invokeClbck(previousCombination.split('+'), event, PHASES.UP);
+      invokeClbck(previousCombination.split('+'), event, PHASES.END);
       // console.log('shortcut_up', previousCombination);
     }
     if (nextCombination.length) {
-      invokeClbck(nextCombination.split('+'), event, PHASES.DOWN);
+      invokeClbck(nextCombination.split('+'), event, PHASES.START);
       // console.log('shortcut_down', nextCombination);
     }
 
@@ -99,14 +98,14 @@ export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}
   }
 
   function onblur(event: FocusEvent): void {
-    const previousCombination = keysRecorder.getPressed().join('+');
+    const previousCombination = observer.getPressed().join('+');
 
     if (previousCombination.length) {
-      invokeClbck(previousCombination.split('+'), event, PHASES.UP);
+      invokeClbck(previousCombination.split('+'), event, PHASES.END);
       // console.log('shortcut_up', previousCombination);
     }
 
-    keysRecorder.releaseAll();
+    observer.releaseAll();
   }
 
   function onunload(): void {
@@ -126,14 +125,14 @@ export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}
       // console.log([context, keys, callback, phases]);
       const ctx = contexts.has(context) ? contexts.get(context) : contexts.add(context);
 
-      ctx?.add(keys, callback, phases);
+      ctx.add(keys, callback, phases);
 
-      return () => ctx?.remove(keys, phases);
+      return () => ctx.remove(keys, phases);
     },
     unlisten: (context: string, keys: string[], phases?: PHASES) => {
       const ctx = contexts.get(context);
 
-      ctx?.remove(keys, phases);
+      ctx.remove(keys, phases);
     },
     hasContext: (name: string) => contexts.has(name),
     getActiveContext: () => contexts.getActive(),

@@ -7,13 +7,13 @@
  */
 
 export const enum PHASES {
-  DOWN = 'down',
-  PRESS = 'press',
-  UP = 'up',
-  DOWN_PRESS = 'down|press',
-  DOWN_UP = 'down|up',
-  PRESS_UP = 'press|up',
-  DOWN_PRESS_UP = 'down|press|up',
+  START = 'start',
+  CONTINUE = 'continue',
+  END = 'end',
+  START_CONTINUE = 'start|continue',
+  START_END = 'start|end',
+  CONTINUE_END = 'continue|end',
+  START_CONTINUE_END = 'start|continue|end',
 }
 
 export const PHASES_SEPARATOR = '|';
