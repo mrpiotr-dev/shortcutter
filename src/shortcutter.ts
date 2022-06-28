@@ -65,18 +65,13 @@ export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}
     if (previousCombination !== nextCombination) {
       if (previousCombination.length) {
         invokeClbck(previousCombination.split('+'), event, PHASES.UP);
-        // console.log('shortcut_up', previousCombination);
       }
 
-      // console.log('shortcut_down', nextCombination);
       invokeClbck(nextCombination.split('+'), event, PHASES.DOWN);
 
     } else {
       invokeClbck(previousCombination.split('+'), event, PHASES.PRESS);
-      // console.log('shortcut_press', previousCombination);
     }
-
-    // event.preventDefault();
   }
 
   function onkeyup(event: KeyboardEvent): void {
@@ -88,14 +83,10 @@ export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}
 
     if (previousCombination.length) {
       invokeClbck(previousCombination.split('+'), event, PHASES.UP);
-      // console.log('shortcut_up', previousCombination);
     }
     if (nextCombination.length) {
       invokeClbck(nextCombination.split('+'), event, PHASES.DOWN);
-      // console.log('shortcut_down', nextCombination);
     }
-
-    //event.preventDefault();
   }
 
   function onblur(event: FocusEvent): void {
@@ -103,7 +94,6 @@ export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}
 
     if (previousCombination.length) {
       invokeClbck(previousCombination.split('+'), event, PHASES.UP);
-      // console.log('shortcut_up', previousCombination);
     }
 
     keysRecorder.releaseAll();
@@ -117,13 +107,8 @@ export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}
   }
   /* END MESS */
 
-
   return {
-    // keysRecorder,
-    // contexts,
-
     listen: (context: string, keys: string[], callback: (event:Event, phase: PHASES) => void, phases?: PHASES) => {
-      // console.log([context, keys, callback, phases]);
       const ctx = contexts.has(context) ? contexts.get(context) : contexts.add(context);
 
       ctx?.add(keys, callback, phases);
