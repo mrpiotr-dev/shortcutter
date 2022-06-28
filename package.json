@@ -24,7 +24,7 @@
     "url": "git+https://github.com/mrpiotr-dev/shortcutter.git"
   },
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "scripts": {
     "lint": "eslint ./src",
     "test:unit": "jest",
