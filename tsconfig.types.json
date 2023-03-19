@@ -2,7 +2,7 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "declaration": true,
-    "noEmit": true,
-    "outDir": "bundle",
+    "emitDeclarationOnly": true,
+    "outDir": "bundle/types",
   }
 }
