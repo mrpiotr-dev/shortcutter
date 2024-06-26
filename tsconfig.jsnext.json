@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "outDir": "bundle/jsnext",
+    "noEmit": false,
+    "removeComments": false,
+  },
+}

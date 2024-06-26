@@ -1,0 +1,51 @@
+{
+  "private": true,
+  "author": "Piotr Laszczkowski <contact@mrpiotr.dev>",
+  "bugs": {
+    "url": "https://github.com/mrpiotr-dev/shortcutter/issues"
+  },
+  "description": "Tiny, dependency-free library to manage keyboard shortcuts in your application.",
+  "homepage": "https://shortcutter.dev",
+  "keywords": [
+    "shortcuts",
+    "hotkeys",
+    "hotkey",
+    "keyboard",
+    "shortcut",
+    "keydown",
+    "keypress",
+    "keyup",
+    "key-binding"
+  ],
+  "license": "MIT",
+  "name": "shortcutter",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrpiotr-dev/shortcutter.git"
+  },
+  "type": "module",
+  "version": "0.2.0",
+  "scripts": {
+    "dev": "vite",
+    "preview": "vite preview",
+    "prebuild": "rimraf bundle",
+    "postbuild": "node ./.scripts/copy-assets.js",
+    "build": "concurrently \"pnpm:build-*\"",
+    "build-umd": "tsc && vite build",
+    "build-cjs": "tsc --project tsconfig.cjs.json",
+    "build-esm": "tsc --project tsconfig.esm.json",
+    "build-jsnext": "tsc --project tsconfig.jsnext.json",
+    "build-types": "tsc --project tsconfig.types.json",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "fs-extra": "^11.2.0",
+    "jsdom": "^24.1.0",
+    "rimraf": "^5.0.7",
+    "typescript": "^5.5.2",
+    "vite": "^5.3.1",
+    "vitest": "^1.6.0"
+  }
+}
