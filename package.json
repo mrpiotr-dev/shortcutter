@@ -1,68 +1,20 @@
 {
+  "name": "shortcutter-monorepo",
   "private": true,
-  "author": "Piotr Laszczkowski <contact@mrpiotr.dev>",
-  "bugs": {
-    "url": "https://github.com/mrpiotr-dev/shortcutter/issues"
-  },
-  "description": "Tiny, dependency-free library to manage keyboard shortcuts in your application.",
-  "homepage": "https://shortcutter.dev",
-  "keywords": [
-    "shortcuts",
-    "hotkeys",
-    "hotkey",
-    "keyboard",
-    "shortcut",
-    "keydown",
-    "keypress",
-    "keyup",
-    "key-binding"
-  ],
-  "license": "MIT",
-  "name": "shortcutter",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mrpiotr-dev/shortcutter.git"
-  },
   "type": "module",
-  "version": "0.2.0",
   "scripts": {
-    "lint": "eslint ./src",
-    "test:unit": "jest",
-    "test": "npm-run-all lint test:*",
-    "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs",
-    "prebuild": "rimraf coverage bundle",
-    "postbuild": "node ./.scripts/copy-assets.js",
-    "build": "npm-run-all build:cjs build:esm build:jsnext build:umd build:types",
-    "build:umd": "cross-env NODE_ENV=production webpack",
-    "build:umd.dev": "cross-env NODE_ENV=development webpack",
-    "build:cjs": "tsc --project tsconfig.cjs.json",
-    "build:esm": "tsc --project tsconfig.esm.json",
-    "build:jsnext": "tsc --project tsconfig.jsnext.json",
-    "build:types": "tsc --project tsconfig.types.json",
-    "serve": "cross-env NODE_ENV=serve webpack-dev-server"
+    "ready": "vp check && vp run -r test && vp run -r build",
+    "dev": "vp run playground#dev",
+    "build": "vp run -r build",
+    "test": "vp run -r test",
+    "check": "vp check",
+    "prepare": "vp config"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.0",
-    "@typescript-eslint/eslint-plugin": "^5.55.0",
-    "@typescript-eslint/parser": "^5.55.0",
-    "cross-env": "^7.0.3",
-    "eslint": "^8.36.0",
-    "eslint-config-airbnb-typescript": "^17.0.0",
-    "eslint-plugin-license-header": "^0.6.0",
-    "fs-extra": "^11.1.0",
-    "jest": "^29.5.0",
-    "jest-environment-jsdom": "^29.5.0",
-    "npm-run-all": "^4.1.5",
-    "rimraf": "^4.4.0",
-    "ts-jest": "^29.0.5",
-    "ts-loader": "^9.4.2",
-    "ts-node": "^10.9.1",
-    "typedoc": "^0.23.27",
-    "typedoc-plugin-markdown": "^3.14.0",
-    "typescript": "^4.9.5",
-    "webpack": "^5.76.2",
-    "webpack-cli": "^5.0.1",
-    "webpack-dev-server": "^4.13.1"
-  }
+    "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "packageManager": "pnpm@12.18.0+sha512.9d7882d5dc82147ecfc4e062aa34834e0ad0296710a1837a1115ae012127d36b7109e321ac1598a1dd0a65597681b1e99917e12ed0d749eae91187943363beb3"
 }

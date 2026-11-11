@@ -15,10 +15,14 @@ export function createContext(contextName: string) {
     throw new Error('Context has to has a name.');
   }
 
-  const SHORTCUTS: Map<string, (event:Event, phase: PHASES) => void> = new Map();
+  const SHORTCUTS: Map<string, (event: Event, phase: PHASES) => void> = new Map();
 
   return {
-    add: (shortcut: string[], callback: (event:Event, phase: PHASES) => void, phases: PHASES = PHASES.DOWN_PRESS) => {
+    add: (
+      shortcut: string[],
+      callback: (event: Event, phase: PHASES) => void,
+      phases: PHASES = PHASES.DOWN_PRESS,
+    ) => {
       const normalizedShortcut = normalizeShortcut(shortcut);
 
       phasesIterator(phases, normalizedShortcut, (phasedShortcut, phase) => {
@@ -34,9 +38,11 @@ export function createContext(contextName: string) {
       const phasedShortcut = `${normalizedShortcut}_${phase}`;
 
       if (!SHORTCUTS.has(phasedShortcut)) {
-        throw new Error(`Shortcut "${normalizedShortcut}" does not exist in "${contextName}" context.`);
+        throw new Error(
+          `Shortcut "${normalizedShortcut}" does not exist in "${contextName}" context.`,
+        );
       }
-    
+
       return SHORTCUTS.get(phasedShortcut);
     },
     has(shortcut: string[], phase: PHASES): boolean {
@@ -50,9 +56,11 @@ export function createContext(contextName: string) {
 
       phasesIterator(phases, normalizedShortcut, (phasedShortcut) => {
         if (!SHORTCUTS.has(phasedShortcut)) {
-          throw new Error(`Shortcut "${normalizedShortcut}" does not exist in "${contextName}" context.`);
+          throw new Error(
+            `Shortcut "${normalizedShortcut}" does not exist in "${contextName}" context.`,
+          );
         }
-      
+
         SHORTCUTS.delete(phasedShortcut);
       });
     },

@@ -6,7 +6,8 @@
  * found in the LICENSE file at https://github.com/mrpiotr-dev/shortcutter/blob/master/LICENSE
  */
 
-import { PHASES, useShortcutter} from '../index';
+import { describe, expect, it } from 'vite-plus/test';
+import { PHASES, useShortcutter } from '../src/index';
 
 describe('publicAPI', () => {
   it('should expose a particular parts of lib', () => {
@@ -18,6 +19,6 @@ describe('publicAPI', () => {
     expect(PHASES.PRESS_UP).toBe('press|up');
     expect(PHASES.UP).toBe('up');
 
-    expect(useShortcutter()).toBeDefined(); 
+    expect(useShortcutter()).toBeDefined();
   });
 });

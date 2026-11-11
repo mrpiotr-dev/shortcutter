@@ -6,8 +6,9 @@
  * found in the LICENSE file at https://github.com/mrpiotr-dev/shortcutter/blob/master/LICENSE
  */
 
-import { normalizeShortcut, phasesIterator } from '../helpers';
-import { PHASES } from '../types';
+import { describe, expect, it, vi } from 'vite-plus/test';
+import { normalizeShortcut, phasesIterator } from '../src/helpers';
+import { PHASES } from '../src/types';
 
 describe('helpers', () => {
   describe('normalizeShortcut', () => {
@@ -24,7 +25,7 @@ describe('helpers', () => {
 
   describe('phasesIterator', () => {
     it('should iteratee after each phase', () => {
-      const mock = jest.fn();
+      const mock = vi.fn();
 
       phasesIterator(PHASES.DOWN_PRESS_UP, 'ctrl+shift+z', mock);
 

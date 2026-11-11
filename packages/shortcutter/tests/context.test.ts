@@ -6,7 +6,8 @@
  * found in the LICENSE file at https://github.com/mrpiotr-dev/shortcutter/blob/master/LICENSE
  */
 
-import { createContext } from '../context';
+import { describe, expect, it, vi } from 'vite-plus/test';
+import { createContext } from '../src/context';
 
 describe('createContext', () => {
   it('should throw an error if context has no name', () => {
@@ -18,19 +19,16 @@ describe('createContext', () => {
   describe('addShortcut', () => {
     it('should add passed shortcut under the default phases', () => {
       const shortcutContext = createContext('context');
-      const callback = jest.fn();
+      const callback = vi.fn();
 
       shortcutContext.add(['a'], callback);
 
-      expect(shortcutContext.getAll()).toEqual([
-        'a_down',
-        'a_press',
-      ]);
+      expect(shortcutContext.getAll()).toEqual(['a_down', 'a_press']);
     });
 
     it('should throw an error if shortcut is already registered under particular phase', () => {
       const shortcutContext = createContext('context');
-      const callback = jest.fn();
+      const callback = vi.fn();
 
       shortcutContext.add(['a'], callback);
 
@@ -39,5 +37,4 @@ describe('createContext', () => {
       }).toThrowError('Shortcut "a" is already added to "down" phase.');
     });
   });
-
 });
