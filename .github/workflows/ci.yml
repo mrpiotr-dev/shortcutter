@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          version-file: pnpm-workspace.yaml
+          node-version: lts
+          cache: true
+          run-install: true
+
+      - name: Format, lint & type-check
+        run: vp check
+
+      - name: Test
+        run: vp run -r test:coverage
+
+      - name: Build (incl. publint + attw)
+        run: vp run -r build
