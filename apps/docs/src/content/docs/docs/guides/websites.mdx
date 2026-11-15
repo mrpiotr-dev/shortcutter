@@ -25,12 +25,16 @@ shortcutter.listen('Slash', () => search.focus(), {
 
 Both are ignored while the user types in a field, so a `/` inside the search box is just a slash.
 
-## A ? help dialog
+## Help dialog and keyboard layouts
 
-Describe each shortcut, then build the dialog from the registry:
+Two conventions are common: <kbd>⌘</kbd> / <kbd>Ctrl</kbd> + <kbd>/</kbd> (Google Docs, Slack) and <kbd>?</kbd> (Gmail, GitHub). Register both, describe them, then build the dialog from the registry:
 
 ```ts
-shortcutter.listen('Shift+Slash', openHelp, { description: 'Show keyboard shortcuts' });
+shortcutter.listen('ControlOrMeta+Slash', openHelp, {
+  preventDefault: true,
+  description: 'Show keyboard shortcuts',
+});
+shortcutter.listen('Shift+Slash', openHelp, { description: 'Show keyboard shortcuts (?)' });
 
 function openHelp() {
   list.replaceChildren(
@@ -41,7 +45,7 @@ function openHelp() {
 ```
 
 :::note[Why Shift+Slash and not ?]
-Shortcuts follow physical keys (`KeyboardEvent.code`), so they work the same on every layout, but the characters printed on the keys move. On US layouts <kbd>?</kbd> is <kbd>Shift</kbd> + <kbd>/</kbd>, so it is declared as `Shift+Slash`. On a German layout <kbd>?</kbd> is <kbd>Shift</kbd> + <kbd>ß</kbd>, which is `Shift+Minus`. If your audience is mostly on one layout, register that combination. For a global audience, pick a key that does not move between layouts, such as `ControlOrMeta+Shift+F1` (the home page of this site does), and also offer a visible button.
+Shortcuts follow physical keys (`KeyboardEvent.code`), so they work the same on every layout, but the characters printed on the keys move. On US layouts <kbd>?</kbd> is <kbd>Shift</kbd> + <kbd>/</kbd>, so it is declared as `Shift+Slash`. On a German layout <kbd>?</kbd> is <kbd>Shift</kbd> + <kbd>ß</kbd>, which is `Shift+Minus`. If your audience is mostly on one layout, register that combination. For a global audience, lead with a shortcut that does not depend on the printed character, such as `ControlOrMeta+Slash` (the Slash key exists on every layout, only its label differs), and also offer a visible button. The home page of this site does exactly that.
 :::
 
 ## Close with Escape

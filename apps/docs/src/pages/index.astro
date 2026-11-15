@@ -89,12 +89,12 @@ function Counter() {
 
 const install = 'pnpm add shortcutter';
 
-const autodocs = `shortcutter.listen('ControlOrMeta+Shift+F1', openHelp, {
+const autodocs = `shortcutter.listen('ControlOrMeta+Slash', openHelp, {
   description: 'Show all keyboard shortcuts',
 });
 
 const help = shortcutter.shortcuts({ active: true });
-// [{ keys: ['meta', 'shift', 'f1'],
+// [{ keys: ['meta', 'slash'],
 //    description: 'Show all keyboard shortcuts', … }]
 
 help.forEach(({ keys, description }) => addRow(keys, description));`;
@@ -191,8 +191,12 @@ help.forEach(({ keys, description }) => addRow(keys, description));`;
           never goes out of date.
         </p>
         <button type="button" class="btn btn-outline" data-open-help>
-          Show this page's shortcuts <kbd class="kbd-chip" data-chip-shortcut="ControlOrMeta+Shift+F1">Ctrl ⇧ F1</kbd>
+          Show this page's shortcuts <kbd class="kbd-chip" data-chip-shortcut="ControlOrMeta+Slash">Ctrl /</kbd>
         </button>
+        <p class="also">
+          <kbd class="keycap">?</kbd> works too, as in Gmail, on US-style keyboard layouts.{' '}
+          <a href="/docs/guides/websites/#help-dialog-and-keyboard-layouts">Why other layouts differ</a>
+        </p>
       </div>
       <Code code={autodocs} lang="ts" />
     </section>
@@ -275,6 +279,7 @@ help.forEach(({ keys, description }) => addRow(keys, description));`;
       <li role="option" data-command="theme">Toggle the theme</li>
       <li role="option" data-command="copy">Copy the install command</li>
       <li role="option" data-command="example">Jump to the live example</li>
+      <li role="option" data-command="help">Show keyboard shortcuts</li>
     </ul>
     <p class="palette-help">
       <kbd class="keycap">↑</kbd> <kbd class="keycap">↓</kbd> move · <kbd class="keycap">Enter</kbd> run ·

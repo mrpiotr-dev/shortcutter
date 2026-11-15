@@ -530,6 +530,12 @@ h2::before {
   margin: 0 0 1.25rem;
 }
 
+.autodocs .also {
+  margin: 0.75rem 0 0;
+  color: var(--fg-2);
+  font-size: 0.95rem;
+}
+
 /* ---------- Help dialog ---------- */
 
 .help h2 {
