@@ -1,7 +1,13 @@
-// Bauhaus code themes: ink or paper text, cobalt keywords, red strings, yellow (dark) or ochre (light)
-// constants, grey comments. Everything else stays plain, so the primaries keep their meaning.
+// Bauhaus code themes built from the site palette. Each kind of token gets its own colour so an
+// instance, its properties, the methods called on it and plain functions read apart:
+// keywords cobalt, strings red, calls yellow/ochre, constants green, properties grey,
+// variables plain ink/paper, parameters italic, punctuation and comments dimmed.
 
-/** @param {{ name: string, type: 'dark' | 'light', bg: string, fg: string, comment: string, keyword: string, string: string, constant: string, punctuation: string }} c */
+/**
+ * @param {{ name: string, type: 'dark' | 'light', bg: string, fg: string, comment: string,
+ *   keyword: string, string: string, call: string, constant: string, property: string,
+ *   punctuation: string }} c
+ */
 function theme(c) {
   return {
     name: c.name,
@@ -22,7 +28,12 @@ function theme(c) {
           'storage.type',
           'storage.modifier',
           'keyword.operator.new',
+          'keyword.operator.expression',
           'variable.language',
+          'entity.name.type',
+          'support.type',
+          'entity.name.tag',
+          'support.class.component',
         ],
         settings: { foreground: c.keyword },
       },
@@ -31,24 +42,56 @@ function theme(c) {
         settings: { foreground: c.string },
       },
       {
-        scope: ['constant', 'constant.numeric', 'constant.language', 'support.constant'],
-        settings: { foreground: c.constant },
-      },
-      {
         scope: [
           'entity.name.function',
           'support.function',
           'meta.function-call entity.name.function',
+          'variable.function',
         ],
-        settings: { fontStyle: 'bold' },
+        settings: { foreground: c.call },
       },
       {
-        scope: ['entity.name.tag', 'support.class.component'],
-        settings: { foreground: c.keyword },
+        scope: [
+          'constant',
+          'constant.numeric',
+          'constant.language',
+          'support.constant',
+          'entity.other.attribute-name',
+        ],
+        settings: { foreground: c.constant },
       },
-      { scope: ['entity.other.attribute-name'], settings: { foreground: c.constant } },
       {
-        scope: ['punctuation', 'meta.brace', 'keyword.operator'],
+        scope: [
+          'variable.other.property',
+          'variable.other.object.property',
+          'support.variable.property',
+          'meta.object-literal.key',
+          'meta.property.object',
+          'variable.object.property',
+        ],
+        settings: { foreground: c.property },
+      },
+      {
+        scope: [
+          'variable',
+          'variable.other.object',
+          'variable.other.readwrite',
+          'variable.other.constant',
+        ],
+        settings: { foreground: c.fg },
+      },
+      {
+        scope: ['variable.parameter', 'meta.parameters variable'],
+        settings: { foreground: c.fg, fontStyle: 'italic' },
+      },
+      {
+        scope: [
+          'punctuation',
+          'meta.brace',
+          'keyword.operator',
+          'punctuation.accessor',
+          'punctuation.separator',
+        ],
         settings: { foreground: c.punctuation },
       },
     ],
@@ -63,8 +106,10 @@ export const bauhausInk = theme({
   comment: '#8f8a7f',
   keyword: '#7c9cf0',
   string: '#f07a66',
-  constant: '#f2be1a',
-  punctuation: '#aaa496',
+  call: '#f2be1a',
+  constant: '#5cc28a',
+  property: '#c2bba9',
+  punctuation: '#8f8a7f',
 });
 
 export const bauhausPaper = theme({
@@ -75,6 +120,8 @@ export const bauhausPaper = theme({
   comment: '#6b665c',
   keyword: '#2551b5',
   string: '#b52a17',
-  constant: '#7a5c00',
-  punctuation: '#4f4c45',
+  call: '#7a5c00',
+  constant: '#1f6b3f',
+  property: '#4f4c45',
+  punctuation: '#6b665c',
 });

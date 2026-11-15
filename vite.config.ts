@@ -6,7 +6,8 @@ export default defineConfig({
   },
   fmt: {
     singleQuote: true,
-    ignorePatterns: ['docs/**', '**/dist/**', 'pnpm-lock.yaml'],
+    // MDX: the formatter collapses code fences inside JSX components, which breaks them.
+    ignorePatterns: ['docs/**', '**/dist/**', 'pnpm-lock.yaml', '**/*.mdx'],
   },
   lint: {
     ignorePatterns: ['docs/**', '**/dist/**'],
