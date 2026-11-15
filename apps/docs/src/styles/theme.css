@@ -98,8 +98,9 @@ h3,
   background: var(--sc-red);
 }
 
-/* Keycaps: flat, 2px ink border, a heavier bottom edge. */
-kbd {
+/* Keycaps in content: flat, 2px ink border, a heavier bottom edge. */
+.sl-markdown-content kbd,
+.keycap {
   font-family: var(--sl-font-mono);
   font-size: 0.85em;
   padding: 0.05em 0.45em;
@@ -109,10 +110,18 @@ kbd {
   color: var(--sl-color-white);
 }
 
-kbd:active,
-kbd.is-pressed {
+.sl-markdown-content kbd:active,
+.keycap:active,
+.keycap.is-pressed {
   border-bottom-width: var(--sc-border);
   background: var(--sc-red);
   color: #ffffff;
   transform: translateY(2px);
+}
+
+/* Current page in the sidebar: a solid cobalt block. */
+.sidebar-content a[aria-current='page'] {
+  background: var(--sc-cobalt);
+  color: #ffffff;
+  font-weight: 600;
 }
