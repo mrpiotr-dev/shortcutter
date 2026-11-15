@@ -1,0 +1,35 @@
+name: Branch rules
+
+# Conventional Branch (https://conventionalbranch.org), human branch types only.
+# Releases reach main only from develop, release/* or hotfix/*.
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check source branch
+        env:
+          HEAD: ${{ github.head_ref }}
+          BASE: ${{ github.base_ref }}
+        run: |
+          pattern='^(feature|feat|bugfix|fix|hotfix|release|chore)/[a-z0-9]+(\.[a-z0-9]+)*(-[a-z0-9]+(\.[a-z0-9]+)*)*$'
+
+          if [[ "$HEAD" == dependabot/* || "$HEAD" == renovate/* ]]; then
+            echo "Bot branch $HEAD, skipping name check."
+          elif [[ "$HEAD" != "develop" && ! "$HEAD" =~ $pattern ]]; then
+            echo "::error::Branch '$HEAD' must be <type>/<description>: type is feature|feat|bugfix|fix|hotfix|release|chore, description uses a-z, 0-9, single hyphens, dots only in versions."
+            exit 1
+          fi
+
+          if [[ "$BASE" == "main" && "$HEAD" != "develop" && "$HEAD" != release/* && "$HEAD" != hotfix/* ]]; then
+            echo "::error::Pull requests into main must come from develop, release/* or hotfix/* (got '$HEAD')."
+            exit 1
+          fi
+
+          echo "OK: $HEAD -> $BASE"

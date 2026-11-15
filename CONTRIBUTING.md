@@ -21,3 +21,12 @@ pnpm run check        # format, lint & type-check
 pnpm run test         # unit tests
 pnpm run build        # library build (+ publint, attw) and playground build
 ```
+
+## Branches
+
+- `main`: released code only. Pull requests come from `develop`, `release/*` or `hotfix/*` and are merged with a merge commit.
+- `develop`: the default branch where finished work is integrated. Task branches are squash-merged into it.
+- Task branches follow [Conventional Branch](https://conventionalbranch.org): `<type>/<description>`, with type `feature` (or `feat`), `bugfix` (or `fix`), `hotfix`, `release` or `chore`. Use lowercase letters, digits and single hyphens; dots only in versions. Examples: `feat/issue-12-mod-key`, `fix/meta-stuck-keys`, `release/v0.3.0`.
+- Hotfixes branch from `main`, merge into `main`, then back into `develop`.
+
+The `Branch rules` workflow checks branch names and the source branch of pull requests into `main`.
