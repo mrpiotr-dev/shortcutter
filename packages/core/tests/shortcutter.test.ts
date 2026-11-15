@@ -391,6 +391,58 @@ describe('createShortcutter', () => {
     });
   });
 
+  describe('observe', () => {
+    it('reports every phase of every combination, registered or not', () => {
+      const { sc, kb } = setup();
+      const seen: string[] = [];
+
+      sc.observe((_event, { phase, shortcut }) => seen.push(`${shortcut} ${phase}`));
+      kb.down('ShiftLeft');
+      kb.down('KeyA');
+      kb.down('KeyA', { repeat: true });
+      kb.up('KeyA');
+      kb.up('ShiftLeft');
+
+      expect(seen).toEqual([
+        'shift down',
+        'shift up',
+        'a+shift down',
+        'a+shift press',
+        'a+shift up',
+        'shift up',
+      ]);
+    });
+
+    it('runs before matching handlers and ignores contexts and the input guard', () => {
+      const { sc, kb } = setup();
+      const order: string[] = [];
+
+      sc.observe(() => order.push('observer'));
+      sc.listen('A', () => order.push('handler'));
+      sc.contexts.activate('elsewhere');
+      kb.down('KeyA');
+      kb.up('KeyA');
+      sc.contexts.activate('default');
+      kb.down('KeyA');
+
+      expect(order).toEqual(['observer', 'observer', 'observer', 'handler']);
+    });
+
+    it('stops after unsubscribing or destroy()', () => {
+      const { sc, kb } = setup();
+      const first = vi.fn();
+      const second = vi.fn();
+
+      sc.observe(first)();
+      sc.observe(second);
+      sc.destroy();
+      kb.down('KeyA');
+
+      expect(first).not.toHaveBeenCalled();
+      expect(second).not.toHaveBeenCalled();
+    });
+  });
+
   describe('leaving the page', () => {
     it('releases all keys and fires "up" on pagehide (e.g. a shortcut navigated away)', () => {
       const { sc, kb, handler, phases } = setup();

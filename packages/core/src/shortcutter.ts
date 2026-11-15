@@ -13,6 +13,7 @@ import type {
   KeysListener,
   ListenOptions,
   Phase,
+  PhaseListener,
   Phases,
   ShortcutHandler,
   ShortcutInfo,
@@ -95,6 +96,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
   const registrations = new Set<Registration>();
   const pressed = new Set<string>();
   const subscribers = new Set<KeysListener>();
+  const observers = new Set<PhaseListener>();
   let active: string[] = [defaultContext];
 
   /** Tells subscribers about a change of the held keys (`before` is the combination before it). */
@@ -108,6 +110,8 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
 
   function dispatch(keys: string, phase: Phase, event: KeyboardEvent | Event): void {
     if (keys === '') return;
+
+    for (const observer of observers) observer(event, { phase, shortcut: keys });
 
     const typing = event.type.startsWith('key') && isTyping(event as KeyboardEvent);
     const held = keys.split('+');
@@ -230,6 +234,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
     listeners.abort();
     pressed.clear();
     subscribers.clear();
+    observers.clear();
   }
 
   if (options.signal?.aborted) {
@@ -362,6 +367,14 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
 
       subscribers.add(listener);
       return () => void subscribers.delete(listener);
+    },
+    observe(listener: PhaseListener) {
+      if (typeof listener !== 'function') {
+        throw new Error('Listener has to be a function.');
+      }
+
+      observers.add(listener);
+      return () => void observers.delete(listener);
     },
     destroy,
   };

@@ -3,6 +3,7 @@ export type {
   KeysListener,
   ListenOptions,
   Phase,
+  PhaseListener,
   Phases,
   ShortcutDetail,
   ShortcutHandler,

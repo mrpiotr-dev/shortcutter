@@ -13,6 +13,7 @@ describe('publicAPI', () => {
       'contexts',
       'destroy',
       'listen',
+      'observe',
       'pressed',
       'shortcuts',
       'subscribe',

@@ -114,6 +114,7 @@ Returns:
 - `contexts.activate(...names)`, `contexts.active()`, `contexts.isActive(name)`.
 - `pressed()`: keys held right now, e.g. `['k', 'shift']`.
 - `subscribe(listener)`: calls `listener(pressed, event)` whenever the held keys change and returns an unsubscribe function. Useful for key visualizers or React's `useSyncExternalStore`.
+- `observe(listener)`: calls `listener(event, { phase, shortcut })` for every `down`, `press` and `up` of any key combination, matched or not, before handlers run. Useful for key loggers and visualizers.
 - `destroy()`: removes all event listeners.
 
 ## Frameworks

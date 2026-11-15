@@ -28,6 +28,12 @@ export type ShortcutDetail = {
  */
 export type ShortcutHandler = (event: KeyboardEvent | Event, detail: ShortcutDetail) => void;
 
+/** Gets every phase of every key combination, matched or not. */
+export type PhaseListener = (
+  event: KeyboardEvent | Event,
+  detail: { phase: Phase; /** Keys held, canonical, e.g. `'k+meta'`. */ shortcut: string },
+) => void;
+
 /** Gets the keys held right now (sorted canonical names) each time they change. */
 export type KeysListener = (pressed: string[], event: KeyboardEvent | Event) => void;
 
@@ -117,6 +123,12 @@ export type Shortcutter = {
    * function. Fits `useSyncExternalStore` in React, or any key visualizer.
    */
   subscribe(listener: KeysListener): () => void;
+  /**
+   * Calls `listener` for every `down`, `press` and `up` of any key combination, whether or not a
+   * shortcut matches it, before matching handlers run. Ignores contexts and the input guard.
+   * Returns an unsubscribe function. Useful for key loggers, visualizers and analytics.
+   */
+  observe(listener: PhaseListener): () => void;
   /** Removes all event listeners. Registered shortcuts stop firing. Safe to call twice. */
   destroy(): void;
 };
