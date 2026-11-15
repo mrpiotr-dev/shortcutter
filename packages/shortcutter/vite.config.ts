@@ -2,7 +2,8 @@ import { defineConfig } from 'vite-plus';
 import type { PackUserConfig } from 'vite-plus/pack';
 import pkg from './package.json' with { type: 'json' };
 
-const banner = `/*! ${pkg.name} v${pkg.version} | ${pkg.license} License | ${pkg.homepage} */`;
+// The only license notice in the output; per-file headers were dropped from the source.
+const banner = `/*! ${pkg.name} v${pkg.version} | ${pkg.license} License | Copyright (c) 2021-present SLAVICTECH PIOTR LASZCZKOWSKI | ${pkg.homepage} */`;
 
 const shared: PackUserConfig = {
   entry: ['src/index.ts'],

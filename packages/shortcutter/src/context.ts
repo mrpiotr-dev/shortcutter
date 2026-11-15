@@ -1,11 +1,3 @@
-/**
- * @license
- * Copyright SLAVICTECH PIOTR LASZCZKOWSKI
- *
- * Use of this source code is governed by an MIT license that can be
- * found in the LICENSE file at https://github.com/mrpiotr-dev/shortcutter/blob/master/LICENSE
- */
-
 import { normalizeShortcut, phasesIterator } from './helpers';
 import { DEFAULT_PHASES, type Phase, type Phases, type ShortcutCallback } from './types';
 
