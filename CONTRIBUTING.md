@@ -7,11 +7,12 @@ The community's pull requests will be unavailable until the `Contributor License
 
 The repository is a [pnpm](https://pnpm.io) workspace driven by [Vite+](https://viteplus.dev) (`vp`):
 
-| Path                    | What                                                |
-| ----------------------- | --------------------------------------------------- |
-| `packages/shortcutter/` | the published library                               |
-| `apps/playground/`      | local sandbox, uses the library sources with HMR    |
-| `docs/`                 | current GitHub Pages site (to be replaced by Astro) |
+| Path                                 | What                                                |
+| ------------------------------------ | --------------------------------------------------- |
+| `packages/core/`                     | `@shortcutter/core`, the published library          |
+| `packages/{react,vue,svelte,solid}/` | `@shortcutter/*` framework adapters                 |
+| `apps/playground/`                   | local sandbox, uses the library sources with HMR    |
+| `docs/`                              | current GitHub Pages site (to be replaced by Astro) |
 
 ```sh
 corepack enable

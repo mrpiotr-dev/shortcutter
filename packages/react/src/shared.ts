@@ -1,5 +1,4 @@
-import { createShortcutter } from '../shortcutter';
-import type { ListenOptions, Shortcutter } from '../types';
+import { createShortcutter, type ListenOptions, type Shortcutter } from '@shortcutter/core';
 
 export type UseShortcutOptions = ListenOptions & {
   /** Set to `false` to remove the shortcut without unmounting. Defaults to `true`. */

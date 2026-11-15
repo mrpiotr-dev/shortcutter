@@ -1,8 +1,8 @@
 import { createComponent, createRoot, createSignal } from 'solid-js';
 import { describe, expect, it, vi } from 'vite-plus/test';
-import { createShortcutter } from '../../src/index';
-import { createShortcut, ShortcutterContext, useShortcutter } from '../../src/solid';
-import { keyboard } from '../keyboard';
+import { createShortcutter } from '@shortcutter/core';
+import { createShortcut, ShortcutterContext, useShortcutter } from '../src/index';
+import { keyboard } from '../../core/tests/keyboard';
 
 function setup() {
   const target = new EventTarget();

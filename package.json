@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "ready": "vp run shortcutter#build && vp check && vp run -r test && vp run -r build",
+    "ready": "vp run @shortcutter/core#build && vp check && vp run -r test && vp run -r build",
     "dev": "vp run playground#dev",
     "build": "vp run -r build",
     "test": "vp run -r test",

@@ -1,7 +1,7 @@
 import { flushSync, mount, unmount } from 'svelte';
 import { describe, expect, it, vi } from 'vite-plus/test';
-import { createShortcutter } from '../../src/index';
-import { keyboard } from '../keyboard';
+import { createShortcutter } from '@shortcutter/core';
+import { keyboard } from '../../core/tests/keyboard';
 import Fixture from './Fixture.svelte';
 
 function setup() {

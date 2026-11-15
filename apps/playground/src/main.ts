@@ -1,4 +1,4 @@
-import { createShortcutter } from 'shortcutter';
+import { createShortcutter } from '@shortcutter/core';
 
 const logEl = document.querySelector<HTMLDivElement>('#log')!;
 const contextsEl = document.querySelector<HTMLElement>('#contexts')!;

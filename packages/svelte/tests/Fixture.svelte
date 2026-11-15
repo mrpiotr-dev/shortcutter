@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Shortcutter } from '../../src/index';
-  import { setShortcutter, shortcut, useShortcut } from '../../src/svelte';
+  import type { Shortcutter } from '@shortcutter/core';
+  import { setShortcutter, shortcut, useShortcut } from '../src/index';
 
   let {
     shortcutter,

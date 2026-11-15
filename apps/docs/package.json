@@ -12,7 +12,7 @@
   "dependencies": {
     "@fontsource-variable/instrument-sans": "catalog:",
     "@fontsource-variable/jetbrains-mono": "catalog:",
-    "shortcutter": "workspace:*"
+    "@shortcutter/core": "workspace:*"
   },
   "devDependencies": {
     "@astrojs/starlight": "catalog:",

@@ -1,9 +1,9 @@
 import { act, createElement, StrictMode, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vite-plus/test';
-import { createShortcutter } from '../../src/index';
-import { ShortcutterProvider, useShortcut, useShortcutter } from '../../src/react';
-import { keyboard } from '../keyboard';
+import { createShortcutter } from '@shortcutter/core';
+import { ShortcutterProvider, useShortcut, useShortcutter } from '../src/index';
+import { keyboard } from '../../core/tests/keyboard';
 
 beforeAll(() => {
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;

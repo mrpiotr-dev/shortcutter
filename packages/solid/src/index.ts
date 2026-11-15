@@ -1,8 +1,8 @@
 import { createContext, createEffect, onCleanup, useContext, type Accessor } from 'solid-js';
-import { getDefaultShortcutter, toListenOptions, type UseShortcutOptions } from './adapters/shared';
-import type { ShortcutHandler, Shortcutter } from './types';
+import { getDefaultShortcutter, toListenOptions, type UseShortcutOptions } from './shared';
+import type { ShortcutHandler, Shortcutter } from '@shortcutter/core';
 
-export type { UseShortcutOptions } from './adapters/shared';
+export type { UseShortcutOptions } from './shared';
 
 /** `<ShortcutterContext.Provider value={shortcutter}>` makes it the instance used below. */
 export const ShortcutterContext = createContext<Shortcutter>();

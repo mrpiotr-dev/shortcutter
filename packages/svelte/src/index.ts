@@ -1,9 +1,9 @@
 import { getContext, onMount, setContext } from 'svelte';
 import type { Attachment } from 'svelte/attachments';
-import { getDefaultShortcutter, toListenOptions, type UseShortcutOptions } from './adapters/shared';
-import type { ShortcutHandler, Shortcutter } from './types';
+import { getDefaultShortcutter, toListenOptions, type UseShortcutOptions } from './shared';
+import type { ShortcutHandler, Shortcutter } from '@shortcutter/core';
 
-export type { UseShortcutOptions } from './adapters/shared';
+export type { UseShortcutOptions } from './shared';
 
 const KEY = Symbol('shortcutter');
 

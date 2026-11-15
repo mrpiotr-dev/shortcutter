@@ -25,9 +25,9 @@ jobs:
           cache: true
           run-install: true
 
-      # The playground type-checks against the built package, so build the library first.
+      # Adapters and the playground type-check against the built core, so build it first.
       - name: Build library
-        run: vp run shortcutter#build
+        run: vp run @shortcutter/core#build
 
       - name: Format, lint & type-check
         run: vp check

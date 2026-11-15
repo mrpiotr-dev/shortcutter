@@ -1,7 +1,7 @@
 {
-  "name": "shortcutter",
+  "name": "@shortcutter/core",
   "version": "0.2.0",
-  "description": "Tiny, dependency-free library to manage keyboard shortcuts in your application.",
+  "description": "Tiny, dependency-free keyboard shortcuts with contexts and key phases. SSR-safe.",
   "keywords": [
     "hotkey",
     "hotkeys",
@@ -13,7 +13,7 @@
     "shortcut",
     "shortcuts"
   ],
-  "homepage": "https://shortcutter.dev",
+  "homepage": "https://www.shortcutter.dev/",
   "bugs": {
     "url": "https://github.com/mrpiotr-dev/shortcutter/issues"
   },
@@ -22,7 +22,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mrpiotr-dev/shortcutter.git",
-    "directory": "packages/shortcutter"
+    "directory": "packages/core"
   },
   "files": [
     "dist"
@@ -38,22 +38,6 @@
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    },
-    "./react": {
-      "import": "./dist/react.js",
-      "require": "./dist/react.cjs"
-    },
-    "./solid": {
-      "import": "./dist/solid.js",
-      "require": "./dist/solid.cjs"
-    },
-    "./svelte": {
-      "import": "./dist/svelte.js",
-      "require": "./dist/svelte.cjs"
-    },
-    "./vue": {
-      "import": "./dist/vue.js",
-      "require": "./dist/vue.cjs"
     },
     "./package.json": "./package.json"
   },
@@ -71,38 +55,10 @@
   },
   "devDependencies": {
     "@arethetypeswrong/core": "catalog:",
-    "@sveltejs/vite-plugin-svelte": "catalog:",
-    "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "happy-dom": "catalog:",
     "publint": "catalog:",
-    "react": "catalog:",
-    "react-dom": "catalog:",
-    "solid-js": "catalog:",
-    "svelte": "catalog:",
     "typescript": "catalog:",
-    "vite-plus": "catalog:",
-    "vue": "catalog:"
-  },
-  "peerDependencies": {
-    "react": ">=18",
-    "solid-js": ">=1.8",
-    "svelte": ">=5.29",
-    "vue": ">=3.3"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    },
-    "solid-js": {
-      "optional": true
-    },
-    "svelte": {
-      "optional": true
-    },
-    "vue": {
-      "optional": true
-    }
+    "vite-plus": "catalog:"
   }
 }

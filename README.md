@@ -5,11 +5,11 @@ Tiny, dependency-free keyboard shortcuts for the browser, with **contexts** and 
 ## Getting started
 
 ```sh
-pnpm add shortcutter
+pnpm add @shortcutter/core
 ```
 
 ```ts
-import { createShortcutter } from 'shortcutter';
+import { createShortcutter } from '@shortcutter/core';
 
 const shortcutter = createShortcutter();
 
@@ -21,7 +21,7 @@ shortcutter.listen('ControlOrMeta+K', () => openCommandPalette(), { preventDefau
 Without a bundler, load the script build, which exposes `window.Shortcutter`:
 
 ```html
-<script src="https://unpkg.com/shortcutter"></script>
+<script src="https://unpkg.com/@shortcutter/core"></script>
 <script>
   const shortcutter = Shortcutter.createShortcutter();
 </script>
@@ -91,18 +91,18 @@ Returns:
 
 ## Frameworks
 
-Each adapter registers the shortcut after mount and removes it on unmount. It uses a shared instance on `window` unless you provide your own.
+Install the adapter next to the core, e.g. `pnpm add @shortcutter/core @shortcutter/react`. Each adapter registers the shortcut after mount and removes it on unmount. It uses a shared instance on `window` unless you provide your own.
 
 ```tsx
 // React: the latest handler is always called, no need to memoize it
-import { useShortcut, useShortcutter, ShortcutterProvider } from 'shortcutter/react';
+import { useShortcut, useShortcutter, ShortcutterProvider } from '@shortcutter/react';
 
 useShortcut('ControlOrMeta+K', () => setOpen(true), { preventDefault: true, enabled: !open });
 ```
 
 ```ts
 // Vue: the shortcut and options may be refs or getters
-import { useShortcut, useShortcutter, provideShortcutter } from 'shortcutter/vue';
+import { useShortcut, useShortcutter, provideShortcutter } from '@shortcutter/vue';
 
 useShortcut('ControlOrMeta+K', () => (open.value = true), { preventDefault: true });
 ```
@@ -110,7 +110,7 @@ useShortcut('ControlOrMeta+K', () => (open.value = true), { preventDefault: true
 ```svelte
 <!-- Svelte 5: in a component script, or as an attachment tied to an element -->
 <script>
-  import { shortcut, useShortcut } from 'shortcutter/svelte';
+  import { shortcut, useShortcut } from '@shortcutter/svelte';
 
   useShortcut('ControlOrMeta+K', () => (open = true), { preventDefault: true });
 </script>
@@ -120,12 +120,14 @@ useShortcut('ControlOrMeta+K', () => (open.value = true), { preventDefault: true
 
 ```ts
 // Solid: the shortcut and options may be accessors
-import { createShortcut, useShortcutter, ShortcutterContext } from 'shortcutter/solid';
+import { createShortcut, useShortcutter, ShortcutterContext } from '@shortcutter/solid';
 
 createShortcut('ControlOrMeta+K', () => setOpen(true), { preventDefault: true });
 ```
 
 ## Migrating from 0.2
+
+The package moved from `shortcutter` to `@shortcutter/core`.
 
 | 0.2                                                    | 0.3                                                           |
 | ------------------------------------------------------ | ------------------------------------------------------------- |

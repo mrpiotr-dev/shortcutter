@@ -5,8 +5,8 @@ export default defineConfig({
   resolve: {
     // Work against library sources directly: no rebuild needed, HMR on every change.
     alias: {
-      shortcutter: fileURLToPath(
-        new URL('../../packages/shortcutter/src/index.ts', import.meta.url),
+      '@shortcutter/core': fileURLToPath(
+        new URL('../../packages/core/src/index.ts', import.meta.url),
       ),
     },
   },

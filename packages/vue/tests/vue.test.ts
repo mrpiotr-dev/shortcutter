@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import { createApp, defineComponent, h, nextTick, ref, type App } from 'vue';
-import { createShortcutter } from '../../src/index';
-import { provideShortcutter, shortcutterKey, useShortcut, useShortcutter } from '../../src/vue';
-import { keyboard } from '../keyboard';
+import { createShortcutter } from '@shortcutter/core';
+import { provideShortcutter, shortcutterKey, useShortcut, useShortcutter } from '../src/index';
+import { keyboard } from '../../core/tests/keyboard';
 
 let app: App | undefined;
 
