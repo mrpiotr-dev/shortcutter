@@ -33,7 +33,11 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "astro": "catalog:",
-    "typescript": "catalog:",
+    "starlight-llms-txt": "catalog:",
+    "starlight-typedoc": "catalog:",
+    "typedoc": "catalog:",
+    "typedoc-plugin-markdown": "catalog:",
+    "typescript": "~6.0.3",
     "wrangler": "catalog:"
   }
 }

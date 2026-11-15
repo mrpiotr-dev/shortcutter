@@ -1,3 +1,10 @@
+/**
+ * Optional key sequences (`'G I'`) on top of a shortcutter. Apps that do not import this entry do
+ * not ship it.
+ *
+ * @packageDocumentation
+ * @module shortcutter/sequences
+ */
 import { combination, isModifier, isTyping, isWildcard, wildcardMatcher } from './keys';
 import type { Shortcutter } from './types';
 

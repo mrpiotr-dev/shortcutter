@@ -5,6 +5,8 @@ import starlight from '@astrojs/starlight';
 import svelte from '@astrojs/svelte';
 import vue from '@astrojs/vue';
 import { defineConfig } from 'astro/config';
+import starlightLlmsTxt from 'starlight-llms-txt';
+import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc';
 import { bauhausInk, bauhausPaper } from './src/code-themes.mjs';
 
 // Telemetry is disabled with ASTRO_TELEMETRY_DISABLED=1 in the package scripts (Astro has no config option).
@@ -56,8 +58,30 @@ export default defineConfig({
         '@fontsource-variable/jetbrains-mono',
         './src/styles/theme.css',
       ],
+      plugins: [
+        // API reference generated from the TSDoc comments of the core package.
+        starlightTypeDoc({
+          entryPoints: ['../../packages/core/src/index.ts', '../../packages/core/src/sequences.ts'],
+          tsconfig: '../../packages/core/tsconfig.build.json',
+          output: 'docs/api',
+          sidebar: { label: 'API reference', collapsed: false },
+          typeDoc: {
+            excludePrivate: true,
+            excludeInternal: true,
+            readme: 'none',
+            // Source links follow the release branch, not the local commit.
+            gitRevision: 'main',
+          },
+        }),
+        // /llms.txt, /llms-full.txt and /llms-small.txt for AI assistants.
+        starlightLlmsTxt({
+          projectName: 'shortcutter',
+          description:
+            'Tiny, dependency-free keyboard shortcuts for the browser with contexts, key phases, wildcards, sequences and self-documenting shortcuts. Adapters for React, Vue, Svelte and Solid.',
+        }),
+      ],
       sidebar: [
-        { label: 'Start here', items: [{ slug: 'docs' }] },
+        { label: 'Start here', items: [{ slug: 'docs' }, { slug: 'docs/ai' }] },
         {
           label: 'Guides',
           items: [
@@ -66,6 +90,7 @@ export default defineConfig({
             { slug: 'docs/guides/websites' },
           ],
         },
+        typeDocSidebarGroup,
       ],
     }),
     // Live adapter demos on the landing page. React and Solid both use JSX, so each owns a folder.

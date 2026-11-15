@@ -1,3 +1,9 @@
+/**
+ * Keyboard shortcuts with contexts, key phases, wildcards and self-documenting registrations.
+ *
+ * @packageDocumentation
+ * @module shortcutter
+ */
 export { createShortcutter } from './shortcutter';
 export type {
   KeysListener,
