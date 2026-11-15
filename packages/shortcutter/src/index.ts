@@ -8,3 +8,4 @@
 
 export { PHASES } from './types';
 export { useShortcutter } from './shortcutter';
+export type { ShortcutterConfig } from './shortcutter';

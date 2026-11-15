@@ -11,26 +11,23 @@ import { useContexts } from './contexts';
 import { useController } from './controller';
 import { normalizeKeyCode } from './helpers';
 
-type Config = {
-  eventTarget: EventTarget;
-  defaultContext: string;
-};
-
-const DEFAULT_CONFIG: Config = {
-  eventTarget: window,
-  defaultContext: 'default',
+export type ShortcutterConfig = {
+  /**
+   * Where keyboard events are listened to. Defaults to `window` in browsers.
+   * Without a target (e.g. during SSR) no listeners are attached and no shortcut fires.
+   */
+  eventTarget?: EventTarget;
+  /** Name of the context created and activated on start. Defaults to `'default'`. */
+  defaultContext?: string;
 };
 
 /**
- * Creates ShortcutsKeeper
+ * Creates a shortcut manager bound to `eventTarget` (or `window`).
  */
-export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}) {
-  const CONFIG = {
-    ...DEFAULT_CONFIG,
-    ...customConfig,
-  };
-
-  const { eventTarget, defaultContext } = CONFIG;
+export function useShortcutter(config: ShortcutterConfig = {}) {
+  const eventTarget: EventTarget | undefined =
+    config.eventTarget ?? (typeof window === 'undefined' ? undefined : window);
+  const defaultContext = config.defaultContext ?? 'default';
 
   const contexts = useContexts();
   const keysRecorder = useController();
@@ -39,10 +36,10 @@ export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}
   contexts.setActive(defaultContext);
 
   /* START MESS */
-  eventTarget.addEventListener('keydown', onkeydown as EventListener);
-  eventTarget.addEventListener('keyup', onkeyup as EventListener);
-  eventTarget.addEventListener('blur', onblur as EventListener);
-  eventTarget.addEventListener('unload', onunload);
+  eventTarget?.addEventListener('keydown', onkeydown as EventListener);
+  eventTarget?.addEventListener('keyup', onkeyup as EventListener);
+  eventTarget?.addEventListener('blur', onblur as EventListener);
+  eventTarget?.addEventListener('unload', onunload);
 
   const invokeClbck = (keys: string[], event: Event, phase: PHASES) => {
     contexts.getActive().forEach((context) => {
@@ -98,10 +95,10 @@ export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}
   }
 
   function onunload(): void {
-    eventTarget.removeEventListener('keydown', onkeydown as EventListener);
-    eventTarget.removeEventListener('keyup', onkeyup as EventListener);
-    eventTarget.removeEventListener('blur', onblur as EventListener);
-    eventTarget.removeEventListener('unload', onunload);
+    eventTarget?.removeEventListener('keydown', onkeydown as EventListener);
+    eventTarget?.removeEventListener('keyup', onkeyup as EventListener);
+    eventTarget?.removeEventListener('blur', onblur as EventListener);
+    eventTarget?.removeEventListener('unload', onunload);
   }
   /* END MESS */
 
