@@ -5,6 +5,7 @@ import starlight from '@astrojs/starlight';
 import svelte from '@astrojs/svelte';
 import vue from '@astrojs/vue';
 import { defineConfig } from 'astro/config';
+import starlightChangelogs, { makeChangelogsSidebarLinks } from 'starlight-changelogs';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc';
 import { bauhausInk, bauhausPaper } from './src/code-themes.mjs';
@@ -59,6 +60,8 @@ export default defineConfig({
         './src/styles/theme.css',
       ],
       plugins: [
+        // Changelog pages per version, from packages/core/CHANGELOG.md (written by Changesets).
+        starlightChangelogs(),
         // API reference generated from the TSDoc comments of the core package.
         starlightTypeDoc({
           entryPoints: ['../../packages/core/src/index.ts', '../../packages/core/src/sequences.ts'],
@@ -91,6 +94,13 @@ export default defineConfig({
           ],
         },
         { label: 'Comparison', slug: 'docs/comparison' },
+        {
+          label: 'Changelog',
+          items: makeChangelogsSidebarLinks([
+            { type: 'latest', base: 'docs/changelog', label: 'Latest version' },
+            { type: 'all', base: 'docs/changelog', label: 'All versions' },
+          ]),
+        },
         typeDocSidebarGroup,
       ],
     }),

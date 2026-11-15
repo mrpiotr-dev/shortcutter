@@ -31,3 +31,15 @@ pnpm run build        # library build (+ publint, attw) and playground build
 - Hotfixes branch from `main`, merge into `main`, then back into `develop`.
 
 The `Branch rules` workflow checks branch names and the source branch of pull requests into `main`.
+
+## Changes and releases
+
+Every pull request that changes a published package adds a changeset (`pnpm changeset`): the packages, the bump (in 0.x, breaking changes are `minor`) and what changed for users. `shortcutter` and the four `@shortcutter/*` adapters are released together with the same version.
+
+To release:
+
+1. Branch `release/vX.Y.Z` from `develop` and run `pnpm run version-packages`. It bumps the versions, writes `CHANGELOG.md` in every package and removes the used changesets. Commit and open a pull request into `main`.
+2. Merging it runs the Release workflow: it builds, publishes the new versions to npm with provenance (npm Trusted Publishing, no token), pushes a git tag per package (`shortcutter@X.Y.Z`, `@shortcutter/react@X.Y.Z`, …) and creates a GitHub release with the changelog.
+3. Merge `main` back into `develop`.
+
+The documentation shows the same changelog at `/docs/changelog/`, one page per version, built from `packages/core/CHANGELOG.md`.

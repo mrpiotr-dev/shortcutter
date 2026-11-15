@@ -8,9 +8,13 @@
     "build": "vp run -r build",
     "test": "vp run -r test",
     "check": "vp check",
-    "prepare": "vp config"
+    "prepare": "vp config",
+    "changeset": "changeset",
+    "version-packages": "changeset version && vp fmt",
+    "release": "vp run -r build && changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "catalog:",
     "vite-plus": "catalog:"
   },
   "engines": {
