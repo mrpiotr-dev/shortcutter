@@ -83,7 +83,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
 
     const keys = [...pressed].sort();
 
-    for (const listener of [...subscribers]) listener(keys, event);
+    for (const listener of subscribers) listener(keys, event);
   }
 
   function dispatch(keys: string, phase: Phase, event: KeyboardEvent | Event): void {
