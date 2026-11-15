@@ -122,7 +122,9 @@ describe('createShortcutter', () => {
       expect(handler).toHaveBeenCalledWith(event, {
         phase: 'down',
         shortcut: '1+shift',
+        pattern: '1+shift',
         context: 'default',
+        description: undefined,
       });
     });
 
@@ -167,6 +169,177 @@ describe('createShortcutter', () => {
       kb.down('KeyK');
 
       expect(handler).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('wildcards', () => {
+    it('matches any key of a group: Shift+Arrow*', () => {
+      const { sc, kb, handler } = setup();
+
+      sc.listen('Shift+Arrow*', handler);
+      kb.down('ShiftLeft');
+      kb.press('ArrowUp');
+      kb.press('ArrowLeft');
+      kb.press('KeyA');
+
+      expect(handler.mock.calls.map(([, detail]) => detail.shortcut)).toEqual([
+        'arrowup+shift',
+        'arrowleft+shift',
+      ]);
+      expect(handler.mock.calls[0]![1].pattern).toBe('arrow*+shift');
+    });
+
+    it('matches exactly one key per wildcard and nothing extra', () => {
+      const { sc, kb, handler } = setup();
+
+      sc.listen('Shift+Arrow*', handler);
+      kb.down('ShiftLeft');
+      kb.down('ArrowUp'); // match
+      kb.down('ArrowLeft'); // two arrows: no match
+      kb.up('ArrowLeft');
+      kb.up('ArrowUp');
+      kb.up('ShiftLeft');
+      kb.press('ArrowDown'); // without Shift: no match
+      kb.down('ShiftLeft');
+      kb.down('KeyA'); // not an arrow: no match
+
+      expect(handler.mock.calls.map(([, detail]) => detail.shortcut)).toEqual(['arrowup+shift']);
+    });
+
+    it('never lets a wildcard stand for a modifier', () => {
+      const { sc, kb, handler } = setup();
+
+      sc.listen('Control+*', handler);
+      kb.down('ControlLeft');
+      kb.down('ShiftLeft');
+      expect(handler).not.toHaveBeenCalled();
+
+      kb.up('ShiftLeft');
+      kb.press('KeyQ');
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['Digit*', 'Digit7', 'KeyA'],
+      ['Key*', 'KeyQ', 'Digit1'],
+      ['F*', 'F12', 'KeyF'],
+      ['Numpad*', 'Numpad5', 'Digit5'],
+    ])('%s matches %s but not %s', (shortcut, yes, no) => {
+      const { sc, kb, handler } = setup();
+
+      sc.listen(shortcut, handler);
+      kb.press(yes);
+      kb.press(no);
+
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    it('lets an exact shortcut win over a wildcard in the same context', () => {
+      const { sc, kb } = setup();
+      const calls: string[] = [];
+
+      sc.listen('Shift+Arrow*', () => calls.push('wildcard'));
+      sc.listen('Shift+ArrowUp', () => calls.push('exact'));
+      sc.listen('Shift+Arrow*', () => calls.push('modal wildcard'), { context: 'modal' });
+      sc.contexts.activate('default', 'modal');
+      kb.down('ShiftLeft');
+      kb.press('ArrowUp');
+      kb.press('ArrowDown');
+
+      expect(calls).toEqual(['exact', 'modal wildcard', 'wildcard', 'modal wildcard']);
+    });
+
+    it('supports phases, removal and duplicate checks like exact shortcuts', () => {
+      const { sc, kb, handler, phases } = setup();
+      const off = sc.listen('Digit*', handler, { phases: ['down', 'up'] });
+
+      expect(() => sc.listen('digit*', () => {}, { phases: 'up' })).toThrow('already registered');
+      kb.press('Digit1');
+      off();
+      kb.press('Digit2');
+
+      expect(phases()).toEqual(['down', 'up']);
+    });
+  });
+
+  describe('shortcuts()', () => {
+    it('lists registrations with keys for the platform, modifiers first', () => {
+      const { sc } = setup({ mac: true });
+
+      sc.listen('k+ControlOrMeta', () => {}, { description: 'Open the palette' });
+      sc.listen('Escape', () => {}, { context: 'modal', phases: ['down', 'up'] });
+      sc.listen('Shift+Arrow*', () => {}, { description: 'Move the selection' });
+
+      expect(sc.shortcuts()).toEqual([
+        {
+          shortcut: 'k+ControlOrMeta',
+          keys: ['meta', 'k'],
+          context: 'default',
+          phases: ['down'],
+          description: 'Open the palette',
+          active: true,
+        },
+        {
+          shortcut: 'Escape',
+          keys: ['escape'],
+          context: 'modal',
+          phases: ['down', 'up'],
+          active: false,
+        },
+        {
+          shortcut: 'Shift+Arrow*',
+          keys: ['shift', 'arrow*'],
+          context: 'default',
+          phases: ['down'],
+          description: 'Move the selection',
+          active: true,
+        },
+      ]);
+    });
+
+    it('filters by active state and context', () => {
+      const { sc } = setup();
+
+      sc.listen('A', () => {});
+      sc.listen('B', () => {}, { context: 'modal' });
+
+      expect(sc.shortcuts({ active: true }).map((s) => s.shortcut)).toEqual(['A']);
+      expect(sc.shortcuts({ active: false }).map((s) => s.shortcut)).toEqual(['B']);
+      expect(sc.shortcuts({ context: 'modal' }).map((s) => s.shortcut)).toEqual(['B']);
+
+      sc.contexts.activate('modal');
+      expect(sc.shortcuts({ active: true }).map((s) => s.shortcut)).toEqual(['B']);
+    });
+
+    it('drops shortcuts once all their phases are removed', () => {
+      const { sc } = setup();
+      const off = sc.listen('A', () => {});
+
+      sc.listen('B', () => {}, { phases: ['down', 'up'] });
+      off();
+      sc.unlisten('B', { phases: 'down' });
+      expect(sc.shortcuts()).toEqual([expect.objectContaining({ shortcut: 'B', phases: ['up'] })]);
+
+      sc.unlisten('B', { phases: 'up' });
+      expect(sc.shortcuts()).toEqual([]);
+    });
+
+    it('passes the description to the handler', () => {
+      const { sc, kb, handler } = setup();
+
+      sc.listen('A', handler, { description: 'Archive' });
+      kb.press('KeyA');
+
+      expect(handler.mock.calls[0]![1].description).toBe('Archive');
+    });
+
+    it('returns copies that cannot change the registry', () => {
+      const { sc } = setup();
+
+      sc.listen('A', () => {});
+      sc.shortcuts()[0]!.phases.push('up');
+
+      expect(sc.shortcuts()[0]!.phases).toEqual(['down']);
     });
   });
 

@@ -6,6 +6,8 @@ export type {
   Phases,
   ShortcutDetail,
   ShortcutHandler,
+  ShortcutInfo,
+  ShortcutsFilter,
   Shortcutter,
   ShortcutterOptions,
   UnlistenOptions,

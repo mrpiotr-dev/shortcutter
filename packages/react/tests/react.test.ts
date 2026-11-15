@@ -95,6 +95,20 @@ describe('react adapter', () => {
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
+  it('registers the description for shortcuts()', () => {
+    const { shortcutter } = setup();
+    const App = () => {
+      useShortcut('ControlOrMeta+K', () => {}, { description: 'Open the palette' });
+      return null;
+    };
+
+    render(createElement(ShortcutterProvider, { shortcutter }, createElement(App)));
+
+    expect(shortcutter.shortcuts()).toEqual([
+      expect.objectContaining({ shortcut: 'ControlOrMeta+K', description: 'Open the palette' }),
+    ]);
+  });
+
   it('exposes the instance for switching contexts', () => {
     const { shortcutter } = setup();
     let seen: unknown;

@@ -14,6 +14,7 @@ describe('publicAPI', () => {
       'destroy',
       'listen',
       'pressed',
+      'shortcuts',
       'subscribe',
       'unlisten',
     ]);

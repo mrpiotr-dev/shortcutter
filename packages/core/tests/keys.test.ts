@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vite-plus/test';
-import { combination, keyFromCode, parseShortcut } from '../src/keys';
+import {
+  combination,
+  keyFromCode,
+  parseShortcut,
+  parseShortcutKeys,
+  wildcardMatcher,
+} from '../src/keys';
 
 describe('keyFromCode', () => {
   it.each([
@@ -57,5 +63,32 @@ describe('combination', () => {
   it('sorts and dedupes', () => {
     expect(combination(['s', 'a', 's'])).toBe('a+s');
     expect(combination([])).toBe('');
+  });
+});
+
+describe('parseShortcutKeys', () => {
+  it('orders modifiers first and keeps the written order of other keys', () => {
+    expect(parseShortcutKeys('K+Shift+ControlOrMeta+J', true)).toEqual(['meta', 'shift', 'k', 'j']);
+    expect(parseShortcutKeys('Alt+Control+Escape', false)).toEqual(['control', 'alt', 'escape']);
+  });
+
+  it('keeps wildcards as written (lowercased)', () => {
+    expect(parseShortcutKeys('Shift+Arrow*', false)).toEqual(['shift', 'arrow*']);
+  });
+});
+
+describe('wildcardMatcher', () => {
+  it('escapes regular-expression characters in globs', () => {
+    const matches = wildcardMatcher(['bracket(*']);
+
+    expect(matches(['bracket(left'])).toBe(true);
+    expect(matches(['bracketleft'])).toBe(false);
+  });
+
+  it('can match several wildcards to different keys', () => {
+    const matches = wildcardMatcher(['digit*', 'key*']);
+
+    expect(matches(['1', 'a'])).toBe(true);
+    expect(matches(['1', '2'])).toBe(false);
   });
 });

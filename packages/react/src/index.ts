@@ -30,7 +30,7 @@ export function useShortcut(
 ): void {
   const shortcutter = useShortcutter();
   const latest = useRef(handler);
-  const { enabled = true, context, phases, ignoreInputs, preventDefault } = options;
+  const { enabled = true, description, context, phases, ignoreInputs, preventDefault } = options;
   const phaseKey = typeof phases === 'string' ? phases : phases?.join('|');
 
   useEffect(() => {
@@ -41,11 +41,21 @@ export function useShortcut(
     if (!enabled) return undefined;
 
     return shortcutter.listen(shortcut, (event, detail) => latest.current(event, detail), {
+      description,
       context,
       phases,
       ignoreInputs,
       preventDefault,
     });
     // `phases` is tracked through `phaseKey`, so a new array with the same phases is not a change.
-  }, [shortcutter, shortcut, enabled, context, phaseKey, ignoreInputs, preventDefault]);
+  }, [
+    shortcutter,
+    shortcut,
+    enabled,
+    description,
+    context,
+    phaseKey,
+    ignoreInputs,
+    preventDefault,
+  ]);
 }

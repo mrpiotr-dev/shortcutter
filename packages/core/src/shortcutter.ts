@@ -4,8 +4,10 @@ import {
   detectMac,
   isModifier,
   isModifierHeld,
+  isWildcard,
   keyFromCode,
-  parseShortcut,
+  parseShortcutKeys,
+  wildcardMatcher,
 } from './keys';
 import type {
   KeysListener,
@@ -13,15 +15,30 @@ import type {
   Phase,
   Phases,
   ShortcutHandler,
+  ShortcutInfo,
+  ShortcutsFilter,
   Shortcutter,
   ShortcutterOptions,
   UnlistenOptions,
 } from './types';
 
+/** One listen() call: what shortcuts() reports. */
+type Registration = {
+  shortcut: string;
+  keys: string[];
+  pattern: string;
+  context: string;
+  phases: Phase[];
+  description?: string;
+};
+
 type Binding = {
   handler: ShortcutHandler;
   ignoreInputs: boolean;
   preventDefault: boolean;
+  registration: Registration;
+  /** Set for shortcuts with wildcard keys. */
+  matches?: (pressed: readonly string[]) => boolean;
 };
 
 const PHASE_NAMES: readonly Phase[] = ['down', 'press', 'up'];
@@ -71,8 +88,11 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
   const preventDefault = options.preventDefault ?? false;
   const mac = options.mac ?? detectMac();
 
-  /** context → `${combination}|${phase}` → binding */
+  /** context → `${pattern}|${phase}` → binding (exact and wildcard shortcuts alike) */
   const registry = new Map<string, Map<string, Binding>>();
+  /** context → wildcard bindings, checked when no exact shortcut matches */
+  const wildcards = new Map<string, Set<Binding>>();
+  const registrations = new Set<Registration>();
   const pressed = new Set<string>();
   const subscribers = new Set<KeysListener>();
   let active: string[] = [defaultContext];
@@ -90,15 +110,31 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
     if (keys === '') return;
 
     const typing = event.type.startsWith('key') && isTyping(event as KeyboardEvent);
+    const held = keys.split('+');
+
+    const run = (binding: Binding, context: string) => {
+      if (typing && binding.ignoreInputs) return;
+      if (binding.preventDefault) event.preventDefault();
+
+      const { pattern, description } = binding.registration;
+
+      binding.handler(event, { phase, shortcut: keys, pattern, context, description });
+    };
 
     // activate() replaces `active`, so a handler switching contexts does not affect this loop.
     for (const context of active) {
-      const binding = registry.get(context)?.get(`${keys}|${phase}`);
+      const exact = registry.get(context)?.get(`${keys}|${phase}`);
 
-      if (!binding || (typing && binding.ignoreInputs)) continue;
-      if (binding.preventDefault) event.preventDefault();
+      if (exact) {
+        run(exact, context);
+        continue;
+      }
 
-      binding.handler(event, { phase, shortcut: keys, context });
+      for (const binding of wildcards.get(context) ?? []) {
+        if (binding.registration.phases.includes(phase) && binding.matches!(held)) {
+          run(binding, context);
+        }
+      }
     }
   }
 
@@ -202,47 +238,103 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
     options.signal?.addEventListener('abort', destroy, listenerOptions);
   }
 
+  /** Removes one phase of a binding, and the binding's registration once no phase is left. */
+  function remove(context: string, key: string, phase: Phase, only?: Binding): void {
+    const bindings = registry.get(context);
+    const binding = bindings?.get(key);
+
+    if (!binding || (only && binding !== only)) return;
+
+    bindings!.delete(key);
+
+    const registration = binding.registration;
+
+    registration.phases = registration.phases.filter((other) => other !== phase);
+    if (registration.phases.length === 0) {
+      registrations.delete(registration);
+      wildcards.get(context)?.delete(binding);
+    }
+  }
+
   function listen(shortcut: string, handler: ShortcutHandler, opts: ListenOptions = {}) {
     if (typeof handler !== 'function') {
       throw new Error(`Handler for shortcut "${shortcut}" has to be a function.`);
     }
 
-    const keys = parseShortcut(shortcut, mac);
+    const keys = parseShortcutKeys(shortcut, mac);
+    const pattern = combination(keys);
     const phases = toPhases(opts.phases ?? 'down');
     const context = opts.context ?? defaultContext;
     const bindings = registry.get(context) ?? new Map<string, Binding>();
-    const binding: Binding = {
-      handler,
-      ignoreInputs: opts.ignoreInputs ?? ignoreInputs,
-      preventDefault: opts.preventDefault ?? preventDefault,
-    };
 
     for (const phase of phases) {
-      if (bindings.has(`${keys}|${phase}`)) {
+      if (bindings.has(`${pattern}|${phase}`)) {
         throw new Error(
           `Shortcut "${shortcut}" is already registered for the "${phase}" phase in the "${context}" context.`,
         );
       }
     }
 
+    const registration: Registration = {
+      shortcut,
+      keys,
+      pattern,
+      context,
+      phases: [...phases],
+      description: opts.description,
+    };
+    const binding: Binding = {
+      handler,
+      ignoreInputs: opts.ignoreInputs ?? ignoreInputs,
+      preventDefault: opts.preventDefault ?? preventDefault,
+      registration,
+      matches: keys.some(isWildcard) ? wildcardMatcher(keys) : undefined,
+    };
+
     registry.set(context, bindings);
-    phases.forEach((phase) => bindings.set(`${keys}|${phase}`, binding));
+    phases.forEach((phase) => bindings.set(`${pattern}|${phase}`, binding));
+    registrations.add(registration);
+
+    if (binding.matches) {
+      const set = wildcards.get(context) ?? new Set<Binding>();
+
+      wildcards.set(context, set.add(binding));
+    }
 
     return () => {
-      for (const phase of phases) {
-        // Leave it alone if someone registered the shortcut again in the meantime.
-        if (bindings.get(`${keys}|${phase}`) === binding) bindings.delete(`${keys}|${phase}`);
-      }
+      // `only`: leave it alone if someone registered the shortcut again in the meantime.
+      for (const phase of phases) remove(context, `${pattern}|${phase}`, phase, binding);
     };
   }
 
   function unlisten(shortcut: string, opts: UnlistenOptions = {}): void {
-    const keys = parseShortcut(shortcut, mac);
-    const bindings = registry.get(opts.context ?? defaultContext);
+    const pattern = combination(parseShortcutKeys(shortcut, mac));
+    const context = opts.context ?? defaultContext;
 
-    for (const phase of toPhases(opts.phases ?? 'down')) {
-      bindings?.delete(`${keys}|${phase}`);
+    for (const phase of toPhases(opts.phases ?? 'down'))
+      remove(context, `${pattern}|${phase}`, phase);
+  }
+
+  function shortcuts(filter: ShortcutsFilter = {}): ShortcutInfo[] {
+    const list: ShortcutInfo[] = [];
+
+    for (const { shortcut, keys, context, phases, description } of registrations) {
+      const isActive = active.includes(context);
+
+      if (filter.active !== undefined && filter.active !== isActive) continue;
+      if (filter.context !== undefined && filter.context !== context) continue;
+
+      list.push({
+        shortcut,
+        keys: [...keys],
+        context,
+        phases: [...phases],
+        ...(description === undefined ? {} : { description }),
+        active: isActive,
+      });
     }
+
+    return list;
   }
 
   return {
@@ -261,6 +353,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
       active: () => [...active],
       isActive: (name: string) => active.includes(name),
     },
+    shortcuts,
     pressed: () => [...pressed].sort(),
     subscribe(listener: KeysListener) {
       if (typeof listener !== 'function') {

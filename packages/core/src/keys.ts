@@ -53,10 +53,11 @@ export function isModifierHeld(event: KeyboardEvent, modifier: Modifier): boolea
 }
 
 /**
- * Normalizes a shortcut like `'ControlOrMeta+Shift+K'` to a canonical, order-independent
- * string (`'control+k+shift'` or `'k+meta+shift'` on macOS). Case-insensitive.
+ * Canonical key names of a shortcut in a readable order: modifiers first (Control, Meta, Alt,
+ * Shift), then the other keys as written. `'k+ControlOrMeta'` → `['meta', 'k']` on macOS.
+ * Wildcard keys such as `arrow*` are kept as patterns. Case-insensitive.
  */
-export function parseShortcut(shortcut: string, isMac: boolean): string {
+export function parseShortcutKeys(shortcut: string, isMac: boolean): string[] {
   if (typeof shortcut !== 'string' || shortcut.trim() === '') {
     throw new Error('Shortcut has to be a non-empty string, e.g. "ControlOrMeta+K".');
   }
@@ -68,11 +69,79 @@ export function parseShortcut(shortcut: string, isMac: boolean): string {
       throw new Error(`Shortcut "${shortcut}" has an empty key. Use "Equal" for the + key.`);
     }
     if (name === CONTROL_OR_META) return isMac ? 'meta' : 'control';
+    if (name.includes('*')) return name;
 
     return keyFromCode(ALIASES[name] ?? name);
   });
+  const unique = [...new Set(keys)];
 
-  return combination(keys);
+  return [
+    ...DISPLAY_MODIFIERS.filter((key) => unique.includes(key)),
+    ...unique.filter((key) => !isModifier(key)),
+  ];
+}
+
+const DISPLAY_MODIFIERS: readonly Modifier[] = ['control', 'meta', 'alt', 'shift'];
+
+/**
+ * Normalizes a shortcut like `'ControlOrMeta+Shift+K'` to a canonical, order-independent
+ * string (`'control+k+shift'` or `'k+meta+shift'` on macOS). Case-insensitive.
+ */
+export function parseShortcut(shortcut: string, isMac: boolean): string {
+  return combination(parseShortcutKeys(shortcut, isMac));
+}
+
+export function isWildcard(key: string): boolean {
+  return key.includes('*');
+}
+
+/** Wildcard groups that do not follow from plain globbing over canonical names. */
+const WILDCARD_GROUPS: Record<string, RegExp> = {
+  'key*': /^[a-z]$/, // letters are canonicalised from KeyA to a
+  'digit*': /^[0-9]$/, // digits from Digit1 to 1
+  'f*': /^f([1-9]|1[0-9]|2[0-4])$/, // function keys, not the letter F
+};
+
+function wildcardToRegExp(key: string): RegExp {
+  const group = WILDCARD_GROUPS[key];
+
+  if (group) return group;
+
+  const source = key
+    .split('*')
+    .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
+    .join('.*');
+
+  return new RegExp(`^${source}$`);
+}
+
+/**
+ * Builds a matcher for a shortcut with wildcard keys. Every wildcard matches exactly one held key
+ * and never a modifier; the other keys must be held exactly, and nothing else may be held.
+ */
+export function wildcardMatcher(keys: readonly string[]): (pressed: readonly string[]) => boolean {
+  const exact = keys.filter((key) => !isWildcard(key));
+  const wildcards = keys.filter(isWildcard).map(wildcardToRegExp);
+
+  return (pressed) => {
+    if (pressed.length !== keys.length || !exact.every((key) => pressed.includes(key))) {
+      return false;
+    }
+
+    const rest = pressed.filter((key) => !exact.includes(key));
+
+    if (rest.some(isModifier)) return false;
+
+    // Assign each remaining key to a different wildcard (tiny sets, so plain backtracking).
+    const assign = (index: number, used: Set<number>): boolean =>
+      index === rest.length ||
+      wildcards.some(
+        (wildcard, w) =>
+          !used.has(w) && wildcard.test(rest[index]!) && assign(index + 1, new Set(used).add(w)),
+      );
+
+    return assign(0, new Set());
+  };
 }
 
 /** Canonical form of a set of keys: unique and sorted, joined with `+`. */

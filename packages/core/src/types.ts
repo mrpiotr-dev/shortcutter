@@ -12,10 +12,14 @@ export type Phases = Phase | readonly Phase[];
 
 export type ShortcutDetail = {
   phase: Phase;
-  /** The matched shortcut in canonical form, e.g. `'control+k'`. */
+  /** The keys actually held, in canonical form, e.g. `'arrowup+shift'`. */
   shortcut: string;
+  /** The registered shortcut in canonical form, e.g. `'arrow*+shift'`. Same as `shortcut` without wildcards. */
+  pattern: string;
   /** The context the shortcut was registered in. */
   context: string;
+  /** The description given to `listen()`, if any. */
+  description?: string;
 };
 
 /**
@@ -49,6 +53,8 @@ export type ShortcutterOptions = {
 };
 
 export type ListenOptions = {
+  /** What the shortcut does, for help screens built from `shortcuts()`. */
+  description?: string;
   /** Context to register in. Defaults to the shortcutter's `defaultContext`. */
   context?: string;
   /** Phases to run the handler in. Defaults to `'down'`. */
@@ -59,11 +65,38 @@ export type ListenOptions = {
 
 export type UnlistenOptions = Pick<ListenOptions, 'context' | 'phases'>;
 
+/** A registered shortcut, as listed by `shortcuts()`. */
+export type ShortcutInfo = {
+  /** The shortcut as passed to `listen()`, e.g. `'ControlOrMeta+K'`. */
+  shortcut: string;
+  /**
+   * Canonical key names for this platform, modifiers first: `['meta', 'k']` on macOS,
+   * `['control', 'k']` elsewhere. Wildcards stay as written, e.g. `'arrow*'`.
+   */
+  keys: string[];
+  context: string;
+  phases: Phase[];
+  description?: string;
+  /** Whether the shortcut's context is active, so the shortcut works right now. */
+  active: boolean;
+};
+
+export type ShortcutsFilter = {
+  /** Only shortcuts whose context is active (`true`) or inactive (`false`). */
+  active?: boolean;
+  /** Only shortcuts in this context. */
+  context?: string;
+};
+
 export type Shortcutter = {
   /**
    * Runs `handler` when `shortcut` (e.g. `'ControlOrMeta+K'`, `'Shift+ArrowUp'`, `'Escape'`)
    * is used while `context` is active. Returns a function that removes the shortcut.
    * Throws if the same shortcut is already registered for one of the phases in that context.
+   *
+   * A key may contain `*`: `'Shift+Arrow*'`, `'Digit*'` (any digit), `'Key*'` (any letter),
+   * `'F*'` (function keys), `'Control+*'` (any key). Each wildcard matches one key and never a
+   * modifier. Within a context, an exact shortcut wins over wildcards for the same keys.
    */
   listen(shortcut: string, handler: ShortcutHandler, options?: ListenOptions): () => void;
   /** Removes a shortcut. Does nothing if it is not registered. */
@@ -75,6 +108,8 @@ export type Shortcutter = {
     active(): string[];
     isActive(name: string): boolean;
   };
+  /** Registered shortcuts in registration order, e.g. to build a keyboard help screen. */
+  shortcuts(filter?: ShortcutsFilter): ShortcutInfo[];
   /** Canonical names of the keys pressed right now, sorted. */
   pressed(): string[];
   /**
