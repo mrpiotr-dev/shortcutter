@@ -1,0 +1,16 @@
+---
+title: Getting started
+description: Install shortcutter and register your first keyboard shortcut.
+---
+
+```sh
+pnpm add shortcutter
+```
+
+```ts
+import { createShortcutter } from 'shortcutter';
+
+const shortcutter = createShortcutter();
+
+shortcutter.listen('ControlOrMeta+K', () => openCommandPalette(), { preventDefault: true });
+```

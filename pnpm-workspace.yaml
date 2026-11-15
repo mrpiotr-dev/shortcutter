@@ -5,6 +5,7 @@ packages:
 catalogMode: prefer
 
 catalog:
+  astro: ^7.4.12
   '@vitest/coverage-v8': 5.1.0
   publint: ^0.3.25
   '@arethetypeswrong/core': ^0.18.5
@@ -12,6 +13,9 @@ catalog:
   typescript: ^7.0.2
   vite: npm:@voidzero-dev/vite-plus-core@1.6.0
   vite-plus: 1.6.0
+  '@astrojs/starlight': ^0.43.1
+  '@fontsource-variable/instrument-sans': ^5.3.0
+  '@fontsource-variable/jetbrains-mono': ^5.3.0
   '@sveltejs/vite-plugin-svelte': ^7.3.1
   '@types/react': ^19.3.0
   '@types/react-dom': ^19.3.0
@@ -20,6 +24,7 @@ catalog:
   solid-js: ^1.9.19
   svelte: ^5.57.3
   vue: ^3.5.45
+  wrangler: ^4.162.0
 overrides:
   vite@*: 'catalog:'
 peerDependencyRules:
@@ -38,3 +43,8 @@ minimumReleaseAgeExclude:
   - '@voidzero-dev/vite-plus-win32-arm64-msvc@1.6.0'
   - '@voidzero-dev/vite-plus-win32-x64-msvc@1.6.0'
   - vite-plus@1.6.0
+
+# Install scripts allowed to run (wrangler needs these for local preview).
+allowBuilds:
+  esbuild: true
+  workerd: true

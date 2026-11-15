@@ -1,0 +1,74 @@
+/*
+ * shortcutter palette: "keycap"
+ * Citron and ultramarine on warm paper (light) or ink (dark). Every colour of the site comes from
+ * these tokens; Starlight's --sl-color-* variables are mapped onto them below.
+ */
+:root {
+  --sc-citron: #e4ff3a;
+  --sc-citron-dim: #c9e21f;
+  --sc-ultramarine: #3b2bff;
+  --sc-ultramarine-deep: #2a1fc4;
+
+  --sc-ink-0: #0e0f12;
+  --sc-ink-1: #16181d;
+  --sc-ink-2: #22252c;
+  --sc-ink-3: #3a3e48;
+  --sc-ink-4: #6b707c;
+
+  --sc-paper-0: #fbf9f4;
+  --sc-paper-1: #f5f2ea;
+  --sc-paper-2: #e9e4d8;
+  --sc-paper-3: #cfc8b8;
+  --sc-paper-4: #8e887a;
+
+  --sl-font: 'Instrument Sans Variable', system-ui, sans-serif;
+  --sl-font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+}
+
+/* Dark (Starlight's default theme) */
+:root {
+  --sl-color-accent-low: #2b3008;
+  --sl-color-accent: var(--sc-citron);
+  --sl-color-accent-high: #f3ffb0;
+  --sl-color-white: #f7f6f2;
+  --sl-color-gray-1: #e2e0d9;
+  --sl-color-gray-2: #b9b6ad;
+  --sl-color-gray-3: #8b8f99;
+  --sl-color-gray-4: var(--sc-ink-4);
+  --sl-color-gray-5: var(--sc-ink-3);
+  --sl-color-gray-6: var(--sc-ink-2);
+  --sl-color-black: var(--sc-ink-1);
+  --sl-color-text-invert: var(--sc-ink-0);
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: #dcd8ff;
+  --sl-color-accent: var(--sc-ultramarine);
+  --sl-color-accent-high: var(--sc-ultramarine-deep);
+  --sl-color-white: var(--sc-ink-0);
+  --sl-color-gray-1: var(--sc-ink-1);
+  --sl-color-gray-2: var(--sc-ink-2);
+  --sl-color-gray-3: var(--sc-ink-3);
+  --sl-color-gray-4: var(--sc-paper-4);
+  --sl-color-gray-5: var(--sc-paper-3);
+  --sl-color-gray-6: var(--sc-paper-2);
+  --sl-color-gray-7: var(--sc-paper-1);
+  --sl-color-black: var(--sc-paper-0);
+  --sl-color-text-invert: #ffffff;
+}
+
+/* Citron highlight marks the "pressed" state everywhere, like a lit keycap. */
+::selection {
+  background: var(--sc-citron);
+  color: var(--sc-ink-0);
+}
+
+kbd {
+  font-family: var(--sl-font-mono);
+  font-size: 0.85em;
+  padding: 0.1em 0.45em;
+  border: 1px solid var(--sl-color-gray-5);
+  border-bottom-width: 3px;
+  border-radius: 0.4em;
+  background: var(--sl-color-black);
+}
