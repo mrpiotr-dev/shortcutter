@@ -517,9 +517,8 @@ h2::before {
 
 .autodocs {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 2rem;
-  align-items: start;
 }
 
 .autodocs-copy p {
@@ -732,8 +731,7 @@ h2::before {
 
 @media (width < 56rem) {
   .hero,
-  .panel,
-  .autodocs {
+  .panel {
     grid-template-columns: minmax(0, 1fr);
   }
 
