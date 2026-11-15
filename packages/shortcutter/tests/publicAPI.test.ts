@@ -2,18 +2,20 @@ import { describe, expect, it } from 'vite-plus/test';
 import * as api from '../src/index';
 
 describe('publicAPI', () => {
-  it('should expose only useShortcutter at runtime', () => {
-    expect(Object.keys(api)).toEqual(['useShortcutter']);
+  it('exposes only createShortcutter at runtime', () => {
+    expect(Object.keys(api)).toEqual(['createShortcutter']);
   });
 
-  it('should expose the shortcutter methods', () => {
-    expect(Object.keys(api.useShortcutter({ eventTarget: new EventTarget() })).sort()).toEqual([
+  it('exposes the shortcutter methods', () => {
+    const sc = api.createShortcutter({ target: new EventTarget() });
+
+    expect(Object.keys(sc).sort()).toEqual([
+      'contexts',
       'destroy',
-      'getActiveContext',
-      'hasContext',
       'listen',
-      'setActiveContext',
+      'pressed',
       'unlisten',
     ]);
+    expect(Object.keys(sc.contexts).sort()).toEqual(['activate', 'active', 'isActive']);
   });
 });

@@ -6,10 +6,11 @@ describe('SSR (no window)', () => {
   it('can be imported and used without a DOM', async () => {
     expect(typeof window).toBe('undefined');
 
-    const { useShortcutter } = await import('../src/index');
-    const sc = useShortcutter();
+    const { createShortcutter } = await import('../src/index');
+    const sc = createShortcutter();
 
-    expect(() => sc.listen('default', ['a'], () => {})).not.toThrow();
-    expect(sc.getActiveContext()).toEqual(['default']);
+    expect(() => sc.listen('ControlOrMeta+K', () => {})).not.toThrow();
+    expect(sc.contexts.active()).toEqual(['default']);
+    expect(() => sc.destroy()).not.toThrow();
   });
 });

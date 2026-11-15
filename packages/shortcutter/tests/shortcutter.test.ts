@@ -1,226 +1,394 @@
-import { describe, expect, it, vi } from 'vite-plus/test';
-import { useShortcutter, type Phases } from '../src/index';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
+import { createShortcutter, type ShortcutterOptions } from '../src/index';
+import { keyboard } from './keyboard';
 
-// Characterization tests: they pin the 0.2.0 runtime behavior (including its quirks)
-// so the toolchain migration and later fixes can't change it silently.
+function setup(options: ShortcutterOptions = {}) {
+  const target = options.target ?? new EventTarget();
+  const sc = createShortcutter({ mac: false, ...options, target });
+  const kb = keyboard(target);
+  const handler = vi.fn();
+  const phases = () => handler.mock.calls.map(([, detail]) => detail.phase as string);
 
-function setup(phases: Phases, keys = ['a', 's']) {
-  const target = new EventTarget();
-  const sc = useShortcutter({ eventTarget: target });
-  const callback = vi.fn();
-  const off = sc.listen('default', keys, callback, phases);
-
-  const down = (code: string) => target.dispatchEvent(new KeyboardEvent('keydown', { code }));
-  const up = (code: string) => target.dispatchEvent(new KeyboardEvent('keyup', { code }));
-  const blur = () => target.dispatchEvent(new FocusEvent('blur'));
-  const calls = () => callback.mock.calls.map(([, phase]) => phase as string);
-
-  return { sc, target, callback, off, down, up, blur, calls };
+  return { sc, kb, handler, phases, target };
 }
 
-describe('useShortcutter', () => {
-  it('fires "down" when the exact combination becomes pressed', () => {
-    const { down, calls } = setup('down');
+afterEach(() => {
+  document.body.innerHTML = '';
+});
 
-    down('KeyA');
-    expect(calls()).toEqual([]);
+describe('createShortcutter', () => {
+  describe('phases', () => {
+    it('fires "down" once when the whole combination is pressed (default phase)', () => {
+      const { sc, kb, handler, phases } = setup();
 
-    down('KeyS');
-    expect(calls()).toEqual(['down']);
-  });
+      sc.listen('Control+K', handler);
+      kb.down('ControlLeft');
+      expect(phases()).toEqual([]);
 
-  it('fires "press" on repeated keydown of the same combination', () => {
-    const { down, calls } = setup('press');
+      kb.down('KeyK');
+      kb.down('KeyK', { repeat: true });
+      kb.up('KeyK');
 
-    down('KeyA');
-    down('KeyS');
-    down('KeyS');
-    down('KeyS');
-
-    expect(calls()).toEqual(['press', 'press']);
-  });
-
-  it('fires "up" when a key of the combination is released', () => {
-    const { down, up, calls } = setup('up');
-
-    down('KeyA');
-    down('KeyS');
-    up('KeyS');
-
-    expect(calls()).toEqual(['up']);
-  });
-
-  it('passes the original event to the callback', () => {
-    const { down, callback } = setup('down', ['a']);
-
-    down('KeyA');
-
-    expect(callback.mock.calls[0]?.[0]).toBeInstanceOf(KeyboardEvent);
-  });
-
-  it('fires "up" for the previous combination when another key joins it', () => {
-    const { down, calls } = setup(['down', 'up'], ['a']);
-
-    down('KeyA');
-    down('KeyS');
-
-    expect(calls()).toEqual(['down', 'up']);
-  });
-
-  it('re-fires "down" for the remaining combination after a key is released (0.2.0 quirk)', () => {
-    const { down, up, calls } = setup(['down', 'up'], ['a']);
-
-    down('KeyA');
-    down('KeyS');
-    up('KeyS');
-
-    expect(calls()).toEqual(['down', 'up', 'down']);
-  });
-
-  it('fires "up" and releases all keys on blur', () => {
-    const { down, blur, calls } = setup(['down', 'up']);
-
-    down('KeyA');
-    down('KeyS');
-    blur();
-    down('KeyA');
-
-    expect(calls()).toEqual(['down', 'up']);
-  });
-
-  it('normalizes key order and event.code ("KeyA" -> "a")', () => {
-    const { down, calls } = setup('down', ['s', 'A']);
-
-    down('KeyS');
-    down('KeyA');
-
-    expect(calls()).toEqual(['down']);
-  });
-
-  it('uses lowercased event.code for non-letter keys', () => {
-    const { down, calls } = setup('down', ['shiftleft', 'digit1']);
-
-    down('ShiftLeft');
-    down('Digit1');
-
-    expect(calls()).toEqual(['down']);
-  });
-
-  it('stops firing after the returned unlisten function is called', () => {
-    const { down, up, off, calls } = setup('down');
-
-    off();
-    down('KeyA');
-    down('KeyS');
-    up('KeyS');
-
-    expect(calls()).toEqual([]);
-  });
-
-  it('defaults to "down|press" phases', () => {
-    const target = new EventTarget();
-    const sc = useShortcutter({ eventTarget: target });
-    const callback = vi.fn();
-
-    sc.listen('default', ['a'], callback);
-    target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
-    target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
-    target.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyA' }));
-
-    expect(callback.mock.calls.map(([, phase]) => phase as string)).toEqual(['down', 'press']);
-  });
-
-  describe('teardown', () => {
-    it('stops firing after destroy()', () => {
-      const { sc, down, calls } = setup('down', ['a']);
-
-      sc.destroy();
-      down('KeyA');
-
-      expect(calls()).toEqual([]);
+      expect(phases()).toEqual(['down']);
     });
 
-    it('can be destroyed more than once', () => {
-      const { sc } = setup('down');
+    it('fires "press" on key repeat and "up" on release', () => {
+      const { sc, kb, handler, phases } = setup();
 
-      sc.destroy();
-      expect(() => sc.destroy()).not.toThrow();
+      sc.listen('A', handler, { phases: ['down', 'press', 'up'] });
+      kb.down('KeyA');
+      kb.down('KeyA', { repeat: true });
+      kb.down('KeyA', { repeat: true });
+      kb.up('KeyA');
+
+      expect(phases()).toEqual(['down', 'press', 'press', 'up']);
     });
 
-    it('stops firing when the provided signal aborts', () => {
-      const target = new EventTarget();
-      const controller = new AbortController();
-      const sc = useShortcutter({ eventTarget: target, signal: controller.signal });
-      const callback = vi.fn();
+    it('fires "up" when another key joins the combination', () => {
+      const { sc, kb, handler, phases } = setup();
 
-      sc.listen('default', ['a'], callback, 'down');
-      target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
-      target.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyA' }));
-      controller.abort();
-      target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
+      sc.listen('A', handler, { phases: ['down', 'up'] });
+      kb.down('KeyA');
+      kb.down('KeyS');
 
-      expect(callback).toHaveBeenCalledTimes(1);
+      expect(phases()).toEqual(['down', 'up']);
     });
 
-    it('never listens when the provided signal is already aborted', () => {
-      const target = new EventTarget();
-      const sc = useShortcutter({ eventTarget: target, signal: AbortSignal.abort() });
-      const callback = vi.fn();
+    it('does not fire "down" again for keys left after a release (0.2 did)', () => {
+      const { sc, kb, handler, phases } = setup();
 
-      sc.listen('default', ['a'], callback, 'down');
-      target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
+      sc.listen('A', handler, { phases: ['down', 'up'] });
+      kb.down('KeyA');
+      kb.down('KeyS');
+      kb.up('KeyS');
 
-      expect(callback).not.toHaveBeenCalled();
+      expect(phases()).toEqual(['down', 'up']);
+    });
+
+    it('rejects unknown and empty phases', () => {
+      const { sc, handler } = setup();
+
+      // @ts-expect-error -- runtime guard for JS users and 0.2 strings
+      expect(() => sc.listen('A', handler, { phases: 'down|up' })).toThrow(
+        'Unknown phase "down|up"',
+      );
+      expect(() => sc.listen('A', handler, { phases: [] })).toThrow('At least one phase');
+    });
+  });
+
+  describe('keys', () => {
+    it('matches left and right modifiers alike', () => {
+      const { sc, kb, handler } = setup();
+
+      sc.listen('Shift+A', handler);
+      kb.down('ShiftRight');
+      kb.down('KeyA');
+
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    it('maps ControlOrMeta to Control outside macOS', () => {
+      const { sc, kb, handler } = setup({ mac: false });
+
+      sc.listen('ControlOrMeta+K', handler);
+      kb.down('MetaLeft');
+      kb.down('KeyK');
+      expect(handler).not.toHaveBeenCalled();
+
+      kb.up('KeyK');
+      kb.up('MetaLeft');
+      kb.down('ControlLeft');
+      kb.down('KeyK');
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    it('maps ControlOrMeta to Meta on macOS', () => {
+      const { sc, kb, handler } = setup({ mac: true });
+
+      sc.listen('ControlOrMeta+K', handler);
+      kb.down('MetaLeft');
+      kb.down('KeyK');
+
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes the event and details to the handler', () => {
+      const { sc, kb, handler } = setup();
+
+      sc.listen('Shift+Digit1', handler, { context: 'default' });
+      kb.down('ShiftLeft');
+      const event = kb.down('Digit1');
+
+      expect(handler).toHaveBeenCalledWith(event, {
+        phase: 'down',
+        shortcut: '1+shift',
+        context: 'default',
+      });
+    });
+
+    it('reports pressed keys', () => {
+      const { sc, kb } = setup();
+
+      kb.down('ShiftLeft');
+      kb.down('KeyA');
+
+      expect(sc.pressed()).toEqual(['a', 'shift']);
+    });
+
+    it('recovers when macOS swallows keyups while Meta is held', () => {
+      const { sc, kb, handler } = setup({ mac: true });
+
+      sc.listen('K', handler);
+      kb.down('MetaLeft');
+      kb.down('KeyK');
+      kb.up('MetaLeft'); // no keyup for K arrives on macOS
+      kb.down('KeyK');
+
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(sc.pressed()).toEqual(['k']);
+    });
+
+    it('drops a modifier whose keyup was lost (e.g. released in another window)', () => {
+      const { sc, kb, handler } = setup();
+
+      sc.listen('K', handler);
+      kb.down('ControlLeft');
+      kb.lose('ControlLeft'); // released without a keyup reaching us
+      kb.down('KeyK');
+
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('blur', () => {
+    it('fires "up" and releases all keys', () => {
+      const { sc, kb, handler, phases } = setup();
+
+      sc.listen('A+S', handler, { phases: ['down', 'up'] });
+      kb.down('KeyA');
+      kb.down('KeyS');
+      kb.blur();
+
+      expect(phases()).toEqual(['down', 'up']);
+      expect(sc.pressed()).toEqual([]);
+    });
+  });
+
+  describe('registration', () => {
+    it('throws when the same shortcut is registered twice for a phase in one context', () => {
+      const { sc } = setup();
+
+      sc.listen('Control+K', () => {});
+
+      expect(() => sc.listen('k+ctrl', () => {})).toThrow(
+        'Shortcut "k+ctrl" is already registered for the "down" phase in the "default" context.',
+      );
+      expect(() => sc.listen('Control+K', () => {}, { phases: 'up' })).not.toThrow();
+      expect(() => sc.listen('Control+K', () => {}, { context: 'modal' })).not.toThrow();
+    });
+
+    it('does not register anything when one of the phases is taken', () => {
+      const { sc, kb, handler } = setup();
+
+      sc.listen('A', () => {}, { phases: 'up' });
+      expect(() => sc.listen('A', handler, { phases: ['down', 'up'] })).toThrow();
+
+      kb.down('KeyA');
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('requires a handler function', () => {
+      const { sc } = setup();
+
+      // @ts-expect-error -- runtime guard
+      expect(() => sc.listen('A')).toThrow('has to be a function');
+    });
+
+    it('removes the shortcut with the returned function, which is safe to call twice', () => {
+      const { sc, kb, handler } = setup();
+      const off = sc.listen('A', handler);
+
+      off();
+      off();
+      kb.down('KeyA');
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('does not remove a shortcut registered again after the first one', () => {
+      const { sc, kb, handler } = setup();
+      const off = sc.listen('A', () => {});
+
+      sc.unlisten('A');
+      sc.listen('A', handler);
+      off();
+      kb.down('KeyA');
+
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    it('unlisten() ignores unknown shortcuts and contexts', () => {
+      const { sc } = setup();
+
+      expect(() => sc.unlisten('A', { context: 'nope' })).not.toThrow();
     });
   });
 
   describe('contexts', () => {
-    it('only fires shortcuts from active contexts', () => {
-      const target = new EventTarget();
-      const sc = useShortcutter({ eventTarget: target });
-      const inDefault = vi.fn();
-      const inModal = vi.fn();
+    it('runs shortcuts from active contexts only, in activation order', () => {
+      const { sc, kb } = setup();
+      const calls: string[] = [];
 
-      sc.listen('default', ['a'], inDefault, 'down');
-      sc.listen('modal', ['a'], inModal, 'down');
+      sc.listen('A', () => calls.push('default'));
+      sc.listen('A', () => calls.push('modal'), { context: 'modal' });
+      sc.listen('A', () => calls.push('editor'), { context: 'editor' });
 
-      target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
-      target.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyA' }));
-      sc.setActiveContext('modal');
-      target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
+      kb.press('KeyA');
+      sc.contexts.activate('modal', 'default');
+      kb.press('KeyA');
 
-      expect(inDefault).toHaveBeenCalledTimes(1);
-      expect(inModal).toHaveBeenCalledTimes(1);
+      expect(calls).toEqual(['default', 'modal', 'default']);
     });
 
-    it('auto-creates contexts on listen and exposes them via hasContext', () => {
-      const sc = useShortcutter({ eventTarget: new EventTarget() });
+    it('reports and checks active contexts', () => {
+      const { sc } = setup({ defaultContext: 'main' });
 
-      expect(sc.hasContext('editor')).toBe(false);
-      sc.listen('editor', ['a'], () => {});
-      expect(sc.hasContext('editor')).toBe(true);
+      expect(sc.contexts.active()).toEqual(['main']);
+      sc.contexts.activate('modal', 'later', 'modal');
+      expect(sc.contexts.active()).toEqual(['modal', 'later']);
+      expect(sc.contexts.isActive('later')).toBe(true);
+      expect(sc.contexts.isActive('main')).toBe(false);
     });
 
-    it('returns active contexts as an array', () => {
-      const sc = useShortcutter({ eventTarget: new EventTarget(), defaultContext: 'main' });
+    it('rejects empty context names', () => {
+      const { sc } = setup();
 
-      expect(sc.getActiveContext()).toEqual(['main']);
+      expect(() => sc.contexts.activate('')).toThrow('non-empty string');
+    });
+  });
+
+  describe('inputs', () => {
+    function inDocument(element: HTMLElement) {
+      document.body.append(element);
+      return setup({ target: document });
+    }
+
+    it.each([
+      ['input', () => document.createElement('input')],
+      ['textarea', () => document.createElement('textarea')],
+      ['select', () => document.createElement('select')],
+      [
+        'contenteditable',
+        () => {
+          const div = document.createElement('div');
+          div.contentEditable = 'true';
+          return div;
+        },
+      ],
+    ])('ignores shortcuts while typing in %s', (_name, create) => {
+      const element = create();
+      const { sc, kb, handler } = inDocument(element);
+
+      sc.listen('A', handler);
+      kb.down('KeyA', {}, element);
+
+      expect(handler).not.toHaveBeenCalled();
     });
 
-    it('throws when activating an unknown context', () => {
-      const sc = useShortcutter({ eventTarget: new EventTarget() });
+    it('can allow a shortcut inside inputs', () => {
+      const input = document.createElement('input');
+      const { sc, kb, handler } = inDocument(input);
 
-      expect(() => sc.setActiveContext('nope')).toThrow("Context 'nope' is not added.");
+      sc.listen('Escape', handler, { ignoreInputs: false });
+      kb.down('Escape', {}, input);
+
+      expect(handler).toHaveBeenCalledTimes(1);
     });
 
-    it('throws when registering the same shortcut twice in one phase', () => {
-      const sc = useShortcutter({ eventTarget: new EventTarget() });
+    it('can disable the guard globally', () => {
+      const input = document.createElement('input');
+      document.body.append(input);
+      const { sc, kb, handler } = setup({ target: document, ignoreInputs: false });
 
-      sc.listen('default', ['a'], () => {}, 'down');
+      sc.listen('A', handler);
+      kb.down('KeyA', {}, input);
 
-      expect(() => sc.listen('default', ['a'], () => {}, 'down')).toThrow(
-        'Shortcut "a" is already added to "down" phase.',
-      );
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores shortcuts during IME composition', () => {
+      const { sc, kb, handler } = setup();
+
+      sc.listen('A', handler);
+      kb.down('KeyA', { isComposing: true });
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('preventDefault', () => {
+    it('is off by default', () => {
+      const { sc, kb } = setup();
+
+      sc.listen('A', () => {});
+
+      expect(kb.down('KeyA').defaultPrevented).toBe(false);
+    });
+
+    it('can be enabled globally or per shortcut', () => {
+      const global = setup({ preventDefault: true });
+      global.sc.listen('A', () => {});
+      global.sc.listen('B', () => {}, { preventDefault: false });
+
+      expect(global.kb.down('KeyA').defaultPrevented).toBe(true);
+      expect(global.kb.down('KeyB').defaultPrevented).toBe(false);
+
+      const local = setup();
+      local.sc.listen('A', () => {}, { preventDefault: true });
+
+      expect(local.kb.down('KeyA').defaultPrevented).toBe(true);
+    });
+
+    it('leaves unmatched keys alone', () => {
+      const { sc, kb } = setup({ preventDefault: true });
+
+      sc.listen('A', () => {});
+
+      expect(kb.down('KeyB').defaultPrevented).toBe(false);
+    });
+  });
+
+  describe('teardown', () => {
+    it('stops firing after destroy(), which is safe to call twice', () => {
+      const { sc, kb, handler } = setup();
+
+      sc.listen('A', handler);
+      sc.destroy();
+      sc.destroy();
+      kb.down('KeyA');
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('stops firing when the signal aborts', () => {
+      const controller = new AbortController();
+      const { sc, kb, handler } = setup({ signal: controller.signal });
+
+      sc.listen('A', handler);
+      kb.press('KeyA');
+      controller.abort();
+      kb.press('KeyA');
+
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    it('never listens when the signal is already aborted', () => {
+      const { sc, kb, handler } = setup({ signal: AbortSignal.abort() });
+
+      sc.listen('A', handler);
+      kb.down('KeyA');
+
+      expect(handler).not.toHaveBeenCalled();
     });
   });
 });

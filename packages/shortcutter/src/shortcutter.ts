@@ -1,127 +1,230 @@
-import { useContexts } from './contexts';
-import { useController } from './controller';
-import { normalizeKeyCode } from './helpers';
-import type { Phase, Phases, ShortcutCallback } from './types';
+import {
+  MODIFIERS,
+  combination,
+  detectMac,
+  isModifier,
+  isModifierHeld,
+  keyFromCode,
+  parseShortcut,
+} from './keys';
+import type {
+  ListenOptions,
+  Phase,
+  Phases,
+  ShortcutHandler,
+  Shortcutter,
+  ShortcutterOptions,
+  UnlistenOptions,
+} from './types';
 
-export type ShortcutterConfig = {
-  /**
-   * Where keyboard events are listened to. Defaults to `window` in browsers.
-   * Without a target (e.g. during SSR) no listeners are attached and no shortcut fires.
-   */
-  eventTarget?: EventTarget;
-  /** Name of the context created and activated on start. Defaults to `'default'`. */
-  defaultContext?: string;
-  /** Aborting this signal has the same effect as calling `destroy()`. */
-  signal?: AbortSignal;
+type Binding = {
+  handler: ShortcutHandler;
+  ignoreInputs: boolean;
+  preventDefault: boolean;
 };
 
+const PHASE_NAMES: readonly Phase[] = ['down', 'press', 'up'];
+
+function toPhases(phases: Phases): Phase[] {
+  const list: readonly unknown[] = Array.isArray(phases) ? phases : [phases];
+
+  if (list.length === 0) {
+    throw new Error('At least one phase is required.');
+  }
+
+  for (const phase of list) {
+    if (!PHASE_NAMES.includes(phase as Phase)) {
+      throw new Error(`Unknown phase "${String(phase)}". Expected "down", "press" or "up".`);
+    }
+  }
+
+  return [...new Set(list as Phase[])];
+}
+
+function isTyping(event: KeyboardEvent): boolean {
+  if (event.isComposing) return true;
+
+  const target = (event.composedPath?.()[0] ?? event.target) as Partial<HTMLElement> | null;
+
+  return (
+    !!target &&
+    (target.isContentEditable === true ||
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'SELECT')
+  );
+}
+
 /**
- * Creates a shortcut manager bound to `eventTarget` (or `window`).
+ * Creates a shortcut manager listening on `options.target` (or `window`).
+ *
+ * @example
+ * const shortcutter = createShortcutter();
+ * shortcutter.listen('ControlOrMeta+K', () => openPalette(), { preventDefault: true });
  */
-export function useShortcutter(config: ShortcutterConfig = {}) {
-  const eventTarget: EventTarget | undefined =
-    config.eventTarget ?? (typeof window === 'undefined' ? undefined : window);
-  const defaultContext = config.defaultContext ?? 'default';
+export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter {
+  const target: EventTarget | undefined =
+    options.target ?? (typeof window === 'undefined' ? undefined : window);
+  const defaultContext = options.defaultContext ?? 'default';
+  const ignoreInputs = options.ignoreInputs ?? true;
+  const preventDefault = options.preventDefault ?? false;
+  const mac = options.mac ?? detectMac();
 
-  const contexts = useContexts();
-  const keysRecorder = useController();
+  /** context → `${combination}|${phase}` → binding */
+  const registry = new Map<string, Map<string, Binding>>();
+  const pressed = new Set<string>();
+  let active: string[] = [defaultContext];
 
-  contexts.add(defaultContext);
-  contexts.setActive(defaultContext);
+  function dispatch(keys: string, phase: Phase, event: KeyboardEvent | FocusEvent): void {
+    if (keys === '') return;
+
+    const typing = event.type === 'blur' ? false : isTyping(event as KeyboardEvent);
+
+    // activate() replaces `active`, so a handler switching contexts does not affect this loop.
+    for (const context of active) {
+      const binding = registry.get(context)?.get(`${keys}|${phase}`);
+
+      if (!binding || (typing && binding.ignoreInputs)) continue;
+      if (binding.preventDefault) event.preventDefault();
+
+      binding.handler(event, { phase, shortcut: keys, context });
+    }
+  }
+
+  /** Drops modifiers the event no longer reports as held: their keyup never reached us. */
+  function syncModifiers(event: KeyboardEvent, key: string): void {
+    for (const modifier of MODIFIERS) {
+      if (modifier !== key && pressed.has(modifier) && !isModifierHeld(event, modifier)) {
+        pressed.delete(modifier);
+      }
+    }
+  }
+
+  function onKeyDown(event: KeyboardEvent): void {
+    const key = keyFromCode(event.code);
+
+    if (!key) return;
+
+    syncModifiers(event, key);
+
+    const previous = combination(pressed);
+
+    if (pressed.has(key)) {
+      dispatch(previous, 'press', event);
+      return;
+    }
+
+    pressed.add(key);
+    dispatch(previous, 'up', event);
+    dispatch(combination(pressed), 'down', event);
+  }
+
+  function onKeyUp(event: KeyboardEvent): void {
+    const key = keyFromCode(event.code);
+
+    syncModifiers(event, key);
+
+    if (!pressed.has(key)) return;
+
+    const previous = combination(pressed);
+
+    pressed.delete(key);
+
+    // macOS sends no keyup for other keys while Meta is held, so they would stay "pressed".
+    if (key === 'meta') {
+      for (const other of pressed) {
+        if (!isModifier(other)) pressed.delete(other);
+      }
+    }
+
+    dispatch(previous, 'up', event);
+  }
+
+  function onBlur(event: FocusEvent): void {
+    const previous = combination(pressed);
+
+    pressed.clear();
+    dispatch(previous, 'up', event);
+  }
 
   const listeners = new AbortController();
-  const options: AddEventListenerOptions = { signal: listeners.signal };
+  const listenerOptions: AddEventListenerOptions = { signal: listeners.signal };
 
-  eventTarget?.addEventListener('keydown', onkeydown as EventListener, options);
-  eventTarget?.addEventListener('keyup', onkeyup as EventListener, options);
-  eventTarget?.addEventListener('blur', onblur as EventListener, options);
+  target?.addEventListener('keydown', onKeyDown as EventListener, listenerOptions);
+  target?.addEventListener('keyup', onKeyUp as EventListener, listenerOptions);
+  target?.addEventListener('blur', onBlur as EventListener, listenerOptions);
 
   function destroy(): void {
     listeners.abort();
-    keysRecorder.releaseAll();
+    pressed.clear();
   }
 
-  if (config.signal?.aborted) {
+  if (options.signal?.aborted) {
     destroy();
   } else {
-    config.signal?.addEventListener('abort', destroy, options);
+    options.signal?.addEventListener('abort', destroy, listenerOptions);
   }
 
-  const invokeClbck = (keys: readonly string[], event: Event, phase: Phase) => {
-    contexts.getActive().forEach((context) => {
-      const ctx = contexts.get(context);
+  function listen(shortcut: string, handler: ShortcutHandler, opts: ListenOptions = {}) {
+    if (typeof handler !== 'function') {
+      throw new Error(`Handler for shortcut "${shortcut}" has to be a function.`);
+    }
 
-      if (ctx?.has(keys, phase)) {
-        ctx.get(keys, phase)?.(event, phase);
+    const keys = parseShortcut(shortcut, mac);
+    const phases = toPhases(opts.phases ?? 'down');
+    const context = opts.context ?? defaultContext;
+    const bindings = registry.get(context) ?? new Map<string, Binding>();
+    const binding: Binding = {
+      handler,
+      ignoreInputs: opts.ignoreInputs ?? ignoreInputs,
+      preventDefault: opts.preventDefault ?? preventDefault,
+    };
+
+    for (const phase of phases) {
+      if (bindings.has(`${keys}|${phase}`)) {
+        throw new Error(
+          `Shortcut "${shortcut}" is already registered for the "${phase}" phase in the "${context}" context.`,
+        );
       }
-    });
-  };
+    }
 
-  function onkeydown(event: KeyboardEvent): void {
-    const previousCombination = keysRecorder.getPressed().join('+');
+    registry.set(context, bindings);
+    phases.forEach((phase) => bindings.set(`${keys}|${phase}`, binding));
 
-    keysRecorder.press(normalizeKeyCode(event.code));
-
-    const nextCombination = keysRecorder.getPressed().join('+');
-
-    if (previousCombination !== nextCombination) {
-      if (previousCombination.length) {
-        invokeClbck(previousCombination.split('+'), event, 'up');
+    return () => {
+      for (const phase of phases) {
+        // Leave it alone if someone registered the shortcut again in the meantime.
+        if (bindings.get(`${keys}|${phase}`) === binding) bindings.delete(`${keys}|${phase}`);
       }
-
-      invokeClbck(nextCombination.split('+'), event, 'down');
-    } else {
-      invokeClbck(previousCombination.split('+'), event, 'press');
-    }
+    };
   }
 
-  function onkeyup(event: KeyboardEvent): void {
-    const previousCombination = keysRecorder.getPressed().join('+');
+  function unlisten(shortcut: string, opts: UnlistenOptions = {}): void {
+    const keys = parseShortcut(shortcut, mac);
+    const bindings = registry.get(opts.context ?? defaultContext);
 
-    keysRecorder.release(normalizeKeyCode(event.code));
-
-    const nextCombination = keysRecorder.getPressed().join('+');
-
-    if (previousCombination.length) {
-      invokeClbck(previousCombination.split('+'), event, 'up');
+    for (const phase of toPhases(opts.phases ?? 'down')) {
+      bindings?.delete(`${keys}|${phase}`);
     }
-    if (nextCombination.length) {
-      invokeClbck(nextCombination.split('+'), event, 'down');
-    }
-  }
-
-  function onblur(event: FocusEvent): void {
-    const previousCombination = keysRecorder.getPressed().join('+');
-
-    if (previousCombination.length) {
-      invokeClbck(previousCombination.split('+'), event, 'up');
-    }
-
-    keysRecorder.releaseAll();
   }
 
   return {
-    listen: (
-      context: string,
-      keys: readonly string[],
-      callback: ShortcutCallback,
-      phases?: Phases,
-    ) => {
-      const ctx = contexts.has(context) ? contexts.get(context) : contexts.add(context);
+    listen,
+    unlisten,
+    contexts: {
+      activate(...names: string[]) {
+        for (const name of names) {
+          if (typeof name !== 'string' || name === '') {
+            throw new Error('Context name has to be a non-empty string.');
+          }
+        }
 
-      ctx?.add(keys, callback, phases);
-
-      return () => ctx?.remove(keys, phases);
+        active = [...new Set(names)];
+      },
+      active: () => [...active],
+      isActive: (name: string) => active.includes(name),
     },
-    unlisten: (context: string, keys: readonly string[], phases?: Phases) => {
-      const ctx = contexts.get(context);
-
-      ctx?.remove(keys, phases);
-    },
-    hasContext: (name: string) => contexts.has(name),
-    getActiveContext: () => contexts.getActive(),
-    setActiveContext: (name: string) => contexts.setActive(name),
-    /** Removes all event listeners. Registered shortcuts stop firing. Safe to call twice. */
+    pressed: () => [...pressed].sort(),
     destroy,
-  } as const;
+  };
 }

@@ -1,3 +1,11 @@
-export { useShortcutter } from './shortcutter';
-export type { ShortcutterConfig } from './shortcutter';
-export type { Phase, Phases, ShortcutCallback } from './types';
+export { createShortcutter } from './shortcutter';
+export type {
+  ListenOptions,
+  Phase,
+  Phases,
+  ShortcutDetail,
+  ShortcutHandler,
+  Shortcutter,
+  ShortcutterOptions,
+  UnlistenOptions,
+} from './types';
