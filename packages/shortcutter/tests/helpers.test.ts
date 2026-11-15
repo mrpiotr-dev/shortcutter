@@ -21,6 +21,19 @@ describe('helpers', () => {
       expect(normalizeShortcut(['shift', 'z', 'ctrl'])).toBe('ctrl+shift+z');
       expect(normalizeShortcut(['shift', 'ctrl', 'z'])).toBe('ctrl+shift+z');
     });
+
+    it('should not mutate the passed keys', () => {
+      const keys = ['z', 'ctrl', 'shift'];
+
+      normalizeShortcut(keys);
+
+      expect(keys).toEqual(['z', 'ctrl', 'shift']);
+    });
+
+    it('should give the same result regardless of letter case', () => {
+      expect(normalizeShortcut(['S', 'a'])).toBe('a+s');
+      expect(normalizeShortcut(['s', 'A'])).toBe('a+s');
+    });
   });
 
   describe('phasesIterator', () => {

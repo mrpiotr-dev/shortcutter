@@ -12,8 +12,11 @@ export function normalizeKeyCode(code: string): string {
   return code.toLowerCase().replace(/key/, '');
 }
 
-export function normalizeShortcut(keys: string[]): string {
-  return keys.sort().join('+').toLowerCase();
+export function normalizeShortcut(keys: readonly string[]): string {
+  return keys
+    .map((key) => key.toLowerCase())
+    .sort()
+    .join('+');
 }
 
 export function phasesIterator(
