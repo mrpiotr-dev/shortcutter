@@ -85,7 +85,7 @@ document
 
 const pressedEl = $<HTMLElement>('[data-pressed]');
 const emptyEl = pressedEl.firstElementChild!;
-const shortcutEl = $<HTMLElement>('[data-shortcut]');
+const shortcutEl = $<HTMLElement>('[data-vis-shortcut]');
 const contextsEl = $<HTMLElement>('[data-contexts]');
 const logEl = $<HTMLOListElement>('[data-log]');
 
@@ -496,8 +496,10 @@ document.documentElement.dataset.demo = demo;
 activateBase();
 
 // Shortcut chips on buttons show the keys from the registry, resolved for this platform.
-document.querySelectorAll<HTMLElement>('.kbd-chip[data-shortcut]').forEach((chip) => {
-  const info = shortcutter.shortcuts().find((entry) => entry.shortcut === chip.dataset.shortcut);
+document.querySelectorAll<HTMLElement>('.kbd-chip[data-chip-shortcut]').forEach((chip) => {
+  const info = shortcutter
+    .shortcuts()
+    .find((entry) => entry.shortcut === chip.dataset.chipShortcut);
 
   if (!info) return;
   chip.textContent = info.keys.map(label).join(' ');

@@ -530,18 +530,6 @@ h2::before {
   margin: 0 0 1.25rem;
 }
 
-.note {
-  margin-top: 1.5rem;
-  padding: 1rem 1.25rem;
-  border-inline-start: 6px solid var(--yellow);
-  background: var(--bg-2);
-}
-
-.note p {
-  margin: 0.5rem 0 0;
-  color: var(--fg-2);
-}
-
 /* ---------- Help dialog ---------- */
 
 .help h2 {
