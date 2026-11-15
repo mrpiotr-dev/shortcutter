@@ -25,15 +25,13 @@ jobs:
           cache: true
           run-install: true
 
-      # Adapters and the playground type-check against the built core, so build it first.
-      - name: Build library
-        run: vp run shortcutter#build
+      # Build first: the apps type-check against the built packages, and the docs build generates
+      # Astro's content types. vp builds workspace packages in dependency order.
+      - name: Build (incl. publint + attw)
+        run: vp run -r build
 
       - name: Format, lint & type-check
         run: vp check
 
       - name: Test
         run: vp run -r test:coverage
-
-      - name: Build all (incl. publint + attw)
-        run: vp run -r build
