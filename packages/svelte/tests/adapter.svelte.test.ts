@@ -9,12 +9,20 @@ function setup() {
   const shortcutter = createShortcutter({ target, mac: false });
   const onmount = vi.fn();
   const onattach = vi.fn();
-  const props = $state({ shortcutter, onmount, onattach, attachKeys: 'B', showAttached: true });
+  const onsequence = vi.fn();
+  const props = $state({
+    shortcutter,
+    onmount,
+    onattach,
+    onsequence,
+    attachKeys: 'B',
+    showAttached: true,
+  });
   const component = mount(Fixture, { target: document.createElement('div'), props });
 
   flushSync();
 
-  return { kb: keyboard(target), onmount, onattach, props, component };
+  return { kb: keyboard(target), onmount, onattach, onsequence, props, component };
 }
 
 describe('svelte adapter', () => {
@@ -49,6 +57,23 @@ describe('svelte adapter', () => {
     flushSync();
     kb.press('KeyC');
     expect(onattach).toHaveBeenCalledTimes(2);
+    await unmount(component);
+  });
+
+  it('registers sequences with useSequence and the sequence attachment', async () => {
+    const { kb, onsequence, props, component } = setup();
+
+    kb.press('KeyG');
+    kb.press('KeyI'); // useSequence
+    kb.press('KeyG');
+    kb.press('KeyO'); // attachment
+    expect(onsequence).toHaveBeenCalledTimes(2);
+
+    props.showAttached = false;
+    flushSync();
+    kb.press('KeyG');
+    kb.press('KeyO');
+    expect(onsequence).toHaveBeenCalledTimes(2);
     await unmount(component);
   });
 });

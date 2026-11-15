@@ -7,10 +7,18 @@ import {
   type InjectionKey,
   type MaybeRefOrGetter,
 } from 'vue';
-import { getDefaultShortcutter, toListenOptions, type UseShortcutOptions } from './shared';
+import {
+  getDefaultShortcutter,
+  getSequences,
+  toListenOptions,
+  toSequenceOptions,
+  type UseSequenceOptions,
+  type UseShortcutOptions,
+} from './shared';
 import type { ShortcutHandler, Shortcutter } from 'shortcutter';
+import type { SequenceHandler } from 'shortcutter/sequences';
 
-export type { UseShortcutOptions } from './shared';
+export type { UseSequenceOptions, UseShortcutOptions } from './shared';
 
 /** Provide an instance app-wide with `app.provide(shortcutterKey, createShortcutter())`. */
 export const shortcutterKey: InjectionKey<Shortcutter> = Symbol('shortcutter');
@@ -48,6 +56,33 @@ export function useShortcut(
       if (opts.enabled === false) return;
 
       onCleanup(shortcutter.listen(toValue(shortcut), handler, toListenOptions(opts)));
+    });
+  });
+}
+
+/**
+ * Registers a key sequence (`'G I'`) while the component is mounted, using `shortcutter/sequences`.
+ * The sequence and options may be refs or getters. Call it in `setup()`.
+ *
+ * @example
+ * useSequence('G I', () => router.push('/inbox'), { description: 'Go to the inbox' });
+ */
+export function useSequence(
+  sequence: MaybeRefOrGetter<string>,
+  handler: SequenceHandler,
+  options: MaybeRefOrGetter<UseSequenceOptions> = {},
+): void {
+  const shortcutter = useShortcutter();
+
+  onMounted(() => {
+    watchEffect((onCleanup) => {
+      const opts = toValue(options);
+
+      if (opts.enabled === false) return;
+
+      onCleanup(
+        getSequences(shortcutter).listen(toValue(sequence), handler, toSequenceOptions(opts)),
+      );
     });
   });
 }

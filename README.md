@@ -135,6 +135,8 @@ sequences.listen('G Shift+P', () => goToProfile());
 sequences.sequences(); // for help screens, like shortcuts()
 ```
 
+The framework adapters wrap it too: `useSequence` (React, Vue, Svelte), `createSequence` (Solid) and the Svelte `sequence` attachment.
+
 Steps are separated by spaces and each step is a shortcut (modifiers and wildcards work). Steps must follow each other within `timeout` milliseconds; pressing a modifier on its own does not count as a step. Sequences respect contexts, the input guard and `preventDefault`, like `listen()`.
 
 ## Frameworks

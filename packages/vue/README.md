@@ -22,6 +22,9 @@ useShortcut(
 - `useShortcut(shortcut, handler, options?)`: registered while mounted; `shortcut` and `options` may be refs or getters.
 - `useShortcutter()`: the instance, e.g. to switch contexts.
 - `provideShortcutter(instance)` or `app.provide(shortcutterKey, instance)`: use your own instance instead of the shared one on `window`.
+- `useSequence(sequence, handler, options?)`: a key sequence such as `'G I'` (from `shortcutter/sequences`); refs and getters work as in `useShortcut`.
+
+Sequence code is only bundled if you use it.
 
 Shortcuts are registered only after mount, so nothing runs during server rendering. Full docs: https://www.shortcutter.dev/docs/
 

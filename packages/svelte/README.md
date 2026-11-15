@@ -23,6 +23,9 @@ pnpm add shortcutter @shortcutter/svelte
 - `useShortcut(shortcut, handler, options?)`: call during component initialisation; registered while mounted.
 - `shortcut(shortcut, handler, options?)`: attachment, registered while the element exists and again when its arguments change.
 - `getShortcutter()` / `setShortcutter(instance)`: read or provide the instance (shared one on `window` by default).
+- `useSequence(sequence, handler, options?)` and the `sequence(keys, handler, options?)` attachment: key sequences such as `'G I'` (from `shortcutter/sequences`).
+
+Sequence code is only bundled if you use it.
 
 Shortcuts are registered only after mount, so nothing runs during server rendering. Full docs: https://www.shortcutter.dev/docs/
 

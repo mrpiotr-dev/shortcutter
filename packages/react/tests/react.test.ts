@@ -2,7 +2,7 @@ import { act, createElement, StrictMode, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vite-plus/test';
 import { createShortcutter } from 'shortcutter';
-import { ShortcutterProvider, useShortcut, useShortcutter } from '../src/index';
+import { ShortcutterProvider, useSequence, useShortcut, useShortcutter } from '../src/index';
 import { keyboard } from '../../core/tests/keyboard';
 
 beforeAll(() => {
@@ -107,6 +107,26 @@ describe('react adapter', () => {
     expect(shortcutter.shortcuts()).toEqual([
       expect.objectContaining({ shortcut: 'ControlOrMeta+K', description: 'Open the palette' }),
     ]);
+  });
+
+  it('registers sequences while mounted', () => {
+    const { shortcutter, kb } = setup();
+    const handler = vi.fn();
+    const App = () => {
+      useSequence('G I', handler, { description: 'Inbox' });
+      return null;
+    };
+
+    render(createElement(ShortcutterProvider, { shortcutter }, createElement(App)));
+    kb.press('KeyG');
+    kb.press('KeyI');
+    expect(handler).toHaveBeenCalledTimes(1);
+
+    act(() => root!.unmount());
+    root = undefined;
+    kb.press('KeyG');
+    kb.press('KeyI');
+    expect(handler).toHaveBeenCalledTimes(1);
   });
 
   it('exposes the instance for switching contexts', () => {

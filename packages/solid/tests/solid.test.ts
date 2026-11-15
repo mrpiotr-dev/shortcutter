@@ -1,7 +1,7 @@
 import { createComponent, createRoot, createSignal } from 'solid-js';
 import { describe, expect, it, vi } from 'vite-plus/test';
 import { createShortcutter } from 'shortcutter';
-import { createShortcut, ShortcutterContext, useShortcutter } from '../src/index';
+import { createSequence, createShortcut, ShortcutterContext, useShortcutter } from '../src/index';
 import { keyboard } from '../../core/tests/keyboard';
 
 function setup() {
@@ -61,6 +61,21 @@ describe('solid adapter', () => {
     kb.press('KeyB');
     expect(handler).toHaveBeenCalledTimes(1);
     dispose();
+  });
+
+  it('registers sequences for the owner lifetime', () => {
+    const { shortcutter, kb } = setup();
+    const handler = vi.fn();
+    const dispose = withProvider(shortcutter, () => createSequence('G I', handler));
+
+    kb.press('KeyG');
+    kb.press('KeyI');
+    expect(handler).toHaveBeenCalledTimes(1);
+
+    dispose();
+    kb.press('KeyG');
+    kb.press('KeyI');
+    expect(handler).toHaveBeenCalledTimes(1);
   });
 
   it('exposes the provided instance', () => {

@@ -1,9 +1,17 @@
 import { getContext, onMount, setContext } from 'svelte';
 import type { Attachment } from 'svelte/attachments';
-import { getDefaultShortcutter, toListenOptions, type UseShortcutOptions } from './shared';
+import {
+  getDefaultShortcutter,
+  getSequences,
+  toListenOptions,
+  toSequenceOptions,
+  type UseSequenceOptions,
+  type UseShortcutOptions,
+} from './shared';
 import type { ShortcutHandler, Shortcutter } from 'shortcutter';
+import type { SequenceHandler } from 'shortcutter/sequences';
 
-export type { UseShortcutOptions } from './shared';
+export type { UseSequenceOptions, UseShortcutOptions } from './shared';
 
 const KEY = Symbol('shortcutter');
 
@@ -53,4 +61,42 @@ export function shortcut(
 
   return () =>
     rest.enabled === false ? undefined : shortcutter.listen(keys, handler, toListenOptions(rest));
+}
+
+/**
+ * Registers a key sequence (`'G I'`) while the component is mounted, using `shortcutter/sequences`.
+ * Call it during component initialisation.
+ */
+export function useSequence(
+  sequence: string,
+  handler: SequenceHandler,
+  options: UseSequenceOptions = {},
+): void {
+  const shortcutter = getShortcutter();
+
+  onMount(() =>
+    options.enabled === false
+      ? undefined
+      : getSequences(shortcutter).listen(sequence, handler, toSequenceOptions(options)),
+  );
+}
+
+/**
+ * Attachment that registers a key sequence while the element exists, and again when its
+ * arguments change. Pass `shortcutter` to use an instance other than the shared one.
+ *
+ * @example
+ * <nav {@attach sequence('G H', goHome)}>
+ */
+export function sequence(
+  keys: string,
+  handler: SequenceHandler,
+  options: UseSequenceOptions & { shortcutter?: Shortcutter } = {},
+): Attachment {
+  const { shortcutter = getDefaultShortcutter(), ...rest } = options;
+
+  return () =>
+    rest.enabled === false
+      ? undefined
+      : getSequences(shortcutter).listen(keys, handler, toSequenceOptions(rest));
 }

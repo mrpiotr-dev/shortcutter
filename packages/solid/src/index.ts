@@ -1,8 +1,16 @@
 import { createContext, createEffect, onCleanup, useContext, type Accessor } from 'solid-js';
-import { getDefaultShortcutter, toListenOptions, type UseShortcutOptions } from './shared';
+import {
+  getDefaultShortcutter,
+  getSequences,
+  toListenOptions,
+  toSequenceOptions,
+  type UseSequenceOptions,
+  type UseShortcutOptions,
+} from './shared';
 import type { ShortcutHandler, Shortcutter } from 'shortcutter';
+import type { SequenceHandler } from 'shortcutter/sequences';
 
-export type { UseShortcutOptions } from './shared';
+export type { UseSequenceOptions, UseShortcutOptions } from './shared';
 
 /** `<ShortcutterContext.Provider value={shortcutter}>` makes it the instance used below. */
 export const ShortcutterContext = createContext<Shortcutter>();
@@ -36,6 +44,35 @@ export function createShortcut(
       typeof shortcut === 'function' ? shortcut() : shortcut,
       handler,
       toListenOptions(opts),
+    );
+
+    onCleanup(off);
+  });
+}
+
+/**
+ * Registers a key sequence (`'G I'`) for the lifetime of the current owner, using
+ * `shortcutter/sequences`. The sequence and options may be accessors.
+ *
+ * @example
+ * createSequence('G I', () => navigate('/inbox'), { description: 'Go to the inbox' });
+ */
+export function createSequence(
+  sequence: string | Accessor<string>,
+  handler: SequenceHandler,
+  options: UseSequenceOptions | Accessor<UseSequenceOptions> = {},
+): void {
+  const shortcutter = useShortcutter();
+
+  createEffect(() => {
+    const opts = typeof options === 'function' ? options() : options;
+
+    if (opts.enabled === false) return;
+
+    const off = getSequences(shortcutter).listen(
+      typeof sequence === 'function' ? sequence() : sequence,
+      handler,
+      toSequenceOptions(opts),
     );
 
     onCleanup(off);

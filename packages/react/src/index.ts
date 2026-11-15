@@ -1,8 +1,14 @@
 import { createContext, createElement, useContext, useEffect, useRef, type ReactNode } from 'react';
-import { getDefaultShortcutter, type UseShortcutOptions } from './shared';
+import {
+  getDefaultShortcutter,
+  getSequences,
+  type UseSequenceOptions,
+  type UseShortcutOptions,
+} from './shared';
 import type { ShortcutHandler, Shortcutter } from 'shortcutter';
+import type { SequenceHandler } from 'shortcutter/sequences';
 
-export type { UseShortcutOptions } from './shared';
+export type { UseSequenceOptions, UseShortcutOptions } from './shared';
 
 const ShortcutterContext = createContext<Shortcutter | null>(null);
 
@@ -58,4 +64,40 @@ export function useShortcut(
     ignoreInputs,
     preventDefault,
   ]);
+}
+
+/**
+ * Registers a key sequence (`'G I'`) while the component is mounted, using `shortcutter/sequences`.
+ * The latest `handler` is always called.
+ *
+ * @example
+ * useSequence('G I', () => navigate('/inbox'), { description: 'Go to the inbox' });
+ */
+export function useSequence(
+  sequence: string,
+  handler: SequenceHandler,
+  options: UseSequenceOptions = {},
+): void {
+  const shortcutter = useShortcutter();
+  const latest = useRef(handler);
+  const { enabled = true, description, context, ignoreInputs, preventDefault } = options;
+
+  useEffect(() => {
+    latest.current = handler;
+  });
+
+  useEffect(() => {
+    if (!enabled) return undefined;
+
+    return getSequences(shortcutter).listen(
+      sequence,
+      (event, detail) => latest.current(event, detail),
+      {
+        description,
+        context,
+        ignoreInputs,
+        preventDefault,
+      },
+    );
+  }, [shortcutter, sequence, enabled, description, context, ignoreInputs, preventDefault]);
 }

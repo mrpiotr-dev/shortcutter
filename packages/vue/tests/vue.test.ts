@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import { createApp, defineComponent, h, nextTick, ref, type App } from 'vue';
 import { createShortcutter } from 'shortcutter';
-import { provideShortcutter, shortcutterKey, useShortcut, useShortcutter } from '../src/index';
+import {
+  provideShortcutter,
+  shortcutterKey,
+  useSequence,
+  useShortcut,
+  useShortcutter,
+} from '../src/index';
 import { keyboard } from '../../core/tests/keyboard';
 
 let app: App | undefined;
@@ -55,6 +61,21 @@ describe('vue adapter', () => {
     enabled.value = false;
     await nextTick();
     kb.press('KeyB');
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('registers sequences while mounted', () => {
+    const handler = vi.fn();
+    const { kb } = mount(() => useSequence('G I', handler));
+
+    kb.press('KeyG');
+    kb.press('KeyI');
+    expect(handler).toHaveBeenCalledTimes(1);
+
+    app!.unmount();
+    app = undefined;
+    kb.press('KeyG');
+    kb.press('KeyI');
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
