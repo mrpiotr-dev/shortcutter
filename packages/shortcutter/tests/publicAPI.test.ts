@@ -7,18 +7,21 @@
  */
 
 import { describe, expect, it } from 'vite-plus/test';
-import { PHASES, useShortcutter } from '../src/index';
+import * as api from '../src/index';
 
 describe('publicAPI', () => {
-  it('should expose a particular parts of lib', () => {
-    expect(PHASES.DOWN).toBe('down');
-    expect(PHASES.DOWN_PRESS).toBe('down|press');
-    expect(PHASES.DOWN_PRESS_UP).toBe('down|press|up');
-    expect(PHASES.DOWN_UP).toBe('down|up');
-    expect(PHASES.PRESS).toBe('press');
-    expect(PHASES.PRESS_UP).toBe('press|up');
-    expect(PHASES.UP).toBe('up');
+  it('should expose only useShortcutter at runtime', () => {
+    expect(Object.keys(api)).toEqual(['useShortcutter']);
+  });
 
-    expect(useShortcutter()).toBeDefined();
+  it('should expose the shortcutter methods', () => {
+    expect(Object.keys(api.useShortcutter({ eventTarget: new EventTarget() })).sort()).toEqual([
+      'destroy',
+      'getActiveContext',
+      'hasContext',
+      'listen',
+      'setActiveContext',
+      'unlisten',
+    ]);
   });
 });

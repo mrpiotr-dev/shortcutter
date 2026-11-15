@@ -7,20 +7,20 @@
  */
 
 import { normalizeShortcut, phasesIterator } from './helpers';
-import { PHASES } from './types';
+import { DEFAULT_PHASES, type Phase, type Phases, type ShortcutCallback } from './types';
 
 export function createContext(contextName: string) {
   if (typeof contextName !== 'string' || contextName.length < 1) {
     throw new Error('Context has to has a name.');
   }
 
-  const SHORTCUTS: Map<string, (event: Event, phase: PHASES) => void> = new Map();
+  const SHORTCUTS: Map<string, ShortcutCallback> = new Map();
 
   return {
     add: (
-      shortcut: string[],
-      callback: (event: Event, phase: PHASES) => void,
-      phases: PHASES = PHASES.DOWN_PRESS,
+      shortcut: readonly string[],
+      callback: ShortcutCallback,
+      phases: Phases = DEFAULT_PHASES,
     ) => {
       const normalizedShortcut = normalizeShortcut(shortcut);
 
@@ -32,7 +32,7 @@ export function createContext(contextName: string) {
         SHORTCUTS.set(phasedShortcut, callback);
       });
     },
-    get(shortcut: string[], phase: PHASES) {
+    get(shortcut: readonly string[], phase: Phase) {
       const normalizedShortcut = normalizeShortcut(shortcut);
       const phasedShortcut = `${normalizedShortcut}_${phase}`;
 
@@ -44,13 +44,13 @@ export function createContext(contextName: string) {
 
       return SHORTCUTS.get(phasedShortcut);
     },
-    has(shortcut: string[], phase: PHASES): boolean {
+    has(shortcut: readonly string[], phase: Phase): boolean {
       const normalizedShortcut = normalizeShortcut(shortcut);
       const phasedShortcut = `${normalizedShortcut}_${phase}`;
 
       return SHORTCUTS.has(phasedShortcut);
     },
-    remove(shortcut: string[], phases: PHASES = PHASES.DOWN_PRESS): void {
+    remove(shortcut: readonly string[], phases: Phases = DEFAULT_PHASES): void {
       const normalizedShortcut = normalizeShortcut(shortcut);
 
       phasesIterator(phases, normalizedShortcut, (phasedShortcut) => {

@@ -7,12 +7,12 @@
  */
 
 import { describe, expect, it, vi } from 'vite-plus/test';
-import { PHASES, useShortcutter } from '../src/index';
+import { useShortcutter, type Phases } from '../src/index';
 
 // Characterization tests: they pin the 0.2.0 runtime behavior (including its quirks)
 // so the toolchain migration and later fixes can't change it silently.
 
-function setup(phases: PHASES, keys = ['a', 's']) {
+function setup(phases: Phases, keys = ['a', 's']) {
   const target = new EventTarget();
   const sc = useShortcutter({ eventTarget: target });
   const callback = vi.fn();
@@ -28,7 +28,7 @@ function setup(phases: PHASES, keys = ['a', 's']) {
 
 describe('useShortcutter', () => {
   it('fires "down" when the exact combination becomes pressed', () => {
-    const { down, calls } = setup(PHASES.DOWN);
+    const { down, calls } = setup('down');
 
     down('KeyA');
     expect(calls()).toEqual([]);
@@ -38,7 +38,7 @@ describe('useShortcutter', () => {
   });
 
   it('fires "press" on repeated keydown of the same combination', () => {
-    const { down, calls } = setup(PHASES.PRESS);
+    const { down, calls } = setup('press');
 
     down('KeyA');
     down('KeyS');
@@ -49,7 +49,7 @@ describe('useShortcutter', () => {
   });
 
   it('fires "up" when a key of the combination is released', () => {
-    const { down, up, calls } = setup(PHASES.UP);
+    const { down, up, calls } = setup('up');
 
     down('KeyA');
     down('KeyS');
@@ -59,7 +59,7 @@ describe('useShortcutter', () => {
   });
 
   it('passes the original event to the callback', () => {
-    const { down, callback } = setup(PHASES.DOWN, ['a']);
+    const { down, callback } = setup('down', ['a']);
 
     down('KeyA');
 
@@ -67,7 +67,7 @@ describe('useShortcutter', () => {
   });
 
   it('fires "up" for the previous combination when another key joins it', () => {
-    const { down, calls } = setup(PHASES.DOWN_UP, ['a']);
+    const { down, calls } = setup(['down', 'up'], ['a']);
 
     down('KeyA');
     down('KeyS');
@@ -76,7 +76,7 @@ describe('useShortcutter', () => {
   });
 
   it('re-fires "down" for the remaining combination after a key is released (0.2.0 quirk)', () => {
-    const { down, up, calls } = setup(PHASES.DOWN_UP, ['a']);
+    const { down, up, calls } = setup(['down', 'up'], ['a']);
 
     down('KeyA');
     down('KeyS');
@@ -86,7 +86,7 @@ describe('useShortcutter', () => {
   });
 
   it('fires "up" and releases all keys on blur', () => {
-    const { down, blur, calls } = setup(PHASES.DOWN_UP);
+    const { down, blur, calls } = setup(['down', 'up']);
 
     down('KeyA');
     down('KeyS');
@@ -97,7 +97,7 @@ describe('useShortcutter', () => {
   });
 
   it('normalizes key order and event.code ("KeyA" -> "a")', () => {
-    const { down, calls } = setup(PHASES.DOWN, ['s', 'A']);
+    const { down, calls } = setup('down', ['s', 'A']);
 
     down('KeyS');
     down('KeyA');
@@ -106,7 +106,7 @@ describe('useShortcutter', () => {
   });
 
   it('uses lowercased event.code for non-letter keys', () => {
-    const { down, calls } = setup(PHASES.DOWN, ['shiftleft', 'digit1']);
+    const { down, calls } = setup('down', ['shiftleft', 'digit1']);
 
     down('ShiftLeft');
     down('Digit1');
@@ -115,7 +115,7 @@ describe('useShortcutter', () => {
   });
 
   it('stops firing after the returned unlisten function is called', () => {
-    const { down, up, off, calls } = setup(PHASES.DOWN);
+    const { down, up, off, calls } = setup('down');
 
     off();
     down('KeyA');
@@ -140,7 +140,7 @@ describe('useShortcutter', () => {
 
   describe('teardown', () => {
     it('stops firing after destroy()', () => {
-      const { sc, down, calls } = setup(PHASES.DOWN, ['a']);
+      const { sc, down, calls } = setup('down', ['a']);
 
       sc.destroy();
       down('KeyA');
@@ -149,7 +149,7 @@ describe('useShortcutter', () => {
     });
 
     it('can be destroyed more than once', () => {
-      const { sc } = setup(PHASES.DOWN);
+      const { sc } = setup('down');
 
       sc.destroy();
       expect(() => sc.destroy()).not.toThrow();
@@ -161,7 +161,7 @@ describe('useShortcutter', () => {
       const sc = useShortcutter({ eventTarget: target, signal: controller.signal });
       const callback = vi.fn();
 
-      sc.listen('default', ['a'], callback, PHASES.DOWN);
+      sc.listen('default', ['a'], callback, 'down');
       target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
       target.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyA' }));
       controller.abort();
@@ -175,7 +175,7 @@ describe('useShortcutter', () => {
       const sc = useShortcutter({ eventTarget: target, signal: AbortSignal.abort() });
       const callback = vi.fn();
 
-      sc.listen('default', ['a'], callback, PHASES.DOWN);
+      sc.listen('default', ['a'], callback, 'down');
       target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
 
       expect(callback).not.toHaveBeenCalled();
@@ -189,8 +189,8 @@ describe('useShortcutter', () => {
       const inDefault = vi.fn();
       const inModal = vi.fn();
 
-      sc.listen('default', ['a'], inDefault, PHASES.DOWN);
-      sc.listen('modal', ['a'], inModal, PHASES.DOWN);
+      sc.listen('default', ['a'], inDefault, 'down');
+      sc.listen('modal', ['a'], inModal, 'down');
 
       target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
       target.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyA' }));
@@ -224,9 +224,9 @@ describe('useShortcutter', () => {
     it('throws when registering the same shortcut twice in one phase', () => {
       const sc = useShortcutter({ eventTarget: new EventTarget() });
 
-      sc.listen('default', ['a'], () => {}, PHASES.DOWN);
+      sc.listen('default', ['a'], () => {}, 'down');
 
-      expect(() => sc.listen('default', ['a'], () => {}, PHASES.DOWN)).toThrow(
+      expect(() => sc.listen('default', ['a'], () => {}, 'down')).toThrow(
         'Shortcut "a" is already added to "down" phase.',
       );
     });

@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://github.com/mrpiotr-dev/shortcutter/blob/master/LICENSE
  */
 
-import { PHASES, PHASES_SEPARATOR } from './types';
+import { PHASE_NAMES, type Phase, type Phases } from './types';
 
 export function normalizeKeyCode(code: string): string {
   return code.toLowerCase().replace(/key/, '');
@@ -20,11 +20,21 @@ export function normalizeShortcut(keys: readonly string[]): string {
 }
 
 export function phasesIterator(
-  phases: PHASES,
+  phases: Phases,
   shortcut: string,
-  callback: (phasedShortcut: string, phase: PHASES) => void,
+  callback: (phasedShortcut: string, phase: Phase) => void,
 ): void {
-  phases.split(PHASES_SEPARATOR).forEach((phase: string) => {
-    callback(`${shortcut}_${phase}`, phase as PHASES);
+  const list: readonly unknown[] = Array.isArray(phases) ? phases : [phases];
+
+  if (list.length === 0) {
+    throw new Error('At least one phase is required.');
+  }
+
+  new Set(list).forEach((phase) => {
+    if (!PHASE_NAMES.includes(phase as Phase)) {
+      throw new Error(`Unknown phase "${String(phase)}". Expected "down", "press" or "up".`);
+    }
+
+    callback(`${shortcut}_${phase as Phase}`, phase as Phase);
   });
 }

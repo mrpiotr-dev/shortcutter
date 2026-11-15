@@ -8,7 +8,6 @@
 
 import { describe, expect, it, vi } from 'vite-plus/test';
 import { normalizeShortcut, phasesIterator } from '../src/helpers';
-import { PHASES } from '../src/types';
 
 describe('helpers', () => {
   describe('normalizeShortcut', () => {
@@ -40,12 +39,37 @@ describe('helpers', () => {
     it('should iteratee after each phase', () => {
       const mock = vi.fn();
 
-      phasesIterator(PHASES.DOWN_PRESS_UP, 'ctrl+shift+z', mock);
+      phasesIterator(['down', 'press', 'up'], 'ctrl+shift+z', mock);
 
       expect(mock).toBeCalledTimes(3);
       expect(mock).toHaveBeenNthCalledWith(1, 'ctrl+shift+z_down', 'down');
       expect(mock).toHaveBeenNthCalledWith(2, 'ctrl+shift+z_press', 'press');
       expect(mock).toHaveBeenNthCalledWith(3, 'ctrl+shift+z_up', 'up');
+    });
+
+    it('should accept a single phase', () => {
+      const mock = vi.fn();
+
+      phasesIterator('up', 'a', mock);
+
+      expect(mock.mock.calls).toEqual([['a_up', 'up']]);
+    });
+
+    it('should skip duplicated phases', () => {
+      const mock = vi.fn();
+
+      phasesIterator(['down', 'down'], 'a', mock);
+
+      expect(mock).toBeCalledTimes(1);
+    });
+
+    it('should throw on an empty list', () => {
+      expect(() => phasesIterator([], 'a', vi.fn())).toThrow('At least one phase is required.');
+    });
+
+    it('should throw on unknown phases, including the 0.2.0 "down|up" strings', () => {
+      // @ts-expect-error -- runtime guard for JS users and old code
+      expect(() => phasesIterator('down|up', 'a', vi.fn())).toThrow('Unknown phase "down|up"');
     });
   });
 });

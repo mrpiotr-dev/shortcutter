@@ -1,4 +1,4 @@
-import { PHASES, useShortcutter } from 'shortcutter';
+import { useShortcutter } from 'shortcutter';
 
 const logEl = document.querySelector<HTMLDivElement>('#log')!;
 const contextsEl = document.querySelector<HTMLElement>('#contexts')!;
@@ -12,14 +12,13 @@ const renderContexts = () => {
 
 const shortcutter = useShortcutter();
 
-shortcutter.listen(
-  'default',
-  ['a', 's'],
-  (_event, phase) => log(`[default] a+s → ${phase}`),
-  PHASES.DOWN_PRESS_UP,
-);
+shortcutter.listen('default', ['a', 's'], (_event, phase) => log(`[default] a+s → ${phase}`), [
+  'down',
+  'press',
+  'up',
+]);
 
-shortcutter.listen('modal', ['q'], (_event, phase) => log(`[modal] q → ${phase}`), PHASES.DOWN);
+shortcutter.listen('modal', ['q'], (_event, phase) => log(`[modal] q → ${phase}`), 'down');
 
 const toggleModal = () => {
   const next = shortcutter.getActiveContext().includes('modal') ? 'default' : 'modal';
@@ -27,7 +26,7 @@ const toggleModal = () => {
   renderContexts();
   log(`active context → ${next}`);
 };
-shortcutter.listen('default', ['escape'], toggleModal, PHASES.DOWN);
-shortcutter.listen('modal', ['escape'], toggleModal, PHASES.DOWN);
+shortcutter.listen('default', ['escape'], toggleModal, 'down');
+shortcutter.listen('modal', ['escape'], toggleModal, 'down');
 
 renderContexts();

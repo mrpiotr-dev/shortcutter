@@ -6,10 +6,10 @@
  * found in the LICENSE file at https://github.com/mrpiotr-dev/shortcutter/blob/master/LICENSE
  */
 
-import { PHASES } from '.';
 import { useContexts } from './contexts';
 import { useController } from './controller';
 import { normalizeKeyCode } from './helpers';
+import type { Phase, Phases, ShortcutCallback } from './types';
 
 export type ShortcutterConfig = {
   /**
@@ -55,12 +55,12 @@ export function useShortcutter(config: ShortcutterConfig = {}) {
     config.signal?.addEventListener('abort', destroy, options);
   }
 
-  const invokeClbck = (keys: string[], event: Event, phase: PHASES) => {
+  const invokeClbck = (keys: readonly string[], event: Event, phase: Phase) => {
     contexts.getActive().forEach((context) => {
       const ctx = contexts.get(context);
 
       if (ctx?.has(keys, phase)) {
-        (ctx.get(keys, phase) as (...args: unknown[]) => void)(event, phase);
+        ctx.get(keys, phase)?.(event, phase);
       }
     });
   };
@@ -74,12 +74,12 @@ export function useShortcutter(config: ShortcutterConfig = {}) {
 
     if (previousCombination !== nextCombination) {
       if (previousCombination.length) {
-        invokeClbck(previousCombination.split('+'), event, PHASES.UP);
+        invokeClbck(previousCombination.split('+'), event, 'up');
       }
 
-      invokeClbck(nextCombination.split('+'), event, PHASES.DOWN);
+      invokeClbck(nextCombination.split('+'), event, 'down');
     } else {
-      invokeClbck(previousCombination.split('+'), event, PHASES.PRESS);
+      invokeClbck(previousCombination.split('+'), event, 'press');
     }
   }
 
@@ -91,10 +91,10 @@ export function useShortcutter(config: ShortcutterConfig = {}) {
     const nextCombination = keysRecorder.getPressed().join('+');
 
     if (previousCombination.length) {
-      invokeClbck(previousCombination.split('+'), event, PHASES.UP);
+      invokeClbck(previousCombination.split('+'), event, 'up');
     }
     if (nextCombination.length) {
-      invokeClbck(nextCombination.split('+'), event, PHASES.DOWN);
+      invokeClbck(nextCombination.split('+'), event, 'down');
     }
   }
 
@@ -102,7 +102,7 @@ export function useShortcutter(config: ShortcutterConfig = {}) {
     const previousCombination = keysRecorder.getPressed().join('+');
 
     if (previousCombination.length) {
-      invokeClbck(previousCombination.split('+'), event, PHASES.UP);
+      invokeClbck(previousCombination.split('+'), event, 'up');
     }
 
     keysRecorder.releaseAll();
@@ -111,9 +111,9 @@ export function useShortcutter(config: ShortcutterConfig = {}) {
   return {
     listen: (
       context: string,
-      keys: string[],
-      callback: (event: Event, phase: PHASES) => void,
-      phases?: PHASES,
+      keys: readonly string[],
+      callback: ShortcutCallback,
+      phases?: Phases,
     ) => {
       const ctx = contexts.has(context) ? contexts.get(context) : contexts.add(context);
 
@@ -121,7 +121,7 @@ export function useShortcutter(config: ShortcutterConfig = {}) {
 
       return () => ctx?.remove(keys, phases);
     },
-    unlisten: (context: string, keys: string[], phases?: PHASES) => {
+    unlisten: (context: string, keys: readonly string[], phases?: Phases) => {
       const ctx = contexts.get(context);
 
       ctx?.remove(keys, phases);
