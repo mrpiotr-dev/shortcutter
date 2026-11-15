@@ -212,7 +212,11 @@ shortcutter.listen('ControlOrMeta+K', track(openPalette), {
 shortcutter.listen('C', track(commands.copy), { description: 'Copy the install command' });
 shortcutter.listen('E', track(showExample), { description: 'Jump to the live example' });
 shortcutter.listen('T', track(toggleTheme), { description: 'Switch the colour theme' });
-shortcutter.listen('Shift+Slash', track(openHelp), { description: 'Show all keyboard shortcuts' });
+// F1 is the same physical key on every layout, unlike ?, which moves between layouts.
+shortcutter.listen('ControlOrMeta+Shift+F1', track(openHelp), {
+  preventDefault: true,
+  description: 'Show all keyboard shortcuts',
+});
 shortcutter.listen(
   'Alt',
   track((_event, { phase }) => {

@@ -89,12 +89,12 @@ function Counter() {
 
 const install = 'pnpm add shortcutter';
 
-const autodocs = `shortcutter.listen('Shift+Slash', openHelp, {
+const autodocs = `shortcutter.listen('ControlOrMeta+Shift+F1', openHelp, {
   description: 'Show all keyboard shortcuts',
 });
 
 const help = shortcutter.shortcuts({ active: true });
-// [{ keys: ['shift', 'slash'],
+// [{ keys: ['meta', 'shift', 'f1'],
 //    description: 'Show all keyboard shortcuts', … }]
 
 help.forEach(({ keys, description }) => addRow(keys, description));`;
@@ -191,12 +191,12 @@ help.forEach(({ keys, description }) => addRow(keys, description));`;
           never goes out of date.
         </p>
         <button type="button" class="btn btn-outline" data-open-help>
-          Show this page's shortcuts <kbd class="kbd-chip" data-shortcut="Shift+Slash">?</kbd>
+          Show this page's shortcuts <kbd class="kbd-chip" data-shortcut="ControlOrMeta+Shift+F1">Ctrl ⇧ F1</kbd>
         </button>
         <aside class="note">
-          <strong>Why <code>Shift+Slash</code> and not <code>?</code></strong>
+          <strong>Why not <code>?</code> for help</strong>
           <p>Shortcuts follow physical keys (<code>KeyboardEvent.code</code>), so they sit in the same place on every keyboard layout, but the characters printed on those keys move.</p>
-          <p><kbd class="keycap">?</kbd> needs <kbd class="keycap">⇧</kbd> and is on the Slash key on US layouts, so it is declared as <code>Shift+Slash</code>. On a German layout <kbd class="keycap">?</kbd> is <kbd class="keycap">⇧</kbd> + <kbd class="keycap">ß</kbd>, which is <code>Shift+Minus</code>.</p>
+          <p><kbd class="keycap">?</kbd> needs <kbd class="keycap">⇧</kbd> and is on the Slash key on US layouts, so it would be declared as <code>Shift+Slash</code>; on a German layout <kbd class="keycap">?</kbd> is <kbd class="keycap">⇧</kbd> + <kbd class="keycap">ß</kbd>, which is <code>Shift+Minus</code>. This page uses <code>ControlOrMeta+Shift+F1</code> instead: F1 is the same key on every layout.</p>
         </aside>
       </div>
       <Code code={autodocs} lang="ts" />
