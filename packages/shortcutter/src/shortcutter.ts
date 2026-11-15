@@ -24,7 +24,6 @@ const DEFAULT_CONFIG: Config = {
 /**
  * Creates ShortcutsKeeper
  */
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function useShortcutter(customConfig: Partial<typeof DEFAULT_CONFIG> = {}) {
   const CONFIG = {
     ...DEFAULT_CONFIG,

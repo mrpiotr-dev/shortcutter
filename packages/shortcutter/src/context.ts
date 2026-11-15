@@ -9,7 +9,6 @@
 import { normalizeShortcut, phasesIterator } from './helpers';
 import { PHASES } from './types';
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createContext(contextName: string) {
   if (typeof contextName !== 'string' || contextName.length < 1) {
     throw new Error('Context has to has a name.');

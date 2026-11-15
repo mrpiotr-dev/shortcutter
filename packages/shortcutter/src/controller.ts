@@ -6,7 +6,6 @@
  * found in the LICENSE file at https://github.com/mrpiotr-dev/shortcutter/blob/master/LICENSE
  */
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function useController() {
   /**
    * Internal Set store of pressed keys.
