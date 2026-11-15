@@ -109,7 +109,7 @@ export function createSequences(
     const typing = isTyping(event as KeyboardEvent);
     let matched = false;
 
-    for (const registration of [...registrations]) {
+    for (const registration of registrations) {
       const { steps, matchers, context } = registration;
 
       if (history.length < steps.length || !shortcutter.contexts.isActive(context)) continue;
