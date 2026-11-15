@@ -1,6 +1,6 @@
 import { createComponent, createRoot, createSignal } from 'solid-js';
 import { describe, expect, it, vi } from 'vite-plus/test';
-import { createShortcutter } from '@shortcutter/core';
+import { createShortcutter } from 'shortcutter';
 import { createShortcut, ShortcutterContext, useShortcutter } from '../src/index';
 import { keyboard } from '../../core/tests/keyboard';
 

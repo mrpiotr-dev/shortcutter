@@ -27,7 +27,7 @@ jobs:
 
       # Adapters and the playground type-check against the built core, so build it first.
       - name: Build library
-        run: vp run @shortcutter/core#build
+        run: vp run shortcutter#build
 
       - name: Format, lint & type-check
         run: vp check

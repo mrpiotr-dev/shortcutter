@@ -1,6 +1,6 @@
 import { createContext, createElement, useContext, useEffect, useRef, type ReactNode } from 'react';
 import { getDefaultShortcutter, type UseShortcutOptions } from './shared';
-import type { ShortcutHandler, Shortcutter } from '@shortcutter/core';
+import type { ShortcutHandler, Shortcutter } from 'shortcutter';
 
 export type { UseShortcutOptions } from './shared';
 

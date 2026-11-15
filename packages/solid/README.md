@@ -1,9 +1,9 @@
 # @shortcutter/solid
 
-Solid bindings for [`@shortcutter/core`](https://www.shortcutter.dev/): keyboard shortcuts with contexts and key phases.
+Solid bindings for [`shortcutter`](https://www.shortcutter.dev/): keyboard shortcuts with contexts and key phases.
 
 ```sh
-pnpm add @shortcutter/core @shortcutter/solid
+pnpm add shortcutter @shortcutter/solid
 ```
 
 ```tsx

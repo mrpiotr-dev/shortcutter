@@ -1,6 +1,6 @@
 import { createContext, createEffect, onCleanup, useContext, type Accessor } from 'solid-js';
 import { getDefaultShortcutter, toListenOptions, type UseShortcutOptions } from './shared';
-import type { ShortcutHandler, Shortcutter } from '@shortcutter/core';
+import type { ShortcutHandler, Shortcutter } from 'shortcutter';
 
 export type { UseShortcutOptions } from './shared';
 

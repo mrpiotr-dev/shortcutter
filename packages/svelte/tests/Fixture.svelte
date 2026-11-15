@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Shortcutter } from '@shortcutter/core';
+  import type { Shortcutter } from 'shortcutter';
   import { setShortcutter, shortcut, useShortcut } from '../src/index';
 
   let {

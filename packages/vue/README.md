@@ -1,9 +1,9 @@
 # @shortcutter/vue
 
-Vue bindings for [`@shortcutter/core`](https://www.shortcutter.dev/): keyboard shortcuts with contexts and key phases.
+Vue bindings for [`shortcutter`](https://www.shortcutter.dev/): keyboard shortcuts with contexts and key phases.
 
 ```sh
-pnpm add @shortcutter/core @shortcutter/vue
+pnpm add shortcutter @shortcutter/vue
 ```
 
 ```ts

@@ -47,16 +47,16 @@
   },
   "devDependencies": {
     "@arethetypeswrong/core": "catalog:",
-    "@shortcutter/core": "workspace:*",
     "@vitest/coverage-v8": "catalog:",
     "happy-dom": "catalog:",
     "publint": "catalog:",
+    "shortcutter": "workspace:*",
     "solid-js": "catalog:",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
   },
   "peerDependencies": {
-    "@shortcutter/core": "workspace:^",
+    "shortcutter": "workspace:^",
     "solid-js": ">=1.8"
   }
 }

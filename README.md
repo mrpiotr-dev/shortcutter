@@ -5,11 +5,11 @@ Tiny, dependency-free keyboard shortcuts for the browser, with **contexts** and 
 ## Getting started
 
 ```sh
-pnpm add @shortcutter/core
+pnpm add shortcutter
 ```
 
 ```ts
-import { createShortcutter } from '@shortcutter/core';
+import { createShortcutter } from 'shortcutter';
 
 const shortcutter = createShortcutter();
 
@@ -21,7 +21,7 @@ shortcutter.listen('ControlOrMeta+K', () => openCommandPalette(), { preventDefau
 Without a bundler, load the script build, which exposes `window.Shortcutter`:
 
 ```html
-<script src="https://unpkg.com/@shortcutter/core"></script>
+<script src="https://unpkg.com/shortcutter"></script>
 <script>
   const shortcutter = Shortcutter.createShortcutter();
 </script>
@@ -91,7 +91,7 @@ Returns:
 
 ## Frameworks
 
-Install the adapter next to the core, e.g. `pnpm add @shortcutter/core @shortcutter/react`. Each adapter registers the shortcut after mount and removes it on unmount. It uses a shared instance on `window` unless you provide your own.
+Install the adapter next to the core, e.g. `pnpm add shortcutter @shortcutter/react`. Each adapter registers the shortcut after mount and removes it on unmount. It uses a shared instance on `window` unless you provide your own.
 
 ```tsx
 // React: the latest handler is always called, no need to memoize it
@@ -126,8 +126,6 @@ createShortcut('ControlOrMeta+K', () => setOpen(true), { preventDefault: true })
 ```
 
 ## Migrating from 0.2
-
-The package moved from `shortcutter` to `@shortcutter/core`.
 
 | 0.2                                                    | 0.3                                                           |
 | ------------------------------------------------------ | ------------------------------------------------------------- |

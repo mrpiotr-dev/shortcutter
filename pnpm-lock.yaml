@@ -250,7 +250,7 @@ importers:
       '@fontsource-variable/jost':
         specifier: 'catalog:'
         version: 5.3.0
-      '@shortcutter/core':
+      shortcutter:
         specifier: workspace:*
         version: link:../../packages/core
     devDependencies:
@@ -269,7 +269,7 @@ importers:
 
   apps/playground:
     dependencies:
-      '@shortcutter/core':
+      shortcutter:
         specifier: workspace:*
         version: link:../../packages/core
     devDependencies:
@@ -306,9 +306,6 @@ importers:
       '@arethetypeswrong/core':
         specifier: 'catalog:'
         version: 0.18.5
-      '@shortcutter/core':
-        specifier: workspace:*
-        version: link:../core
       '@types/react':
         specifier: 'catalog:'
         version: 19.3.0
@@ -330,6 +327,9 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.3.1(react@19.3.1)
+      shortcutter:
+        specifier: workspace:*
+        version: link:../core
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
@@ -342,9 +342,6 @@ importers:
       '@arethetypeswrong/core':
         specifier: 'catalog:'
         version: 0.18.5
-      '@shortcutter/core':
-        specifier: workspace:*
-        version: link:../core
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 5.1.0(@vitest/browser@5.1.0)(vitest@5.1.0)
@@ -354,6 +351,9 @@ importers:
       publint:
         specifier: 'catalog:'
         version: 0.3.25
+      shortcutter:
+        specifier: workspace:*
+        version: link:../core
       solid-js:
         specifier: 'catalog:'
         version: 1.9.19
@@ -369,9 +369,6 @@ importers:
       '@arethetypeswrong/core':
         specifier: 'catalog:'
         version: 0.18.5
-      '@shortcutter/core':
-        specifier: workspace:*
-        version: link:../core
       '@sveltejs/vite-plugin-svelte':
         specifier: 'catalog:'
         version: 7.3.1(@voidzero-dev/vite-plus-core@1.6.0(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@7.0.2)(yaml@2.9.1))(svelte@5.57.3)
@@ -384,6 +381,9 @@ importers:
       publint:
         specifier: 'catalog:'
         version: 0.3.25
+      shortcutter:
+        specifier: workspace:*
+        version: link:../core
       svelte:
         specifier: 'catalog:'
         version: 5.57.3
@@ -399,9 +399,6 @@ importers:
       '@arethetypeswrong/core':
         specifier: 'catalog:'
         version: 0.18.5
-      '@shortcutter/core':
-        specifier: workspace:*
-        version: link:../core
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 5.1.0(@vitest/browser@5.1.0)(vitest@5.1.0)
@@ -411,6 +408,9 @@ importers:
       publint:
         specifier: 'catalog:'
         version: 0.3.25
+      shortcutter:
+        specifier: workspace:*
+        version: link:../core
       typescript:
         specifier: 'catalog:'
         version: 7.0.2

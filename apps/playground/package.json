@@ -9,7 +9,7 @@
     "preview": "vp preview"
   },
   "dependencies": {
-    "@shortcutter/core": "workspace:*"
+    "shortcutter": "workspace:*"
   },
   "devDependencies": {
     "typescript": "catalog:",

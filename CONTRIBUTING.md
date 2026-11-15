@@ -9,7 +9,7 @@ The repository is a [pnpm](https://pnpm.io) workspace driven by [Vite+](https://
 
 | Path                                 | What                                                |
 | ------------------------------------ | --------------------------------------------------- |
-| `packages/core/`                     | `@shortcutter/core`, the published library          |
+| `packages/core/`                     | `shortcutter`, the core library                     |
 | `packages/{react,vue,svelte,solid}/` | `@shortcutter/*` framework adapters                 |
 | `apps/playground/`                   | local sandbox, uses the library sources with HMR    |
 | `docs/`                              | current GitHub Pages site (to be replaced by Astro) |

@@ -1,9 +1,9 @@
 # @shortcutter/react
 
-React bindings for [`@shortcutter/core`](https://www.shortcutter.dev/): keyboard shortcuts with contexts and key phases.
+React bindings for [`shortcutter`](https://www.shortcutter.dev/): keyboard shortcuts with contexts and key phases.
 
 ```sh
-pnpm add @shortcutter/core @shortcutter/react
+pnpm add shortcutter @shortcutter/react
 ```
 
 ```tsx

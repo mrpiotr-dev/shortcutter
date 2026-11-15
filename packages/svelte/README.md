@@ -1,9 +1,9 @@
 # @shortcutter/svelte
 
-Svelte 5 bindings for [`@shortcutter/core`](https://www.shortcutter.dev/): keyboard shortcuts with contexts and key phases.
+Svelte 5 bindings for [`shortcutter`](https://www.shortcutter.dev/): keyboard shortcuts with contexts and key phases.
 
 ```sh
-pnpm add @shortcutter/core @shortcutter/svelte
+pnpm add shortcutter @shortcutter/svelte
 ```
 
 ```svelte

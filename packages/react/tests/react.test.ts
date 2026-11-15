@@ -1,7 +1,7 @@
 import { act, createElement, StrictMode, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vite-plus/test';
-import { createShortcutter } from '@shortcutter/core';
+import { createShortcutter } from 'shortcutter';
 import { ShortcutterProvider, useShortcut, useShortcutter } from '../src/index';
 import { keyboard } from '../../core/tests/keyboard';
 
