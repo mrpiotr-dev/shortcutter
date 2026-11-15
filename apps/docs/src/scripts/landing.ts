@@ -58,7 +58,10 @@ const WILDCARD_LABELS: Record<string, string> = {
 const label = (key: string) =>
   LABELS[key] ??
   WILDCARD_LABELS[key] ??
-  (key.length === 1 ? key.toUpperCase() : key[0]!.toUpperCase() + key.slice(1)).replace('*', '…');
+  (key.length === 1 ? key.toUpperCase() : key[0]!.toUpperCase() + key.slice(1)).replaceAll(
+    '*',
+    '…',
+  );
 
 /** Modifiers first, the way people write shortcuts: ⌘ + K, not K + ⌘. */
 const MODIFIER_ORDER = ['control', 'meta', 'alt', 'shift'];

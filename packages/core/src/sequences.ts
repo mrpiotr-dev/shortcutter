@@ -73,10 +73,12 @@ type Registration = {
 function splitSteps(sequence: string): string[] {
   if (typeof sequence !== 'string') return [];
 
+  // Linear-time regexes only: collapse whitespace first, then drop the single spaces around "+".
   return sequence
-    .replace(/\s*\+\s*/g, '+')
     .trim()
-    .split(/\s+/)
+    .replace(/\s+/g, ' ')
+    .replace(/ ?\+ ?/g, '+')
+    .split(' ')
     .filter(Boolean);
 }
 
