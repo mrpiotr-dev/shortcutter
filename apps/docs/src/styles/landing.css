@@ -435,8 +435,10 @@ h2::before {
 
 .try-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* Dividers are the gap showing the line colour, so any column count works. */
+  gap: var(--border);
+  background: var(--line);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -445,10 +447,13 @@ h2::before {
 
 .try-grid li {
   padding: 1.5rem;
+  background: var(--bg);
 }
 
-.try-grid li + li {
-  border-inline-start: var(--border) solid var(--line);
+@media (width < 72rem) {
+  .try-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .try-grid p {
@@ -741,11 +746,6 @@ h2::before {
 
   .try-grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .try-grid li + li {
-    border-inline-start: 0;
-    border-top: var(--border) solid var(--line);
   }
 }
 

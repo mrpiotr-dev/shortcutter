@@ -5,6 +5,7 @@ import {
   type ShortcutHandler,
   type ShortcutInfo,
 } from 'shortcutter';
+import { createSequences } from 'shortcutter/sequences';
 import { DEMO_EVENT } from '../components/demos/active';
 
 const GITHUB = 'https://github.com/mrpiotr-dev/shortcutter';
@@ -221,13 +222,59 @@ shortcutter.listen(
   { phases: ['down', 'up'], description: 'Hold to show shortcut hints' },
 );
 
-/* ---------- Help: everything below is generated from shortcuts() ---------- */
+/* ---------- Sequences (optional entry: shortcutter/sequences) ---------- */
+
+const sequences = createSequences(shortcutter);
+
+/** Shows a completed sequence in the visualizer log. */
+const trackSequence =
+  (handler: () => void) =>
+  (_event: KeyboardEvent, { sequence }: { sequence: string }) => {
+    const item = document.createElement('li');
+
+    item.className = 'matched';
+    item.innerHTML = `<span class="log-context">sequence</span><span class="log-keys"></span><span class="log-phase">done</span>`;
+    item.children[1]!.textContent = sequence.split(' ').join(' then ');
+    logEl.prepend(item);
+    while (logEl.children.length > 6) logEl.lastElementChild!.remove();
+    handler();
+  };
+
+sequences.listen(
+  'G G',
+  trackSequence(() =>
+    window.scrollTo({
+      top: 0,
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    }),
+  ),
+  { description: 'Back to the top' },
+);
+sequences.listen(
+  'G D',
+  trackSequence(() => commands.docs!()),
+  { description: 'Go to the docs' },
+);
+
+/* ---------- Help: everything below is generated from shortcuts() and sequences() ---------- */
 
 const keycaps = (keys: string[]) => {
   const span = document.createElement('span');
 
   span.className = 'keys';
   span.append(...keys.map((key) => keycap(label(key))));
+  return span;
+};
+
+/** Steps of a sequence as keycaps: G then D. */
+const stepCaps = (steps: string[][]) => {
+  const span = document.createElement('span');
+
+  span.className = 'keys';
+  steps.forEach((step, index) => {
+    if (index > 0) span.append(' then ');
+    span.append(...step.map((key) => keycap(label(key))));
+  });
   return span;
 };
 
@@ -247,28 +294,38 @@ function renderHintBar(): void {
 function openHelp(): void {
   if (help.open || palette.open) return;
 
-  const groups: [string, ShortcutInfo[]][] = [
-    ['On this page', shortcutter.shortcuts({ active: true })],
-    ['In the command palette', shortcutter.shortcuts({ context: 'palette' })],
-    ['In the framework tabs', tabKeys.shortcuts()],
+  type Row = { caps: HTMLElement; description: string };
+  const rows = (list: ShortcutInfo[]): Row[] =>
+    described(list).map((info) => ({ caps: keycaps(info.keys), description: info.description! }));
+  const groups: [string, Row[]][] = [
+    ['On this page', rows(shortcutter.shortcuts({ active: true }))],
+    [
+      'Sequences',
+      sequences.sequences({ active: true }).map((info) => ({
+        caps: stepCaps(info.steps),
+        description: info.description ?? info.sequence,
+      })),
+    ],
+    ['In the command palette', rows(shortcutter.shortcuts({ context: 'palette' }))],
+    ['In the framework tabs', rows(tabKeys.shortcuts())],
   ];
 
   $('[data-help-list]').replaceChildren(
     ...groups.map(([title, list]) => {
       const section = document.createElement('section');
       const heading = document.createElement('h3');
-      const rows = document.createElement('dl');
+      const dl = document.createElement('dl');
 
       heading.textContent = title;
-      for (const info of described(list)) {
+      for (const { caps, description } of list) {
         const dt = document.createElement('dt');
         const dd = document.createElement('dd');
 
-        dt.append(keycaps(info.keys));
-        dd.textContent = info.description!;
-        rows.append(dt, dd);
+        dt.append(caps);
+        dd.textContent = description;
+        dl.append(dt, dd);
       }
-      section.append(heading, rows);
+      section.append(heading, dl);
       return section;
     }),
   );
