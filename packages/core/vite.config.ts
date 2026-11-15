@@ -19,6 +19,18 @@ export default defineConfig({
       publint: false,
       attw: false,
     },
+    {
+      ...pack,
+      // <script>-tag build of the optional sequences entry: window.ShortcutterSequences
+      entry: ['src/sequences.ts'],
+      format: ['iife'],
+      globalName: 'ShortcutterSequences',
+      minify: true,
+      dts: false,
+      exports: false,
+      publint: false,
+      attw: false,
+    },
   ],
   test: {
     environment: 'happy-dom',

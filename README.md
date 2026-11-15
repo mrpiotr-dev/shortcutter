@@ -22,8 +22,11 @@ Without a bundler, load the script build, which exposes `window.Shortcutter`:
 
 ```html
 <script src="https://unpkg.com/shortcutter"></script>
+<!-- optional: key sequences, exposes window.ShortcutterSequences -->
+<script src="https://unpkg.com/shortcutter/dist/sequences.iife.js"></script>
 <script>
   const shortcutter = Shortcutter.createShortcutter();
+  const sequences = ShortcutterSequences.createSequences(shortcutter);
 </script>
 ```
 
