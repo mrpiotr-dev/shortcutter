@@ -163,3 +163,8 @@ h3,
   color: var(--sl-color-text-invert);
   font-weight: 600;
 }
+
+/* Header rule: 2px ink, the same as on the landing page. */
+header.header {
+  border-bottom: var(--sc-border) solid var(--sl-color-white);
+}
