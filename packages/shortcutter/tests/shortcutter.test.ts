@@ -138,6 +138,50 @@ describe('useShortcutter', () => {
     expect(callback.mock.calls.map(([, phase]) => phase as string)).toEqual(['down', 'press']);
   });
 
+  describe('teardown', () => {
+    it('stops firing after destroy()', () => {
+      const { sc, down, calls } = setup(PHASES.DOWN, ['a']);
+
+      sc.destroy();
+      down('KeyA');
+
+      expect(calls()).toEqual([]);
+    });
+
+    it('can be destroyed more than once', () => {
+      const { sc } = setup(PHASES.DOWN);
+
+      sc.destroy();
+      expect(() => sc.destroy()).not.toThrow();
+    });
+
+    it('stops firing when the provided signal aborts', () => {
+      const target = new EventTarget();
+      const controller = new AbortController();
+      const sc = useShortcutter({ eventTarget: target, signal: controller.signal });
+      const callback = vi.fn();
+
+      sc.listen('default', ['a'], callback, PHASES.DOWN);
+      target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
+      target.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyA' }));
+      controller.abort();
+      target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('never listens when the provided signal is already aborted', () => {
+      const target = new EventTarget();
+      const sc = useShortcutter({ eventTarget: target, signal: AbortSignal.abort() });
+      const callback = vi.fn();
+
+      sc.listen('default', ['a'], callback, PHASES.DOWN);
+      target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyA' }));
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+  });
+
   describe('contexts', () => {
     it('only fires shortcuts from active contexts', () => {
       const target = new EventTarget();

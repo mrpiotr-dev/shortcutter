@@ -19,6 +19,8 @@ export type ShortcutterConfig = {
   eventTarget?: EventTarget;
   /** Name of the context created and activated on start. Defaults to `'default'`. */
   defaultContext?: string;
+  /** Aborting this signal has the same effect as calling `destroy()`. */
+  signal?: AbortSignal;
 };
 
 /**
@@ -35,11 +37,23 @@ export function useShortcutter(config: ShortcutterConfig = {}) {
   contexts.add(defaultContext);
   contexts.setActive(defaultContext);
 
-  /* START MESS */
-  eventTarget?.addEventListener('keydown', onkeydown as EventListener);
-  eventTarget?.addEventListener('keyup', onkeyup as EventListener);
-  eventTarget?.addEventListener('blur', onblur as EventListener);
-  eventTarget?.addEventListener('unload', onunload);
+  const listeners = new AbortController();
+  const options: AddEventListenerOptions = { signal: listeners.signal };
+
+  eventTarget?.addEventListener('keydown', onkeydown as EventListener, options);
+  eventTarget?.addEventListener('keyup', onkeyup as EventListener, options);
+  eventTarget?.addEventListener('blur', onblur as EventListener, options);
+
+  function destroy(): void {
+    listeners.abort();
+    keysRecorder.releaseAll();
+  }
+
+  if (config.signal?.aborted) {
+    destroy();
+  } else {
+    config.signal?.addEventListener('abort', destroy, options);
+  }
 
   const invokeClbck = (keys: string[], event: Event, phase: PHASES) => {
     contexts.getActive().forEach((context) => {
@@ -94,14 +108,6 @@ export function useShortcutter(config: ShortcutterConfig = {}) {
     keysRecorder.releaseAll();
   }
 
-  function onunload(): void {
-    eventTarget?.removeEventListener('keydown', onkeydown as EventListener);
-    eventTarget?.removeEventListener('keyup', onkeyup as EventListener);
-    eventTarget?.removeEventListener('blur', onblur as EventListener);
-    eventTarget?.removeEventListener('unload', onunload);
-  }
-  /* END MESS */
-
   return {
     listen: (
       context: string,
@@ -123,5 +129,7 @@ export function useShortcutter(config: ShortcutterConfig = {}) {
     hasContext: (name: string) => contexts.has(name),
     getActiveContext: () => contexts.getActive(),
     setActiveContext: (name: string) => contexts.setActive(name),
+    /** Removes all event listeners. Registered shortcuts stop firing. Safe to call twice. */
+    destroy,
   } as const;
 }
