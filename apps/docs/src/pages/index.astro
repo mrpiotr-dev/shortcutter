@@ -15,8 +15,10 @@ const snippets = {
 const shortcutter = createShortcutter();
 let count = 0;
 
-shortcutter.listen('K', () => render(++count));
-shortcutter.listen('J', () => render(--count));`,
+shortcutter.listen('K', () => render((count += 1)));
+shortcutter.listen('J', () => render((count -= 1)));
+shortcutter.listen('Shift+K', () => render((count += 10)));
+shortcutter.listen('Shift+J', () => render((count -= 10)));`,
   },
   react: {
     label: 'React',
@@ -28,6 +30,8 @@ function Counter() {
 
   useShortcut('K', () => setCount((c) => c + 1));
   useShortcut('J', () => setCount((c) => c - 1));
+  useShortcut('Shift+K', () => setCount((c) => c + 10));
+  useShortcut('Shift+J', () => setCount((c) => c - 10));
 
   return <output>{count}</output>;
 }`,
@@ -43,6 +47,8 @@ const count = ref(0);
 
 useShortcut('K', () => count.value++);
 useShortcut('J', () => count.value--);
+useShortcut('Shift+K', () => (count.value += 10));
+useShortcut('Shift+J', () => (count.value -= 10));
 </script>
 
 <template><output>{{ count }}</output></template>`,
@@ -57,6 +63,8 @@ useShortcut('J', () => count.value--);
 
   useShortcut('K', () => count++);
   useShortcut('J', () => count--);
+  useShortcut('Shift+K', () => (count += 10));
+  useShortcut('Shift+J', () => (count -= 10));
 </script>
 
 <output>{count}</output>`,
@@ -71,6 +79,8 @@ function Counter() {
 
   createShortcut('K', () => setCount((c) => c + 1));
   createShortcut('J', () => setCount((c) => c - 1));
+  createShortcut('Shift+K', () => setCount((c) => c + 10));
+  createShortcut('Shift+J', () => setCount((c) => c - 10));
 
   return <output>{count()}</output>;
 }`,
@@ -107,13 +117,13 @@ help.forEach(({ keys, description }) => addRow(keys, description));`;
           <code>{install}</code>
           <button type="button" class="btn btn-ghost" data-copy={install}>
             <span data-copy-label>Copy</span>
-            <kbd class="kbd-chip" title="Keyboard shortcut: C">C</kbd>
+            <kbd class="kbd-chip" data-shortcut="C">C</kbd>
           </button>
         </div>
         <div class="actions">
           <a class="btn btn-primary" href="/docs/">Get started</a>
           <a class="btn btn-outline" href="#frameworks">
-            Live example <kbd class="kbd-chip" title="Keyboard shortcut: E">E</kbd>
+            Live example <kbd class="kbd-chip" data-shortcut="E">E</kbd>
           </a>
           <a class="btn btn-outline" href="https://github.com/mrpiotr-dev/shortcutter" rel="external noopener" target="_blank">
             GitHub
@@ -174,7 +184,7 @@ help.forEach(({ keys, description }) => addRow(keys, description));`;
           never goes out of date.
         </p>
         <button type="button" class="btn btn-outline" data-open-help>
-          Show this page's shortcuts <kbd class="kbd-chip" title="Keyboard shortcut: ?">?</kbd>
+          Show this page's shortcuts <kbd class="kbd-chip" data-shortcut="Shift+Slash">?</kbd>
         </button>
         <aside class="note">
           <strong>Why <code>Shift+Slash</code> and not <code>?</code></strong>
@@ -212,7 +222,7 @@ help.forEach(({ keys, description }) => addRow(keys, description));`;
     <section class="frameworks" id="frameworks" aria-labelledby="frameworks-title">
       <h2 id="frameworks-title">One API, your framework</h2>
       <p class="muted">
-        The same counter, live. Press <kbd class="keycap">J</kbd> and <kbd class="keycap">K</kbd>. Switch frameworks
+        The same counter, live. Press <kbd class="keycap">J</kbd> and <kbd class="keycap">K</kbd>; hold <kbd class="keycap">⇧</kbd> to count in tens (<code>Shift+K</code> is a shortcut of its own). Switch frameworks
         with <kbd class="keycap">1</kbd>–<kbd class="keycap">5</kbd> (a single <code>Digit*</code> wildcard
         shortcut), or with <kbd class="keycap">←</kbd> <kbd class="keycap">→</kbd> in the tabs.
       </p>

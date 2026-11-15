@@ -23,6 +23,16 @@ useShortcut(
   () => count.value--,
   () => ({ enabled: active.value }),
 );
+useShortcut(
+  'Shift+K',
+  () => (count.value += 10),
+  () => ({ enabled: active.value }),
+);
+useShortcut(
+  'Shift+J',
+  () => (count.value -= 10),
+  () => ({ enabled: active.value }),
+);
 </script>
 
 <template>

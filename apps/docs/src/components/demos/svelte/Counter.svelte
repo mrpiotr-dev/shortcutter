@@ -17,6 +17,8 @@
   class="demo-counter"
   {@attach shortcut('K', () => count++, { enabled: active })}
   {@attach shortcut('J', () => count--, { enabled: active })}
+  {@attach shortcut('Shift+K', () => (count += 10), { enabled: active })}
+  {@attach shortcut('Shift+J', () => (count -= 10), { enabled: active })}
 >
   <output>{count}</output>
   <p>Svelte</p>

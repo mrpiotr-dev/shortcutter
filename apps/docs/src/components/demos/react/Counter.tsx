@@ -14,6 +14,8 @@ export default function Counter() {
 
   useShortcut('K', () => setCount((c) => c + 1), { enabled: active });
   useShortcut('J', () => setCount((c) => c - 1), { enabled: active });
+  useShortcut('Shift+K', () => setCount((c) => c + 10), { enabled: active });
+  useShortcut('Shift+J', () => setCount((c) => c - 10), { enabled: active });
 
   return (
     <div className="demo-counter">

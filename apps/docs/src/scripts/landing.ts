@@ -374,6 +374,16 @@ shortcutter.listen(
   track(() => setCount(-1)),
   { context: 'counter', description: 'Counter: subtract one' },
 );
+shortcutter.listen(
+  'Shift+K',
+  track(() => setCount(10)),
+  { context: 'counter', description: 'Counter: add ten' },
+);
+shortcutter.listen(
+  'Shift+J',
+  track(() => setCount(-10)),
+  { context: 'counter', description: 'Counter: subtract ten' },
+);
 
 const tablist = $<HTMLElement>('[role="tablist"]');
 const tabs = [...tablist.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
@@ -413,10 +423,22 @@ shortcutter.listen(
   track((_event, { shortcut }) => {
     const tab = tabs[Number(shortcut) - 1];
 
-    if (tab) showDemo(tab);
+    if (!tab) return;
+    showDemo(tab);
+    // Bring the demo into view: its framework loads only once visible (client:visible).
+    showExample();
   }),
   { description: `Show a framework by its number (1–${tabs.length})` },
 );
 
 document.documentElement.dataset.demo = demo;
 activateBase();
+
+// Shortcut chips on buttons show the keys from the registry, resolved for this platform.
+document.querySelectorAll<HTMLElement>('.kbd-chip[data-shortcut]').forEach((chip) => {
+  const info = shortcutter.shortcuts().find((entry) => entry.shortcut === chip.dataset.shortcut);
+
+  if (!info) return;
+  chip.textContent = info.keys.map(label).join(' ');
+  chip.title = `Keyboard shortcut: ${info.keys.map(label).join(' + ')}`;
+});

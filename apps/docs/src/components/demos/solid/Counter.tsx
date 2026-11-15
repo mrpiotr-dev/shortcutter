@@ -22,6 +22,16 @@ export default function Counter() {
     () => setCount((c) => c - 1),
     () => ({ enabled: active() }),
   );
+  createShortcut(
+    'Shift+K',
+    () => setCount((c) => c + 10),
+    () => ({ enabled: active() }),
+  );
+  createShortcut(
+    'Shift+J',
+    () => setCount((c) => c - 10),
+    () => ({ enabled: active() }),
+  );
 
   return (
     <div class="demo-counter">
