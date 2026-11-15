@@ -10,12 +10,28 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
+    "@astrojs/react": "catalog:",
+    "@astrojs/solid-js": "catalog:",
+    "@astrojs/svelte": "catalog:",
+    "@astrojs/vue": "catalog:",
     "@fontsource-variable/jetbrains-mono": "catalog:",
     "@fontsource-variable/jost": "catalog:",
-    "shortcutter": "workspace:*"
+    "@shortcutter/react": "workspace:*",
+    "@shortcutter/solid": "workspace:*",
+    "@shortcutter/svelte": "workspace:*",
+    "@shortcutter/vue": "workspace:*",
+    "astro-expressive-code": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "shortcutter": "workspace:*",
+    "solid-js": "catalog:",
+    "svelte": "catalog:",
+    "vue": "catalog:"
   },
   "devDependencies": {
     "@astrojs/starlight": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "astro": "catalog:",
     "typescript": "catalog:",
     "wrangler": "catalog:"
