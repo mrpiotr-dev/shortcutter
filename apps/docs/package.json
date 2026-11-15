@@ -10,8 +10,8 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "@fontsource-variable/instrument-sans": "catalog:",
     "@fontsource-variable/jetbrains-mono": "catalog:",
+    "@fontsource-variable/jost": "catalog:",
     "@shortcutter/core": "workspace:*"
   },
   "devDependencies": {

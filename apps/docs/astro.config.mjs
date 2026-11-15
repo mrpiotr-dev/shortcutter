@@ -18,8 +18,12 @@ export default defineConfig({
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/mrpiotr-dev/shortcutter' },
       ],
+      logo: { src: './src/assets/logo.svg' },
+      favicon: '/favicon.svg',
+      // Bauhaus: flat, sharp code frames.
+      expressiveCode: { styleOverrides: { borderRadius: '0', borderWidth: '2px' } },
       customCss: [
-        '@fontsource-variable/instrument-sans',
+        '@fontsource-variable/jost',
         '@fontsource-variable/jetbrains-mono',
         './src/styles/theme.css',
       ],

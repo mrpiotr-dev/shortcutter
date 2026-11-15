@@ -179,10 +179,10 @@ catalogs:
     '@astrojs/starlight':
       specifier: ^0.43.1
       version: 0.43.1
-    '@fontsource-variable/instrument-sans':
+    '@fontsource-variable/jetbrains-mono':
       specifier: ^5.3.0
       version: 5.3.0
-    '@fontsource-variable/jetbrains-mono':
+    '@fontsource-variable/jost':
       specifier: ^5.3.0
       version: 5.3.0
     '@sveltejs/vite-plugin-svelte':
@@ -244,10 +244,10 @@ importers:
 
   apps/docs:
     dependencies:
-      '@fontsource-variable/instrument-sans':
+      '@fontsource-variable/jetbrains-mono':
         specifier: 'catalog:'
         version: 5.3.0
-      '@fontsource-variable/jetbrains-mono':
+      '@fontsource-variable/jost':
         specifier: 'catalog:'
         version: 5.3.0
       '@shortcutter/core':
@@ -947,11 +947,11 @@ packages:
   '@expressive-code/plugin-text-markers@0.44.3':
     resolution: {integrity: sha512-4Ae2xRSDV5kdWPsi40xWbOtoihbzM0zLVjQKkDAnD5KzFXl+6/kd+VhuWOlTRVaJ5cqGk++vCbAaf0MR1XbZlw==}
 
-  '@fontsource-variable/instrument-sans@5.3.0':
-    resolution: {integrity: sha512-u4gKbDBTNFGkg997tfQn3eHOhHuquWUFTRT/rwzuKtrxX5P2ekfs2x+LgBPP4P32+cC+vUwF1Cr+IdRoPQbrGw==}
-
   '@fontsource-variable/jetbrains-mono@5.3.0':
     resolution: {integrity: sha512-F32xpS2NsGYoQi2ADSkKTgpJj7ozajsGgDJ8woTnqjmIB+dxDIqImjl4pXZVEExu8UFZ2ndhmX18EBS/hdz3Lw==}
+
+  '@fontsource-variable/jost@5.3.0':
+    resolution: {integrity: sha512-9FS8iBMJnfyPqQOi9dfMjSwYBIWd0kBD3/jl8VvtbIMY2pK+CSp3oAaTLS1V60rDoM7AfyPvuT+IUfJfGeCTKg==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -3843,9 +3843,9 @@ snapshots:
     dependencies:
       '@expressive-code/core': 0.44.3
 
-  '@fontsource-variable/instrument-sans@5.3.0': {}
-
   '@fontsource-variable/jetbrains-mono@5.3.0': {}
+
+  '@fontsource-variable/jost@5.3.0': {}
 
   '@img/colour@1.1.0': {}
 
