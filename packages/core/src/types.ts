@@ -2,7 +2,8 @@
  * When a handler runs:
  * - `down`: every key of the shortcut became pressed;
  * - `press`: the shortcut is held and the system repeats the key;
- * - `up`: the shortcut stopped being pressed (a key was released, another key joined, or the window lost focus).
+ * - `up`: the shortcut stopped being pressed (a key was released, another key joined, or the page lost
+ *   focus, was left or was hidden).
  */
 export type Phase = 'down' | 'press' | 'up';
 
@@ -17,8 +18,14 @@ export type ShortcutDetail = {
   context: string;
 };
 
-/** `event` is a `KeyboardEvent`, or the `FocusEvent` that released all keys on blur. */
-export type ShortcutHandler = (event: KeyboardEvent | FocusEvent, detail: ShortcutDetail) => void;
+/**
+ * `event` is the `KeyboardEvent`, or for an `up` caused by releasing every key, the event that did it:
+ * `blur`, `pagehide` or `visibilitychange`.
+ */
+export type ShortcutHandler = (event: KeyboardEvent | Event, detail: ShortcutDetail) => void;
+
+/** Gets the keys held right now (sorted canonical names) each time they change. */
+export type KeysListener = (pressed: string[], event: KeyboardEvent | Event) => void;
 
 export type ShortcutterOptions = {
   /**
@@ -70,6 +77,11 @@ export type Shortcutter = {
   };
   /** Canonical names of the keys pressed right now, sorted. */
   pressed(): string[];
+  /**
+   * Calls `listener` whenever the held keys change, with the new list. Returns an unsubscribe
+   * function. Fits `useSyncExternalStore` in React, or any key visualizer.
+   */
+  subscribe(listener: KeysListener): () => void;
   /** Removes all event listeners. Registered shortcuts stop firing. Safe to call twice. */
   destroy(): void;
 };

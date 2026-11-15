@@ -170,6 +170,82 @@ describe('createShortcutter', () => {
     });
   });
 
+  describe('subscribe', () => {
+    it('reports the held keys whenever they change', () => {
+      const { sc, kb } = setup();
+      const seen: string[][] = [];
+
+      sc.subscribe((keys) => seen.push(keys));
+      kb.down('ShiftLeft');
+      kb.down('KeyA');
+      kb.down('KeyA', { repeat: true }); // no change: not reported
+      kb.up('KeyA');
+      kb.up('ShiftLeft');
+
+      expect(seen).toEqual([['shift'], ['a', 'shift'], ['shift'], []]);
+    });
+
+    it('reports keys released by blur and passes the event', () => {
+      const { sc, kb } = setup();
+      const listener = vi.fn();
+
+      kb.down('KeyA');
+      sc.subscribe(listener);
+      kb.blur();
+
+      expect(listener).toHaveBeenCalledWith([], expect.objectContaining({ type: 'blur' }));
+    });
+
+    it('stops after unsubscribing or destroy()', () => {
+      const { sc, kb } = setup();
+      const first = vi.fn();
+      const second = vi.fn();
+
+      sc.subscribe(first)();
+      sc.subscribe(second);
+      sc.destroy();
+      kb.down('KeyA');
+
+      expect(first).not.toHaveBeenCalled();
+      expect(second).not.toHaveBeenCalled();
+    });
+
+    it('requires a function', () => {
+      const { sc } = setup();
+
+      // @ts-expect-error -- runtime guard
+      expect(() => sc.subscribe()).toThrow('has to be a function');
+    });
+  });
+
+  describe('leaving the page', () => {
+    it('releases all keys and fires "up" on pagehide (e.g. a shortcut navigated away)', () => {
+      const { sc, kb, handler, phases } = setup();
+
+      sc.listen('D', handler, { phases: ['down', 'up'] });
+      kb.down('KeyD');
+      window.dispatchEvent(new Event('pagehide'));
+
+      expect(phases()).toEqual(['down', 'up']);
+      expect(sc.pressed()).toEqual([]);
+    });
+
+    it('releases all keys when the tab is hidden', () => {
+      const { sc, kb } = setup();
+      const visibility = vi.spyOn(document, 'visibilityState', 'get');
+
+      kb.down('KeyA');
+      visibility.mockReturnValue('visible');
+      document.dispatchEvent(new Event('visibilitychange'));
+      expect(sc.pressed()).toEqual(['a']);
+
+      visibility.mockReturnValue('hidden');
+      document.dispatchEvent(new Event('visibilitychange'));
+      expect(sc.pressed()).toEqual([]);
+      visibility.mockRestore();
+    });
+  });
+
   describe('blur', () => {
     it('fires "up" and releases all keys', () => {
       const { sc, kb, handler, phases } = setup();

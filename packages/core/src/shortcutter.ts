@@ -8,6 +8,7 @@ import {
   parseShortcut,
 } from './keys';
 import type {
+  KeysListener,
   ListenOptions,
   Phase,
   Phases,
@@ -73,12 +74,22 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
   /** context → `${combination}|${phase}` → binding */
   const registry = new Map<string, Map<string, Binding>>();
   const pressed = new Set<string>();
+  const subscribers = new Set<KeysListener>();
   let active: string[] = [defaultContext];
 
-  function dispatch(keys: string, phase: Phase, event: KeyboardEvent | FocusEvent): void {
+  /** Tells subscribers about a change of the held keys (`before` is the combination before it). */
+  function notify(before: string, event: KeyboardEvent | Event): void {
+    if (combination(pressed) === before) return;
+
+    const keys = [...pressed].sort();
+
+    for (const listener of [...subscribers]) listener(keys, event);
+  }
+
+  function dispatch(keys: string, phase: Phase, event: KeyboardEvent | Event): void {
     if (keys === '') return;
 
-    const typing = event.type === 'blur' ? false : isTyping(event as KeyboardEvent);
+    const typing = event.type.startsWith('key') && isTyping(event as KeyboardEvent);
 
     // activate() replaces `active`, so a handler switching contexts does not affect this loop.
     for (const context of active) {
@@ -109,26 +120,34 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
 
     if (!key) return;
 
+    const before = combination(pressed);
+
     syncModifiers(event, key);
 
     const previous = combination(pressed);
 
     if (pressed.has(key)) {
+      notify(before, event);
       dispatch(previous, 'press', event);
       return;
     }
 
     pressed.add(key);
+    notify(before, event);
     dispatch(previous, 'up', event);
     dispatch(combination(pressed), 'down', event);
   }
 
   function onKeyUp(event: KeyboardEvent): void {
     const key = keyFromCode(event.code);
+    const before = combination(pressed);
 
     syncModifiers(event, key);
 
-    if (!pressed.has(key)) return;
+    if (!pressed.has(key)) {
+      notify(before, event);
+      return;
+    }
 
     const previous = combination(pressed);
 
@@ -141,13 +160,21 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
       }
     }
 
+    notify(before, event);
     dispatch(previous, 'up', event);
   }
 
-  function onBlur(event: FocusEvent): void {
+  /**
+   * Releases every key when their keyups can no longer reach us: the window lost focus, the page is
+   * being left (pagehide, also when it goes into the back/forward cache) or the tab was hidden.
+   */
+  function onRelease(event: Event): void {
+    if (event.type === 'visibilitychange' && document.visibilityState !== 'hidden') return;
+
     const previous = combination(pressed);
 
     pressed.clear();
+    notify(previous, event);
     dispatch(previous, 'up', event);
   }
 
@@ -156,11 +183,17 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
 
   target?.addEventListener('keydown', onKeyDown as EventListener, listenerOptions);
   target?.addEventListener('keyup', onKeyUp as EventListener, listenerOptions);
-  target?.addEventListener('blur', onBlur as EventListener, listenerOptions);
+  target?.addEventListener('blur', onRelease, listenerOptions);
+
+  if (target && typeof window !== 'undefined') {
+    window.addEventListener('pagehide', onRelease, listenerOptions);
+    document.addEventListener('visibilitychange', onRelease, listenerOptions);
+  }
 
   function destroy(): void {
     listeners.abort();
     pressed.clear();
+    subscribers.clear();
   }
 
   if (options.signal?.aborted) {
@@ -229,6 +262,14 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
       isActive: (name: string) => active.includes(name),
     },
     pressed: () => [...pressed].sort(),
+    subscribe(listener: KeysListener) {
+      if (typeof listener !== 'function') {
+        throw new Error('Listener has to be a function.');
+      }
+
+      subscribers.add(listener);
+      return () => void subscribers.delete(listener);
+    },
     destroy,
   };
 }
