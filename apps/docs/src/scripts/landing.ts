@@ -61,9 +61,7 @@ const shortcutEl = $<HTMLElement>('[data-shortcut]');
 const contextsEl = $<HTMLElement>('[data-contexts]');
 const logEl = $<HTMLOListElement>('[data-log]');
 
-function renderPressed(): void {
-  const keys = shortcutter.pressed();
-
+function renderPressed(keys: string[]): void {
   const ordered = [...keys].sort((a, b) => rank(a) - rank(b));
 
   pressedEl.replaceChildren(
@@ -72,10 +70,9 @@ function renderPressed(): void {
   shortcutEl.textContent = ordered.length ? labels(ordered) : '–';
 }
 
-// Registered after createShortcutter(), so pressed() is already up to date when these run.
-window.addEventListener('keydown', renderPressed);
-window.addEventListener('keyup', renderPressed);
-window.addEventListener('blur', renderPressed);
+// The library reports every change of the held keys, including keys released because the page was
+// left, hidden or lost focus.
+shortcutter.subscribe(renderPressed);
 
 function renderContexts(): void {
   contextsEl.textContent = shortcutter.contexts.active().join(', ');
@@ -136,11 +133,19 @@ async function copyInstall(): Promise<void> {
   setTimeout(() => (button.textContent = 'Copy'), 1500);
 }
 
+function showExample(): void {
+  $('#frameworks').scrollIntoView({
+    behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+  });
+  $<HTMLElement>('[role="tab"][aria-selected="true"]').focus({ preventScroll: true });
+}
+
 const commands: Record<string, () => void> = {
   docs: () => location.assign('/docs/'),
   github: () => window.open(GITHUB, '_blank', 'noopener'),
   theme: toggleTheme,
   copy: () => void copyInstall(),
+  example: showExample,
 };
 
 $('[data-copy]').addEventListener('click', () => void copyInstall());
@@ -162,8 +167,8 @@ function activateBase(): void {
 /* ---------- Page shortcuts ---------- */
 
 shortcutter.listen('ControlOrMeta+K', track(openPalette), { preventDefault: true });
-shortcutter.listen('D', track(commands.docs));
-shortcutter.listen('G', track(commands.github));
+shortcutter.listen('C', track(commands.copy));
+shortcutter.listen('E', track(showExample));
 shortcutter.listen('T', track(toggleTheme));
 shortcutter.listen(
   'Alt',

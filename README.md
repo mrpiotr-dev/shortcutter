@@ -43,11 +43,11 @@ shortcutter.listen('Escape', close, { ignoreInputs: false });
 
 A handler runs in the `'down'` phase unless you ask for others:
 
-| Phase     | When                                                                                |
-| --------- | ----------------------------------------------------------------------------------- |
-| `'down'`  | every key of the shortcut became pressed                                            |
-| `'press'` | the shortcut is held and the system repeats the key                                 |
-| `'up'`    | the shortcut stopped being pressed: a key was released, another key joined, or blur |
+| Phase     | When                                                                                                                   |
+| --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `'down'`  | every key of the shortcut became pressed                                                                               |
+| `'press'` | the shortcut is held and the system repeats the key                                                                    |
+| `'up'`    | the shortcut stopped being pressed: a key was released, another key joined, or the page lost focus, was left or hidden |
 
 ```ts
 // Hold Alt to show hints
@@ -87,6 +87,7 @@ Returns:
 - `unlisten(shortcut, { context?, phases? })`: removes a shortcut; does nothing if it is not registered.
 - `contexts.activate(...names)`, `contexts.active()`, `contexts.isActive(name)`.
 - `pressed()`: keys held right now, e.g. `['k', 'shift']`.
+- `subscribe(listener)`: calls `listener(pressed, event)` whenever the held keys change and returns an unsubscribe function. Useful for key visualizers or React's `useSyncExternalStore`.
 - `destroy()`: removes all event listeners.
 
 ## Frameworks
