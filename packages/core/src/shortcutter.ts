@@ -91,12 +91,16 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
     }
   }
 
-  /** Drops modifiers the event no longer reports as held: their keyup never reached us. */
+  /**
+   * Trusts the event's modifier flags over our own record: drops modifiers released where we could
+   * not see it (keyup lost), and adds modifiers pressed before the page had focus (keydown lost).
+   */
   function syncModifiers(event: KeyboardEvent, key: string): void {
     for (const modifier of MODIFIERS) {
-      if (modifier !== key && pressed.has(modifier) && !isModifierHeld(event, modifier)) {
-        pressed.delete(modifier);
-      }
+      if (modifier === key) continue;
+
+      if (isModifierHeld(event, modifier)) pressed.add(modifier);
+      else pressed.delete(modifier);
     }
   }
 

@@ -148,6 +148,16 @@ describe('createShortcutter', () => {
       expect(sc.pressed()).toEqual(['k']);
     });
 
+    it('counts a modifier whose keydown was lost (e.g. held before the page had focus)', () => {
+      const { sc, kb, handler } = setup({ mac: true });
+
+      sc.listen('ControlOrMeta+K', handler);
+      kb.down('KeyK', { metaKey: true }); // no MetaLeft keydown before it
+
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(sc.pressed()).toEqual(['k', 'meta']);
+    });
+
     it('drops a modifier whose keyup was lost (e.g. released in another window)', () => {
       const { sc, kb, handler } = setup();
 
