@@ -39,6 +39,20 @@
   --sl-color-gray-6: var(--sc-ink-2);
   --sl-color-black: var(--sc-ink);
   --sl-color-text-invert: #000000;
+
+  /* Asides: tip = cobalt, caution = yellow, danger = red, note = neutral. */
+  --sl-color-purple-low: #18223d;
+  --sl-color-purple: var(--sc-cobalt);
+  --sl-color-purple-high: #c3d2f6;
+  --sl-color-orange-low: #3a2e05;
+  --sl-color-orange: var(--sc-yellow);
+  --sl-color-orange-high: #fbe6a3;
+  --sl-color-red-low: #3d1510;
+  --sl-color-red: var(--sc-red);
+  --sl-color-red-high: #f8c4bb;
+  --sl-color-blue-low: var(--sc-ink-2);
+  --sl-color-blue: var(--sc-paper-3);
+  --sl-color-blue-high: var(--sc-paper);
 }
 
 /* Paper: light theme. */
@@ -59,6 +73,24 @@
   --sl-color-gray-7: #e8e4da;
   --sl-color-black: var(--sc-paper);
   --sl-color-text-invert: #ffffff;
+
+  --sl-color-purple-low: #d3dcf2;
+  --sl-color-purple: var(--sc-cobalt);
+  --sl-color-purple-high: #183a86;
+  --sl-color-orange-low: #f7e3a6;
+  --sl-color-orange: #c99400;
+  --sl-color-orange-high: #4a3700;
+  --sl-color-red-low: #f3cfc7;
+  --sl-color-red: var(--sc-red);
+  --sl-color-red-high: #7a1a0d;
+  --sl-color-blue-low: var(--sc-paper-2);
+  --sl-color-blue: var(--sc-ink-3);
+  --sl-color-blue-high: var(--sc-ink);
+}
+
+/* Asides: flat blocks with a thick left rule. */
+.starlight-aside {
+  border-inline-start-width: 6px;
 }
 
 /* Sharp corners everywhere. */
@@ -85,6 +117,11 @@ h3,
 .site-title {
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+/* Title in ink, like the mrpiotr.dev headings; cobalt stays for links. */
+.site-title {
+  color: var(--sl-color-white);
 }
 
 /* A red square marks each section, like a key being pressed. */
@@ -122,6 +159,7 @@ h3,
 /* Current page in the sidebar: a solid cobalt block. */
 .sidebar-content a[aria-current='page'] {
   background: var(--sc-cobalt);
-  color: #ffffff;
+  /* Black on the bright dark-theme cobalt, white on the deep light-theme one (as on mrpiotr.dev). */
+  color: var(--sl-color-text-invert);
   font-weight: 600;
 }

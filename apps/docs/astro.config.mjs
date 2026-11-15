@@ -1,6 +1,7 @@
 // @ts-check
 import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
+import { bauhausInk, bauhausPaper } from './src/code-themes.mjs';
 
 // Telemetry is disabled with ASTRO_TELEMETRY_DISABLED=1 in the package scripts (Astro has no config option).
 export default defineConfig({
@@ -21,7 +22,18 @@ export default defineConfig({
       logo: { src: './src/assets/logo.svg' },
       favicon: '/favicon.svg',
       // Bauhaus: flat, sharp code frames.
-      expressiveCode: { styleOverrides: { borderRadius: '0', borderWidth: '2px' } },
+      expressiveCode: {
+        themes: [bauhausInk, bauhausPaper],
+        styleOverrides: {
+          borderRadius: '0',
+          borderWidth: '2px',
+          borderColor: 'var(--sl-color-gray-5)',
+          codeFontFamily: 'var(--sl-font-mono)',
+          uiFontFamily: 'var(--sl-font)',
+          // Flat, no depth (Bauhaus).
+          frames: { frameBoxShadowCssValue: 'none' },
+        },
+      },
       customCss: [
         '@fontsource-variable/jost',
         '@fontsource-variable/jetbrains-mono',
