@@ -11,6 +11,8 @@ export function banner(pkg: Manifest): string {
 export function libraryPack(pkg: Manifest): PackUserConfig {
   return {
     entry: ['src/index.ts'],
+    // Only src/: the full tsconfig also covers tests, whose imports would get declarations emitted.
+    tsconfig: 'tsconfig.build.json',
     platform: 'neutral',
     target: 'es2020',
     sourcemap: true,
