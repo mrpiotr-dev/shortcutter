@@ -90,6 +90,7 @@ export default defineConfig({
             { slug: 'docs/guides/websites' },
           ],
         },
+        { label: 'Comparison', slug: 'docs/comparison' },
         typeDocSidebarGroup,
       ],
     }),
