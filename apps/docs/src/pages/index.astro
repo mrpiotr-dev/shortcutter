@@ -1,0 +1,302 @@
+---
+import { Code } from 'astro-expressive-code/components';
+import ReactCounter from '../components/demos/react/Counter.tsx';
+import SolidCounter from '../components/demos/solid/Counter.tsx';
+import SvelteCounter from '../components/demos/svelte/Counter.svelte';
+import VueCounter from '../components/demos/vue/Counter.vue';
+import Landing from '../layouts/Landing.astro';
+
+const snippets = {
+  typescript: {
+    label: 'TypeScript',
+    lang: 'ts',
+    code: `import { createShortcutter } from 'shortcutter';
+
+const shortcutter = createShortcutter();
+let count = 0;
+
+shortcutter.listen('K', () => render((count += 1)));
+shortcutter.listen('J', () => render((count -= 1)));
+shortcutter.listen('Shift+K', () => render((count += 10)));
+shortcutter.listen('Shift+J', () => render((count -= 10)));`,
+  },
+  react: {
+    label: 'React',
+    lang: 'tsx',
+    code: `import { useShortcut } from '@shortcutter/react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  useShortcut('K', () => setCount((c) => c + 1));
+  useShortcut('J', () => setCount((c) => c - 1));
+  useShortcut('Shift+K', () => setCount((c) => c + 10));
+  useShortcut('Shift+J', () => setCount((c) => c - 10));
+
+  return <output>{count}</output>;
+}`,
+  },
+  vue: {
+    label: 'Vue',
+    lang: 'vue',
+    code: `<script setup lang="ts">
+import { ref } from 'vue';
+import { useShortcut } from '@shortcutter/vue';
+
+const count = ref(0);
+
+useShortcut('K', () => count.value++);
+useShortcut('J', () => count.value--);
+useShortcut('Shift+K', () => (count.value += 10));
+useShortcut('Shift+J', () => (count.value -= 10));
+</script>
+
+<template><output>{{ count }}</output></template>`,
+  },
+  svelte: {
+    label: 'Svelte',
+    lang: 'svelte',
+    code: `<script lang="ts">
+  import { useShortcut } from '@shortcutter/svelte';
+
+  let count = $state(0);
+
+  useShortcut('K', () => count++);
+  useShortcut('J', () => count--);
+  useShortcut('Shift+K', () => (count += 10));
+  useShortcut('Shift+J', () => (count -= 10));
+</script>
+
+<output>{count}</output>`,
+  },
+  solid: {
+    label: 'Solid',
+    lang: 'tsx',
+    code: `import { createShortcut } from '@shortcutter/solid';
+
+function Counter() {
+  const [count, setCount] = createSignal(0);
+
+  createShortcut('K', () => setCount((c) => c + 1));
+  createShortcut('J', () => setCount((c) => c - 1));
+  createShortcut('Shift+K', () => setCount((c) => c + 10));
+  createShortcut('Shift+J', () => setCount((c) => c - 10));
+
+  return <output>{count()}</output>;
+}`,
+  },
+} as const;
+
+const install = 'pnpm add shortcutter';
+
+const autodocs = `shortcutter.listen('ControlOrMeta+Slash', openHelp, {
+  description: 'Show all keyboard shortcuts',
+});
+
+const help = shortcutter.shortcuts({ active: true });
+// [{ keys: ['meta', 'slash'],
+//    description: 'Show all keyboard shortcuts', … }]
+
+help.forEach(({ keys, description }) => addRow(keys, description));`;
+---
+
+<Landing
+  title="shortcutter: keyboard shortcuts with contexts and phases"
+  description="Tiny, dependency-free keyboard shortcuts for the browser. Contexts, key phases, SSR-safe, with React, Vue, Svelte and Solid adapters."
+>
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <h1 id="hero-title">Keyboard shortcuts, <span class="accent">in context</span>.</h1>
+        <p class="lead">
+          A tiny, dependency-free library for shortcuts in the browser. Group them into{' '}
+          <strong>contexts</strong>, react to every <strong>phase</strong> of a key press, and use them from
+          any framework.
+        </p>
+        <div class="install">
+          <code>{install}</code>
+          <button type="button" class="btn btn-ghost" data-copy={install}>
+            <span data-copy-label>Copy</span>
+            <kbd class="kbd-chip" data-chip-shortcut="C">C</kbd>
+          </button>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="/docs/">Get started</a>
+          <a class="btn btn-outline" href="#frameworks">
+            Live example <kbd class="kbd-chip" data-chip-shortcut="E">E</kbd>
+          </a>
+          <a class="btn btn-outline" href="https://github.com/mrpiotr-dev/shortcutter" rel="external noopener" target="_blank">
+            GitHub
+          </a>
+        </div>
+      </div>
+
+      <div class="visualizer" aria-label="Live keyboard visualizer">
+        <div class="vis-keys" data-pressed aria-live="polite">
+          <span class="vis-empty">Press any key</span>
+        </div>
+        <dl class="vis-meta">
+          <div>
+            <dt>Shortcut</dt>
+            <dd data-vis-shortcut>–</dd>
+          </div>
+          <div>
+            <dt>Context</dt>
+            <dd data-contexts>default</dd>
+          </div>
+        </dl>
+        <ol class="vis-phases" aria-label="Phases">
+          <li data-phase="down">down</li>
+          <li data-phase="press">press</li>
+          <li data-phase="up">up</li>
+        </ol>
+        <ol class="vis-log" data-log aria-label="Matched shortcuts"></ol>
+      </div>
+    </section>
+
+    <section class="try" aria-labelledby="try-title">
+      <h2 id="try-title">Try it on this page</h2>
+      <ul class="try-grid">
+        <li>
+          <p class="try-keys"><kbd class="keycap" data-mod>Ctrl</kbd> <kbd class="keycap">K</kbd></p>
+          <p>Opens a command palette. It switches to the <code>palette</code> context, so only its keys work while it is open.</p>
+        </li>
+        <li>
+          <p class="try-keys"><kbd class="keycap" data-alt>Alt</kbd> <span class="muted">hold</span></p>
+          <p>Shows the page's shortcuts while held, using the <code>down</code> and <code>up</code> phases.</p>
+        </li>
+        <li>
+          <p class="try-keys"><kbd class="keycap">C</kbd> <kbd class="keycap">E</kbd> <kbd class="keycap">T</kbd></p>
+          <p>
+            Copy the install command, jump to the live example, switch the theme. Ignored while you type in a
+            field, like the palette's search.
+          </p>
+        </li>
+        <li>
+          <p class="try-keys">
+            <kbd class="keycap">G</kbd> <kbd class="keycap">G</kbd> <span class="muted">or</span>
+            <kbd class="keycap">G</kbd> <kbd class="keycap">D</kbd>
+          </p>
+          <p>Vim-style sequences from the optional <code>shortcutter/sequences</code> entry: back to the top, or to the docs.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="autodocs" aria-labelledby="autodocs-title">
+      <div class="autodocs-copy">
+        <h2 id="autodocs-title">Shortcuts that document themselves</h2>
+        <p>
+          Give each shortcut a description when you register it. <code>shortcuts()</code> gathers them, with the
+          keys resolved for the platform (⌘ on macOS, Ctrl elsewhere), so a keyboard help screen is one loop and
+          never goes out of date.
+        </p>
+        <button type="button" class="btn btn-outline" data-open-help>
+          Show this page's shortcuts <kbd class="kbd-chip" data-chip-shortcut="ControlOrMeta+Slash">Ctrl /</kbd>
+        </button>
+        <p class="also">
+          <kbd class="keycap">?</kbd> works too, as in Gmail, on US-style keyboard layouts.{' '}
+          <a href="/docs/guides/websites/#help-dialog-and-keyboard-layouts">Why other layouts differ</a>
+        </p>
+      </div>
+      <Code code={autodocs} lang="ts" />
+    </section>
+
+    <section class="features" aria-labelledby="features-title">
+      <h2 id="features-title" class="visually-hidden">Features</h2>
+      <article>
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="4" y="4" width="32" height="32" class="fill-cobalt"></rect></svg>
+        <h3>Contexts</h3>
+        <p>Scope shortcuts to a modal, an editor or a page, and activate several at once.</p>
+      </article>
+      <article>
+        <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" class="fill-red"></circle></svg>
+        <h3>Phases</h3>
+        <p>Handle the press, the key repeat and the release: hold-to-peek and push-to-talk become one line.</p>
+      </article>
+      <article>
+        <svg viewBox="0 0 40 40" aria-hidden="true"><polygon points="20,4 37,36 3,36" class="fill-yellow"></polygon></svg>
+        <h3>Tiny &amp; SSR-safe</h3>
+        <p>No dependencies, under 3&nbsp;kB gzipped, and safe to import on the server.</p>
+      </article>
+      <article>
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="2" y="16" width="36" height="8" class="fill-ink"></rect></svg>
+        <h3>Every framework</h3>
+        <p>Plain TypeScript, plus adapters for React, Vue, Svelte and Solid that clean up after themselves.</p>
+      </article>
+    </section>
+
+    <section class="frameworks" id="frameworks" aria-labelledby="frameworks-title">
+      <h2 id="frameworks-title">One API, your framework</h2>
+      <p class="muted">
+        The same counter, live. Press <kbd class="keycap">J</kbd> and <kbd class="keycap">K</kbd>; hold <kbd class="keycap">⇧</kbd> to count in tens (<code>Shift+K</code> is a shortcut of its own). Switch frameworks
+        with <kbd class="keycap">1</kbd>–<kbd class="keycap">5</kbd> (a single <code>Digit*</code> wildcard
+        shortcut), or with <kbd class="keycap">←</kbd> <kbd class="keycap">→</kbd> in the tabs.
+      </p>
+      <div class="tabs" role="tablist" aria-label="Framework">
+        {
+          Object.entries(snippets).map(([id, s], i) => (
+            <button
+              type="button"
+              role="tab"
+              id={`tab-${id}`}
+              aria-controls={`panel-${id}`}
+              aria-selected={i === 0 ? 'true' : 'false'}
+              tabindex={i === 0 ? 0 : -1}
+              data-demo={id}
+            >
+              {s.label}
+            </button>
+          ))
+        }
+      </div>
+      {
+        Object.entries(snippets).map(([id, s], i) => (
+          <div class="panel" role="tabpanel" id={`panel-${id}`} aria-labelledby={`tab-${id}`} hidden={i !== 0}>
+            <Code code={s.code} lang={s.lang} />
+            <div class="panel-demo">
+              {id === 'typescript' && (
+                <div class="demo-counter">
+                  <output data-ts-count>0</output>
+                  <p>Plain TypeScript</p>
+                </div>
+              )}
+              {id === 'react' && <ReactCounter client:visible />}
+              {id === 'vue' && <VueCounter client:visible />}
+              {id === 'svelte' && <SvelteCounter client:visible />}
+              {id === 'solid' && <SolidCounter client:visible />}
+            </div>
+          </div>
+        ))
+      }
+    </section>
+  </main>
+
+  <dialog class="palette" data-palette aria-label="Command palette">
+    <input type="search" placeholder="Type a command…" aria-label="Search commands" data-palette-input />
+    <ul role="listbox" data-palette-list>
+      <li role="option" data-command="docs">Open the docs</li>
+      <li role="option" data-command="github">Open GitHub</li>
+      <li role="option" data-command="theme">Toggle the theme</li>
+      <li role="option" data-command="copy">Copy the install command</li>
+      <li role="option" data-command="example">Jump to the live example</li>
+      <li role="option" data-command="help">Show keyboard shortcuts</li>
+    </ul>
+    <p class="palette-help">
+      <kbd class="keycap">↑</kbd> <kbd class="keycap">↓</kbd> move · <kbd class="keycap">Enter</kbd> run ·
+      <kbd class="keycap">Esc</kbd> close
+    </p>
+  </dialog>
+
+  <!-- Filled from shortcutter.shortcuts({ active: true }) while Alt is held. -->
+  <aside class="hint-bar" aria-hidden="true" data-hint-bar></aside>
+
+  <dialog class="palette help" data-help aria-labelledby="help-title">
+    <h2 id="help-title">Keyboard shortcuts</h2>
+    <div class="help-list" data-help-list></div>
+    <p class="palette-help">
+      Generated from <code>shortcutter.shortcuts()</code> · <kbd class="keycap">Esc</kbd> close
+    </p>
+  </dialog>
+
+  <script src="../scripts/landing.ts"></script>
+</Landing>

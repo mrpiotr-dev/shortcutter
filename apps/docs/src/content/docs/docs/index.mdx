@@ -1,0 +1,87 @@
+---
+title: Getting started
+description: Install shortcutter and register your first keyboard shortcut.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+shortcutter is a tiny, dependency-free library for keyboard shortcuts in the browser. Shortcuts live in **contexts** and fire in **phases**, so a modal, an editor and the rest of your app can each have their own keys.
+
+## Install
+
+<Tabs syncKey="pkg">
+  <TabItem label="pnpm">
+
+    ```sh
+    pnpm add shortcutter
+    ```
+
+  </TabItem>
+  <TabItem label="npm">
+
+    ```sh
+    npm install shortcutter
+    ```
+
+  </TabItem>
+  <TabItem label="yarn">
+
+    ```sh
+    yarn add shortcutter
+    ```
+
+  </TabItem>
+</Tabs>
+
+## Your first shortcut
+
+```ts
+import { createShortcutter } from 'shortcutter';
+
+const shortcutter = createShortcutter();
+
+// Opens the palette with ⌘ K on macOS and Ctrl K elsewhere.
+const off = shortcutter.listen('ControlOrMeta+K', () => openCommandPalette(), {
+  preventDefault: true,
+});
+
+off(); // removes it again
+```
+
+Press <kbd>⌘</kbd> + <kbd>K</kbd> on macOS or <kbd>Ctrl</kbd> + <kbd>K</kbd> elsewhere.
+
+:::tip
+`ControlOrMeta` is the same name Playwright uses: <kbd>⌘</kbd> on macOS, <kbd>Ctrl</kbd> on Windows and Linux.
+:::
+
+## Phases
+
+A handler runs when the shortcut goes **down** unless you ask for more:
+
+| Phase   | When                                                          |
+| ------- | ------------------------------------------------------------- |
+| `down`  | every key of the shortcut became pressed                      |
+| `press` | the shortcut is held and the system repeats the key           |
+| `up`    | a key was released, another key joined, or the window blurred |
+
+```ts
+// Hold Alt to show hints
+shortcutter.listen('Alt', (_event, { phase }) => toggleHints(phase === 'down'), {
+  phases: ['down', 'up'],
+});
+```
+
+## Contexts
+
+Only shortcuts in active contexts run. Every shortcut belongs to `default` unless you pass a context.
+
+```ts
+shortcutter.listen('Escape', closeModal, { context: 'modal' });
+
+shortcutter.contexts.activate('modal'); // only modal shortcuts run
+shortcutter.contexts.activate('modal', 'default'); // both, modal first
+```
+
+:::caution
+Shortcuts are ignored while typing in inputs, textareas and contenteditable elements. Pass `ignoreInputs: false` for keys like <kbd>Esc</kbd> that should work there too.
+:::

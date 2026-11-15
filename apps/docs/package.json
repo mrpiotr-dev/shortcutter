@@ -1,0 +1,44 @@
+{
+  "name": "docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "preview": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@astrojs/react": "catalog:",
+    "@astrojs/solid-js": "catalog:",
+    "@astrojs/svelte": "catalog:",
+    "@astrojs/vue": "catalog:",
+    "@fontsource-variable/jetbrains-mono": "catalog:",
+    "@fontsource-variable/jost": "catalog:",
+    "@shortcutter/react": "workspace:*",
+    "@shortcutter/solid": "workspace:*",
+    "@shortcutter/svelte": "workspace:*",
+    "@shortcutter/vue": "workspace:*",
+    "astro-expressive-code": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "shortcutter": "workspace:*",
+    "solid-js": "catalog:",
+    "svelte": "catalog:",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@astrojs/starlight": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "astro": "catalog:",
+    "starlight-changelogs": "catalog:",
+    "starlight-llms-txt": "catalog:",
+    "starlight-typedoc": "catalog:",
+    "typedoc": "catalog:",
+    "typedoc-plugin-markdown": "catalog:",
+    "typescript": "~6.0.3",
+    "wrangler": "catalog:"
+  }
+}

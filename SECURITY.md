@@ -6,10 +6,10 @@ This document explains how to report security vulnerabilities for Shortcutter an
 
 Security updates are provided for the latest release line.
 
-| Version | Supported |
-| --- | --- |
-| 0.2.x (latest) | Yes |
-| < 0.2.0 | No |
+| Version        | Supported |
+| -------------- | --------- |
+| 0.2.x (latest) | Yes       |
+| < 0.2.0        | No        |
 
 If you are running an unsupported version, please upgrade before reporting unless the issue also reproduces on the latest version.
 

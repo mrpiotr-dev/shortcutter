@@ -1,0 +1,32 @@
+---
+title: Use with AI
+description: Give AI coding assistants the shortcutter docs with llms.txt.
+---
+
+AI assistants know older libraries better than new ones, and they often guess an API from similar packages. Point them at these files instead, generated from this documentation on every release:
+
+| File | What it contains |
+| --- | --- |
+| [`/llms.txt`](/llms.txt) | An index of the documentation, following the [llms.txt](https://llmstxt.org) convention |
+| [`/llms-full.txt`](/llms-full.txt) | Every page, including the guides and the API reference |
+| [`/llms-small.txt`](/llms-small.txt) | The same, with non-essential content removed, for smaller context windows |
+
+## In your assistant
+
+- **Chat assistants:** paste the URL of `llms-full.txt`, or attach the file, before asking for code.
+- **Coding agents and editors:** add `https://www.shortcutter.dev/llms-full.txt` to the project's documentation or context sources, or mention it in the agent's instructions file.
+
+## A prompt that works
+
+```txt
+Use the shortcutter library (docs: https://www.shortcutter.dev/llms-full.txt).
+Register shortcuts with createShortcutter().listen(), give each one a description,
+and use contexts for modal dialogs. Use ControlOrMeta for Cmd/Ctrl.
+```
+
+## What to check in generated code
+
+- Shortcut strings use `+` and key names such as `ControlOrMeta+K`, `Shift+Slash`, `Arrow*`, not `mod+k` or arrays of keys.
+- Phases are `'down'`, `'press'` and `'up'` (default `'down'`); there is no `PHASES` object since 0.3.
+- Movement in games reads held keys with `isPressed()` or `subscribe()`, not `listen()`.
+- Sequences come from `shortcutter/sequences`, not from the main entry.

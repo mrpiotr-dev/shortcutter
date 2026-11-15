@@ -1,0 +1,68 @@
+---
+import '@fontsource-variable/jost';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/landing.css';
+import logo from '../assets/logo.svg?raw';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <!-- Same storage key as Starlight, so the theme follows you between the landing page and the docs. -->
+    <script is:inline>
+      (() => {
+        let stored = '';
+        try {
+          stored = localStorage.getItem('starlight-theme') ?? '';
+        } catch {}
+        const system = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.dataset.theme = stored === 'light' || stored === 'dark' ? stored : system;
+      })();
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="shortcutter home">
+        <span class="brand-logo" set:html={logo} />
+        <span>shortcutter</span>
+      </a>
+      <nav aria-label="Main">
+        <a href="/docs/">Docs</a>
+        <a href="https://github.com/mrpiotr-dev/shortcutter" rel="external noopener" target="_blank">
+          GitHub
+        </a>
+        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle colour theme">
+          <span aria-hidden="true">◐</span>
+          <kbd class="kbd-chip" data-chip-shortcut="T">T</kbd>
+        </button>
+      </nav>
+    </header>
+    <slot />
+    <footer class="site-footer">
+      <p>
+        MIT License · © 2021–present SLAVICTECH PIOTR LASZCZKOWSKI · Made by{' '}
+        <a href="https://www.mrpiotr.dev/" rel="external noopener" target="_blank">mrpiotr.dev</a>
+      </p>
+      <p><a href="/docs/">Docs</a> · <a href="/llms.txt">llms.txt</a> · <a href="https://www.npmjs.com/package/shortcutter" rel="external noopener" target="_blank">npm</a></p>
+    </footer>
+  </body>
+</html>

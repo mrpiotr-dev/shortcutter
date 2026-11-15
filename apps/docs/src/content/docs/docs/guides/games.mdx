@@ -1,0 +1,80 @@
+---
+title: Games
+description: Movement keys, sprinting and actions in browser games, without stuck keys.
+---
+
+Games care about which keys are **held**, not about shortcuts: <kbd>W</kbd> and <kbd>D</kbd> together mean "up and right", and <kbd>Shift</kbd> on top means "sprint". shortcutter tracks held keys for you and clears them when the player switches away, so a character never keeps running on its own.
+
+## Read held keys in the game loop
+
+`isPressed()` takes the same key names as `listen()`, so a frame can ask directly:
+
+```ts
+import { createShortcutter } from 'shortcutter';
+
+const keys = createShortcutter();
+
+function frame() {
+  const x = Number(keys.isPressed('D')) - Number(keys.isPressed('A'));
+  const y = Number(keys.isPressed('S')) - Number(keys.isPressed('W'));
+  const speed = keys.isPressed('Shift') ? 2 : 1;
+
+  player.move(x * speed, y * speed);
+  requestAnimationFrame(frame);
+}
+
+requestAnimationFrame(frame);
+```
+
+## Or react to changes
+
+If the game is event-driven, `subscribe()` calls you whenever the held keys change, with the full list:
+
+```ts
+keys.subscribe((held) => {
+  player.direction = held.filter((key) => 'wasd'.includes(key));
+  player.sprinting = held.includes('shift');
+});
+```
+
+Every step is reported: pressing <kbd>A</kbd>, adding <kbd>Shift</kbd> and <kbd>W</kbd>, letting go of <kbd>A</kbd> while still holding <kbd>Shift</kbd> + <kbd>W</kbd>, and so on.
+
+:::caution[Use held keys, not shortcuts, for movement]
+`listen('W', …)` matches the **whole** combination. Holding <kbd>Shift</kbd> + <kbd>W</kbd> is the shortcut `Shift+W`, not `W`, and releasing <kbd>Shift</kbd> afterwards does not fire `W` again. That is what you want for app shortcuts (releasing <kbd>Shift</kbd> from undo-redo must not undo) and not what you want for movement.
+:::
+
+## No stuck keys
+
+When the window loses focus, the tab is hidden or the page is left, the browser never sends the keyups for keys that were still down. shortcutter releases every key in those moments and notifies `subscribe()` with an empty list. It also trusts the modifier flags of each event, so a <kbd>Shift</kbd> released in another window is not held forever.
+
+## Every keyboard layout
+
+Keys follow `KeyboardEvent.code`, the **physical** position. `W`, `A`, `S`, `D` are the same four keys on QWERTY, AZERTY (where they read Z, Q, S, D) and QWERTZ, so French and German players get a working layout without remapping.
+
+## One-off actions
+
+Jump, pause or interact are actions, so they are regular shortcuts. Phases help with hold-to-charge:
+
+```ts
+keys.listen('Escape', togglePause, { description: 'Pause' });
+keys.listen('E', interact, { description: 'Interact' });
+
+// Charge while Space is held, release to jump.
+keys.listen('Space', (_event, { phase }) => (phase === 'down' ? startCharge() : jump()), {
+  phases: ['down', 'up'],
+  preventDefault: true, // no page scroll
+});
+```
+
+## Keep it to the game
+
+Listen on the game element instead of the whole window, so the keys only work while the game has focus:
+
+```ts
+const canvas = document.querySelector('canvas')!;
+canvas.tabIndex = 0; // focusable
+
+const keys = createShortcutter({ target: canvas });
+```
+
+Call `keys.destroy()` when the game unmounts.
