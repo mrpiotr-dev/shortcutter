@@ -56,7 +56,17 @@ export default defineConfig({
         '@fontsource-variable/jetbrains-mono',
         './src/styles/theme.css',
       ],
-      sidebar: [{ label: 'Start here', items: [{ slug: 'docs' }] }],
+      sidebar: [
+        { label: 'Start here', items: [{ slug: 'docs' }] },
+        {
+          label: 'Guides',
+          items: [
+            { slug: 'docs/guides/games' },
+            { slug: 'docs/guides/apps' },
+            { slug: 'docs/guides/websites' },
+          ],
+        },
+      ],
     }),
     // Live adapter demos on the landing page. React and Solid both use JSX, so each owns a folder.
     react({ include: [/\/demos\/react\//] }),

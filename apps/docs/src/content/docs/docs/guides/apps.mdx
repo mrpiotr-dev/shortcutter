@@ -1,0 +1,98 @@
+---
+title: Apps
+description: Undo and redo, tool modes, hold-to-pan and per-panel shortcuts in editors and design tools.
+---
+
+Editors and design tools live on shortcuts: undo and redo, tools picked with one key, a key held to pan the canvas, and different keys in different panels. shortcutter's phases and contexts map onto all of these.
+
+## Undo and redo
+
+```ts
+import { createShortcutter } from 'shortcutter';
+
+const shortcutter = createShortcutter();
+
+// down + press: holding the keys keeps undoing, like native apps.
+shortcutter.listen('ControlOrMeta+Z', undo, {
+  phases: ['down', 'press'],
+  preventDefault: true,
+  description: 'Undo',
+});
+shortcutter.listen('ControlOrMeta+Shift+Z', redo, {
+  phases: ['down', 'press'],
+  preventDefault: true,
+  description: 'Redo',
+});
+```
+
+`ControlOrMeta` is <kbd>⌘</kbd> on macOS and <kbd>Ctrl</kbd> elsewhere. Releasing <kbd>Shift</kbd> while still holding <kbd>⌘</kbd> + <kbd>Z</kbd> does **not** undo: a shortcut fires when it becomes pressed, not when keys are let go around it.
+
+## Tools
+
+Single-key tools are ignored while the user types in a field, so `V` and `P` are safe even with a text box on screen:
+
+```ts
+shortcutter.listen('V', () => setTool('select'), { description: 'Select tool' });
+shortcutter.listen('P', () => setTool('pen'), { description: 'Pen tool' });
+shortcutter.listen('Digit*', (_event, { shortcut }) => setZoomPreset(Number(shortcut)), {
+  description: 'Zoom presets 0–9',
+});
+```
+
+## Hold for a temporary mode
+
+Hold <kbd>Space</kbd> to pan, release to go back to the previous tool. The `up` phase also fires when the window loses focus, so the canvas never stays stuck in pan mode:
+
+```ts
+let previous = 'select';
+
+shortcutter.listen(
+  'Space',
+  (_event, { phase }) => {
+    if (phase === 'down') {
+      previous = tool;
+      setTool('hand');
+    } else {
+      setTool(previous);
+    }
+  },
+  { phases: ['down', 'up'], preventDefault: true, description: 'Hold to pan' },
+);
+```
+
+## Shortcuts per panel
+
+Give each part of the app its own context and activate the ones that apply. Several contexts can be active at once, in priority order:
+
+```ts
+shortcutter.listen('Delete', deleteSelection, { context: 'canvas' });
+shortcutter.listen('Delete', deleteLayer, { context: 'layers' });
+shortcutter.listen('Escape', closeDialog, { context: 'dialog', ignoreInputs: false });
+
+canvas.addEventListener('focusin', () => shortcutter.contexts.activate('canvas', 'default'));
+layers.addEventListener('focusin', () => shortcutter.contexts.activate('layers', 'default'));
+dialog.addEventListener('open', () => shortcutter.contexts.activate('dialog'));
+```
+
+## Show what is available
+
+Every `description` above feeds a help screen that stays in sync with the code:
+
+```ts
+for (const { keys, description } of shortcutter.shortcuts({ active: true })) {
+  addRow(keys, description); // e.g. ['meta', 'z'], 'Undo'
+}
+```
+
+## In a framework
+
+The adapters register on mount and clean up on unmount, and `enabled` turns a shortcut off without removing the component:
+
+```tsx
+import { useShortcut } from '@shortcutter/react';
+
+function Toolbar({ readOnly }: { readOnly: boolean }) {
+  useShortcut('P', () => setTool('pen'), { enabled: !readOnly, description: 'Pen tool' });
+  // …
+}
+```
