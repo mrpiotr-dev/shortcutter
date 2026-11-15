@@ -113,25 +113,34 @@ function flash(phase: string): void {
   el?.classList.add('lit');
 }
 
-function log({ phase, shortcut, context }: ShortcutDetail): void {
+function log({ phase, shortcut }: { phase: string; shortcut: string }): void {
   const item = document.createElement('li');
-  const keys = labels(shortcut.split('+'));
 
   item.innerHTML = `<span class="log-context"></span><span class="log-keys"></span><span class="log-phase"></span>`;
-  item.children[0]!.textContent = context;
-  item.children[1]!.textContent = keys;
+  item.children[0]!.textContent = '–';
+  item.children[1]!.textContent = labels(shortcut.split('+'));
   item.children[2]!.textContent = phase;
   item.dataset.phase = phase;
   logEl.prepend(item);
-  while (logEl.children.length > 5) logEl.lastElementChild!.remove();
+  while (logEl.children.length > 6) logEl.lastElementChild!.remove();
 }
 
-/** Wraps a handler so every match shows up in the visualizer. */
+// Every down, press and up of whatever is held, matched or not. observe() runs before handlers.
+shortcutter.observe((_event, detail) => {
+  flash(detail.phase);
+  log(detail);
+});
+
+/** Wraps a handler so its log line shows the context that matched. */
 const track =
   (handler: ShortcutHandler = () => {}): ShortcutHandler =>
-  (event, detail) => {
-    flash(detail.phase);
-    log(detail);
+  (event, detail: ShortcutDetail) => {
+    const line = logEl.firstElementChild as HTMLElement | null;
+
+    if (line) {
+      line.classList.add('matched');
+      line.children[0]!.textContent = detail.context;
+    }
     handler(event, detail);
   };
 
@@ -149,15 +158,15 @@ function toggleTheme(): void {
 }
 
 async function copyInstall(): Promise<void> {
-  const button = $<HTMLButtonElement>('[data-copy]');
+  const text = $<HTMLElement>('[data-copy-label]');
 
   try {
     await navigator.clipboard.writeText(INSTALL);
-    button.textContent = 'Copied';
+    text.textContent = 'Copied';
   } catch {
-    button.textContent = 'Press ⌘C';
+    text.textContent = 'Select it';
   }
-  setTimeout(() => (button.textContent = 'Copy'), 1500);
+  setTimeout(() => (text.textContent = 'Copy'), 1500);
 }
 
 function showExample(): void {
@@ -177,6 +186,7 @@ const commands: Record<string, () => void> = {
 
 $('[data-copy]').addEventListener('click', () => void copyInstall());
 $('[data-theme-toggle]').addEventListener('click', toggleTheme);
+$('[data-open-help]').addEventListener('click', () => openHelp());
 
 /* ---------- Contexts ---------- */
 

@@ -143,8 +143,10 @@ code {
 }
 
 .theme-toggle {
-  width: 2.25rem;
+  display: inline-flex;
+  align-items: center;
   height: 2.25rem;
+  padding: 0 0.5rem;
   border: var(--border) solid var(--line);
   background: transparent;
   color: var(--fg);
@@ -394,8 +396,9 @@ h2::before {
 
 .vis-log {
   display: grid;
+  align-content: start;
   gap: 0.25rem;
-  min-height: 7.5rem;
+  min-height: 9.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -411,6 +414,11 @@ h2::before {
 .log-context,
 .log-phase {
   color: var(--fg-2);
+}
+
+.vis-log li.matched .log-context {
+  color: var(--cobalt);
+  font-weight: 600;
 }
 
 .vis-log li:first-child .log-keys {
@@ -452,20 +460,21 @@ h2::before {
   font-size: 1.25rem;
 }
 
-/* Hold Alt: hint badges appear next to things with a shortcut. */
-[data-hint] {
-  position: relative;
+/* A shortcut chip inside buttons, like the one in the docs search bar. */
+.kbd-chip {
+  display: inline-block;
+  margin-inline-start: 0.5em;
+  padding: 0 0.35em;
+  border: 1px solid currentColor;
+  font: 500 0.75em/1.4 var(--mono);
+  opacity: 0.75;
 }
 
-.show-hints [data-hint]::after {
-  content: attr(data-hint);
-  position: absolute;
-  top: -0.6rem;
-  right: -0.9rem;
-  padding: 0 0.3rem;
-  background: var(--yellow);
-  color: #000000;
-  font: 700 0.75rem var(--mono);
+/* Touch devices usually have no keyboard to press it with. */
+@media (pointer: coarse) {
+  .kbd-chip {
+    display: none;
+  }
 }
 
 /* While Alt is held: a bar listing the page's shortcuts, visible wherever you scrolled. */
@@ -499,14 +508,34 @@ h2::before {
   transform: translate(-50%, 0);
 }
 
-.try-more {
-  margin: 1rem 0 0;
-  color: var(--fg-2);
-}
-
 .keys {
   display: inline-flex;
   gap: 0.25rem;
+}
+
+/* ---------- Self-documenting shortcuts ---------- */
+
+.autodocs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.autodocs-copy p {
+  margin: 0 0 1.25rem;
+}
+
+.note {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border-inline-start: 6px solid var(--yellow);
+  background: var(--bg-2);
+}
+
+.note p {
+  margin: 0.5rem 0 0;
+  color: var(--fg-2);
 }
 
 /* ---------- Help dialog ---------- */
@@ -703,7 +732,8 @@ h2::before {
 
 @media (width < 56rem) {
   .hero,
-  .panel {
+  .panel,
+  .autodocs {
     grid-template-columns: minmax(0, 1fr);
   }
 

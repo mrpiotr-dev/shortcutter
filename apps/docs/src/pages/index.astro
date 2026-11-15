@@ -78,6 +78,16 @@ function Counter() {
 } as const;
 
 const install = 'pnpm add shortcutter';
+
+const autodocs = `shortcutter.listen('Shift+Slash', openHelp, {
+  description: 'Show all keyboard shortcuts',
+});
+
+const help = shortcutter.shortcuts({ active: true });
+// [{ keys: ['shift', 'slash'],
+//    description: 'Show all keyboard shortcuts', … }]
+
+help.forEach(({ keys, description }) => addRow(keys, description));`;
 ---
 
 <Landing
@@ -95,11 +105,16 @@ const install = 'pnpm add shortcutter';
         </p>
         <div class="install">
           <code>{install}</code>
-          <button type="button" class="btn btn-ghost" data-copy={install} data-hint="C">Copy</button>
+          <button type="button" class="btn btn-ghost" data-copy={install}>
+            <span data-copy-label>Copy</span>
+            <kbd class="kbd-chip" title="Keyboard shortcut: C">C</kbd>
+          </button>
         </div>
         <div class="actions">
           <a class="btn btn-primary" href="/docs/">Get started</a>
-          <a class="btn btn-outline" href="#frameworks" data-hint="E">Live example</a>
+          <a class="btn btn-outline" href="#frameworks">
+            Live example <kbd class="kbd-chip" title="Keyboard shortcut: E">E</kbd>
+          </a>
           <a class="btn btn-outline" href="https://github.com/mrpiotr-dev/shortcutter" rel="external noopener" target="_blank">
             GitHub
           </a>
@@ -148,11 +163,26 @@ const install = 'pnpm add shortcutter';
           </p>
         </li>
       </ul>
-      <p class="try-more">
-        Press <kbd class="keycap">?</kbd> for every shortcut on the page, listed straight from
-        <code>shortcutter.shortcuts()</code>, and <kbd class="keycap">1</kbd>–<kbd class="keycap">5</kbd> to switch the
-        framework below with a single <code>Digit*</code> wildcard.
-      </p>
+    </section>
+
+    <section class="autodocs" aria-labelledby="autodocs-title">
+      <div class="autodocs-copy">
+        <h2 id="autodocs-title">Shortcuts that document themselves</h2>
+        <p>
+          Give each shortcut a description when you register it. <code>shortcuts()</code> gathers them, with the
+          keys resolved for the platform (⌘ on macOS, Ctrl elsewhere), so a keyboard help screen is one loop and
+          never goes out of date.
+        </p>
+        <button type="button" class="btn btn-outline" data-open-help>
+          Show this page's shortcuts <kbd class="kbd-chip" title="Keyboard shortcut: ?">?</kbd>
+        </button>
+        <aside class="note">
+          <strong>Why <code>Shift+Slash</code> and not <code>?</code></strong>
+          <p>Shortcuts follow physical keys (<code>KeyboardEvent.code</code>), so they sit in the same place on every keyboard layout, but the characters printed on those keys move.</p>
+          <p><kbd class="keycap">?</kbd> needs <kbd class="keycap">⇧</kbd> and is on the Slash key on US layouts, so it is declared as <code>Shift+Slash</code>. On a German layout <kbd class="keycap">?</kbd> is <kbd class="keycap">⇧</kbd> + <kbd class="keycap">ß</kbd>, which is <code>Shift+Minus</code>.</p>
+        </aside>
+      </div>
+      <Code code={autodocs} lang="ts" />
     </section>
 
     <section class="features" aria-labelledby="features-title">
@@ -181,7 +211,11 @@ const install = 'pnpm add shortcutter';
 
     <section class="frameworks" id="frameworks" aria-labelledby="frameworks-title">
       <h2 id="frameworks-title">One API, your framework</h2>
-      <p class="muted">The same counter, live. Press <kbd class="keycap">J</kbd> and <kbd class="keycap">K</kbd>.</p>
+      <p class="muted">
+        The same counter, live. Press <kbd class="keycap">J</kbd> and <kbd class="keycap">K</kbd>. Switch frameworks
+        with <kbd class="keycap">1</kbd>–<kbd class="keycap">5</kbd> (a single <code>Digit*</code> wildcard
+        shortcut), or with <kbd class="keycap">←</kbd> <kbd class="keycap">→</kbd> in the tabs.
+      </p>
       <div class="tabs" role="tablist" aria-label="Framework">
         {
           Object.entries(snippets).map(([id, s], i) => (
