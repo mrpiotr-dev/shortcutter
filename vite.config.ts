@@ -7,10 +7,10 @@ export default defineConfig({
   fmt: {
     singleQuote: true,
     // MDX: the formatter collapses code fences inside JSX components, which breaks them.
-    ignorePatterns: ['docs/**', '**/dist/**', 'pnpm-lock.yaml', '**/*.mdx'],
+    ignorePatterns: ['**/dist/**', 'pnpm-lock.yaml', '**/*.mdx'],
   },
   lint: {
-    ignorePatterns: ['docs/**', '**/dist/**'],
+    ignorePatterns: ['**/dist/**'],
     jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
     rules: { 'vite-plus/prefer-vite-plus-imports': 'error' },
     options: { typeAware: true, typeCheck: true },
