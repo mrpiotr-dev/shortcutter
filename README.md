@@ -7,13 +7,13 @@ Tiny, dependency-free library to manage keyboard shortcuts in your application.
 1. Install the library from [npm](https://www.npmjs.com/package/shortcutter) registry:
 
 ```
-npm install --save shortcutter
+pnpm add shortcutter
 ```
 
 2. Import the necessary parts into your project:
 
 ```js
-import { PHASES, useShortcutter } from 'shortcutter';
+import { useShortcutter } from 'shortcutter';
 ```
 
 3. Use `shortcutter` to start using shortcuts:
@@ -31,9 +31,9 @@ shortcutter.listen(
   // keys, which invoke callback
   ['a', 's'],
   // callback which `shortcutter` should invoke
-  (event: Event, phase: PHASES) => alert(`My first key binding on ${phase}`),
-  // phases when `shortcutter` should invoke callback
-  PHASES.DOWN_PRESS_UP,
+  (event, phase) => alert(`My first key binding on ${phase}`),
+  // phases when `shortcutter` should invoke callback (default: ['down', 'press'])
+  ['down', 'press', 'up'],
 );
 ```
 
@@ -43,46 +43,46 @@ shortcutter.listen(
 
 ### Types
 
-#### PHASES
+#### `Phase` / `Phases`
 
-The string-type `PHASES` contains all possible variants of the shortcut's status.
+A phase is the moment a shortcut's callback runs. Pass one phase or an array of phases.
 
-| Variant                | Value             |
-| ---------------------- | ----------------- |
-| `PHASES.DOWN`          | `down`            |
-| `PHASES.PRESS`         | `press`           |
-| `PHASES.UP`            | `up`              |
-| `PHASES.DOWN_PRESS`    | `down\|press`     |
-| `PHASES.DOWN_UP`       | `down\|up`        |
-| `PHASES.PRESS_UP`      | `press\|up`       |
-| `PHASES.DOWN_PRESS_UP` | `down\|press\|up` |
+| Phase     | When                                                       |
+| --------- | ---------------------------------------------------------- |
+| `'down'`  | all keys of the shortcut became pressed                    |
+| `'press'` | the shortcut is held and the browser repeats the key       |
+| `'up'`    | a key of the shortcut was released (or another key joined) |
+
+```ts
+type Phase = 'down' | 'press' | 'up';
+type Phases = Phase | readonly Phase[];
+```
 
 ### Interfaces
 
 #### `useShortcutter`
 
-Returns interface to control contexts and shortcuts.
+Returns interface to control contexts and shortcuts. Safe to call during SSR: without a `window` (and no `eventTarget`) it attaches no listeners.
 
-```
-const {
-  listen,
-  unlisten,
-  hasContext,
-  getActiveContext
-  setActiveContext
-} = useShortcutter();
+```ts
+const { listen, unlisten, hasContext, getActiveContext, setActiveContext, destroy } =
+  useShortcutter({
+    eventTarget: window, // optional, defaults to window
+    defaultContext: 'default', // optional
+    signal: controller.signal, // optional, aborting it calls destroy()
+  });
 ```
 
 #### `shortcutter.listen`
 
 Adds a listener for defined keys into the shortcutter's context.
 
-| Arguments | Type                                     | Description |
-| --------- | ---------------------------------------- | ----------- |
-| context   | `string`                                 | ---         |
-| keys      | `string[]`                               | ---         |
-| callback  | `(event: Event, phases: PHASES) => void` | ---         |
-| phases    | `PHASES`                                 | ---         |
+| Arguments | Type                                   | Description |
+| --------- | -------------------------------------- | ----------- |
+| context   | `string`                               | ---         |
+| keys      | `string[]`                             | ---         |
+| callback  | `(event: Event, phase: Phase) => void` | ---         |
+| phases    | `Phases` (default `['down', 'press']`) | ---         |
 
 Returns `shortcutter.unlisten`.
 
@@ -94,7 +94,7 @@ Removes a listener for defined keys from the shortcutter's context.
 | --------- | ---------- | ----------- |
 | context   | `string`   | ---         |
 | keys      | `string[]` | ---         |
-| phases    | `PHASES`   | ---         |
+| phases    | `Phases`   | ---         |
 
 #### `shortcutter.hasContext`
 
@@ -115,6 +115,15 @@ Sets passed context as the active one.
 | Arguments | Type     | Description |
 | --------- | -------- | ----------- |
 | name      | `string` | ---         |
+
+#### `shortcutter.destroy`
+
+Removes all keyboard listeners; registered shortcuts stop firing. Call it when your app or component unmounts.
+
+## Migrating from 0.2
+
+- `PHASES` is no longer exported. Replace `PHASES.DOWN` with `'down'`, `PHASES.DOWN_UP` with `['down', 'up']`, and so on.
+- Listeners are no longer removed on `unload`. Call `destroy()` or pass a `signal`.
 
 ## Versioning
 
