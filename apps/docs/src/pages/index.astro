@@ -148,6 +148,11 @@ const install = 'pnpm add shortcutter';
           </p>
         </li>
       </ul>
+      <p class="try-more">
+        Press <kbd class="keycap">?</kbd> for every shortcut on the page, listed straight from
+        <code>shortcutter.shortcuts()</code>, and <kbd class="keycap">1</kbd>–<kbd class="keycap">5</kbd> to switch the
+        framework below with a single <code>Digit*</code> wildcard.
+      </p>
     </section>
 
     <section class="features" aria-labelledby="features-title">
@@ -165,7 +170,7 @@ const install = 'pnpm add shortcutter';
       <article>
         <svg viewBox="0 0 40 40" aria-hidden="true"><polygon points="20,4 37,36 3,36" class="fill-yellow"></polygon></svg>
         <h3>Tiny &amp; SSR-safe</h3>
-        <p>No dependencies, about 2&nbsp;kB gzipped, and safe to import on the server.</p>
+        <p>No dependencies, under 3&nbsp;kB gzipped, and safe to import on the server.</p>
       </article>
       <article>
         <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="2" y="16" width="36" height="8" class="fill-ink"></rect></svg>
@@ -231,12 +236,16 @@ const install = 'pnpm add shortcutter';
     </p>
   </dialog>
 
-  <aside class="hint-bar" aria-hidden="true">
-    <span><kbd class="keycap" data-mod>Ctrl</kbd> <kbd class="keycap">K</kbd> palette</span>
-    <span><kbd class="keycap">C</kbd> copy install</span>
-    <span><kbd class="keycap">E</kbd> live example</span>
-    <span><kbd class="keycap">T</kbd> theme</span>
-  </aside>
+  <!-- Filled from shortcutter.shortcuts({ active: true }) while Alt is held. -->
+  <aside class="hint-bar" aria-hidden="true" data-hint-bar></aside>
+
+  <dialog class="palette help" data-help aria-labelledby="help-title">
+    <h2 id="help-title">Keyboard shortcuts</h2>
+    <div class="help-list" data-help-list></div>
+    <p class="palette-help">
+      Generated from <code>shortcutter.shortcuts()</code> · <kbd class="keycap">Esc</kbd> close
+    </p>
+  </dialog>
 
   <script src="../scripts/landing.ts"></script>
 </Landing>

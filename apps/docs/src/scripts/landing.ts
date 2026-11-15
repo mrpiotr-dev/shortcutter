@@ -1,5 +1,10 @@
 // The landing page dogfoods shortcutter: every key interaction below goes through it.
-import { createShortcutter, type ShortcutDetail, type ShortcutHandler } from 'shortcutter';
+import {
+  createShortcutter,
+  type ShortcutDetail,
+  type ShortcutHandler,
+  type ShortcutInfo,
+} from 'shortcutter';
 import { DEMO_EVENT } from '../components/demos/active';
 
 const GITHUB = 'https://github.com/mrpiotr-dev/shortcutter';
@@ -27,10 +32,32 @@ const LABELS: Record<string, string> = {
   arrowdown: '↓',
   arrowleft: '←',
   arrowright: '→',
+  slash: '/',
+  backslash: '\\',
+  period: '.',
+  comma: ',',
+  semicolon: ';',
+  quote: "'",
+  backquote: '`',
+  minus: '-',
+  equal: '=',
+  bracketleft: '[',
+  bracketright: ']',
+};
+
+/** Wildcard keys, as listed by shortcuts(). */
+const WILDCARD_LABELS: Record<string, string> = {
+  'digit*': '0–9',
+  'key*': 'A–Z',
+  'arrow*': '←↑→↓',
+  'f*': 'F1–F24',
+  '*': 'any key',
 };
 
 const label = (key: string) =>
-  LABELS[key] ?? (key.length === 1 ? key.toUpperCase() : key[0]!.toUpperCase() + key.slice(1));
+  LABELS[key] ??
+  WILDCARD_LABELS[key] ??
+  (key.length === 1 ? key.toUpperCase() : key[0]!.toUpperCase() + key.slice(1)).replace('*', '…');
 
 /** Modifiers first, the way people write shortcuts: ⌘ + K, not K + ⌘. */
 const MODIFIER_ORDER = ['control', 'meta', 'alt', 'shift'];
@@ -154,11 +181,12 @@ $('[data-theme-toggle]').addEventListener('click', toggleTheme);
 /* ---------- Contexts ---------- */
 
 const palette = $<HTMLDialogElement>('[data-palette]');
+const help = $<HTMLDialogElement>('[data-help]');
 let demo = 'typescript';
 
 /** Contexts while the palette is closed: the TypeScript counter lives in its own context. */
 function activateBase(): void {
-  if (palette.open) return;
+  if (palette.open || help.open) return;
   if (demo === 'typescript') shortcutter.contexts.activate('default', 'counter');
   else shortcutter.contexts.activate('default');
   renderContexts();
@@ -166,14 +194,87 @@ function activateBase(): void {
 
 /* ---------- Page shortcuts ---------- */
 
-shortcutter.listen('ControlOrMeta+K', track(openPalette), { preventDefault: true });
-shortcutter.listen('C', track(commands.copy));
-shortcutter.listen('E', track(showExample));
-shortcutter.listen('T', track(toggleTheme));
+shortcutter.listen('ControlOrMeta+K', track(openPalette), {
+  preventDefault: true,
+  description: 'Open the command palette',
+});
+shortcutter.listen('C', track(commands.copy), { description: 'Copy the install command' });
+shortcutter.listen('E', track(showExample), { description: 'Jump to the live example' });
+shortcutter.listen('T', track(toggleTheme), { description: 'Switch the colour theme' });
+shortcutter.listen('Shift+Slash', track(openHelp), { description: 'Show all keyboard shortcuts' });
 shortcutter.listen(
   'Alt',
-  track((_event, { phase }) => document.body.classList.toggle('show-hints', phase === 'down')),
-  { phases: ['down', 'up'] },
+  track((_event, { phase }) => {
+    if (phase === 'down') renderHintBar();
+    document.body.classList.toggle('show-hints', phase === 'down');
+  }),
+  { phases: ['down', 'up'], description: 'Hold to show shortcut hints' },
+);
+
+/* ---------- Help: everything below is generated from shortcuts() ---------- */
+
+const keycaps = (keys: string[]) => {
+  const span = document.createElement('span');
+
+  span.className = 'keys';
+  span.append(...keys.map((key) => keycap(label(key))));
+  return span;
+};
+
+const described = (list: ShortcutInfo[]) => list.filter((info) => info.description);
+
+function renderHintBar(): void {
+  $('[data-hint-bar]').replaceChildren(
+    ...described(shortcutter.shortcuts({ active: true })).map((info) => {
+      const item = document.createElement('span');
+
+      item.append(keycaps(info.keys), ` ${info.description}`);
+      return item;
+    }),
+  );
+}
+
+function openHelp(): void {
+  if (help.open || palette.open) return;
+
+  const groups: [string, ShortcutInfo[]][] = [
+    ['On this page', shortcutter.shortcuts({ active: true })],
+    ['In the command palette', shortcutter.shortcuts({ context: 'palette' })],
+    ['In the framework tabs', tabKeys.shortcuts()],
+  ];
+
+  $('[data-help-list]').replaceChildren(
+    ...groups.map(([title, list]) => {
+      const section = document.createElement('section');
+      const heading = document.createElement('h3');
+      const rows = document.createElement('dl');
+
+      heading.textContent = title;
+      for (const info of described(list)) {
+        const dt = document.createElement('dt');
+        const dd = document.createElement('dd');
+
+        dt.append(keycaps(info.keys));
+        dd.textContent = info.description!;
+        rows.append(dt, dd);
+      }
+      section.append(heading, rows);
+      return section;
+    }),
+  );
+  help.showModal();
+  shortcutter.contexts.activate('help');
+  renderContexts();
+}
+
+help.addEventListener('close', activateBase);
+help.addEventListener('click', (event) => {
+  if (event.target === help) help.close(); // backdrop
+});
+shortcutter.listen(
+  'Escape',
+  track(() => help.close()),
+  { context: 'help', description: 'Close this list' },
 );
 
 /* ---------- Command palette ---------- */
@@ -227,24 +328,24 @@ input.addEventListener('input', () => {
 const inPalette = { context: 'palette', ignoreInputs: false, preventDefault: true } as const;
 
 shortcutter.listen(
-  'Escape',
-  track(() => palette.close()),
-  inPalette,
-);
-shortcutter.listen(
   'ArrowDown',
   track(() => select(selected + 1)),
-  { ...inPalette, phases: ['down', 'press'] },
+  { ...inPalette, phases: ['down', 'press'], description: 'Next command' },
 );
 shortcutter.listen(
   'ArrowUp',
   track(() => select(selected - 1)),
-  { ...inPalette, phases: ['down', 'press'] },
+  { ...inPalette, phases: ['down', 'press'], description: 'Previous command' },
 );
 shortcutter.listen(
   'Enter',
   track(() => run(visible()[selected])),
-  inPalette,
+  { ...inPalette, description: 'Run the selected command' },
+);
+shortcutter.listen(
+  'Escape',
+  track(() => palette.close()),
+  { ...inPalette, description: 'Close the palette' },
 );
 
 /* ---------- Framework demos ---------- */
@@ -256,12 +357,12 @@ const setCount = (delta: number) => (countEl.value = String((count += delta)));
 shortcutter.listen(
   'K',
   track(() => setCount(1)),
-  { context: 'counter' },
+  { context: 'counter', description: 'Counter: add one' },
 );
 shortcutter.listen(
   'J',
   track(() => setCount(-1)),
-  { context: 'counter' },
+  { context: 'counter', description: 'Counter: subtract one' },
 );
 
 const tablist = $<HTMLElement>('[role="tablist"]');
@@ -291,10 +392,21 @@ const move = (step: number) => () => {
   showDemo(tabs[(index + step + tabs.length) % tabs.length]!, true);
 };
 
-tabKeys.listen('ArrowRight', move(1));
-tabKeys.listen('ArrowLeft', move(-1));
-tabKeys.listen('Home', () => showDemo(tabs[0]!, true));
-tabKeys.listen('End', () => showDemo(tabs.at(-1)!, true));
+tabKeys.listen('ArrowRight', move(1), { description: 'Next framework' });
+tabKeys.listen('ArrowLeft', move(-1), { description: 'Previous framework' });
+tabKeys.listen('Home', () => showDemo(tabs[0]!, true), { description: 'First framework' });
+tabKeys.listen('End', () => showDemo(tabs.at(-1)!, true), { description: 'Last framework' });
+
+// One wildcard shortcut for all number keys; detail.shortcut says which one was pressed.
+shortcutter.listen(
+  'Digit*',
+  track((_event, { shortcut }) => {
+    const tab = tabs[Number(shortcut) - 1];
+
+    if (tab) showDemo(tab);
+  }),
+  { description: `Show a framework by its number (1–${tabs.length})` },
+);
 
 document.documentElement.dataset.demo = demo;
 activateBase();

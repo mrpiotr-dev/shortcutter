@@ -39,6 +39,31 @@ shortcutter.listen('Shift+ArrowUp', selectAbove);
 shortcutter.listen('Escape', close, { ignoreInputs: false });
 ```
 
+### Wildcards
+
+A key may contain `*`. Each wildcard stands for exactly one key and never for a modifier, so modifiers are always written out. `detail.shortcut` tells you which keys were actually pressed.
+
+```ts
+shortcutter.listen('Shift+Arrow*', (_event, { shortcut }) => extendSelection(shortcut)); // 'arrowup+shift', …
+shortcutter.listen('Digit*', (_event, { shortcut }) => openTab(Number(shortcut))); // any digit
+```
+
+`Key*` matches any letter, `Digit*` any digit, `F*` the function keys, `*` any key, and other globs match key names (`Arrow*`, `Numpad*`). Within one context an exact shortcut wins over wildcards for the same keys.
+
+### Descriptions and help screens
+
+Describe a shortcut when you register it, then list the registry to build a keyboard help screen that never goes out of date:
+
+```ts
+shortcutter.listen('ControlOrMeta+K', openPalette, { description: 'Open the command palette' });
+
+shortcutter.shortcuts({ active: true });
+// [{ shortcut: 'ControlOrMeta+K', keys: ['meta', 'k'], context: 'default', phases: ['down'],
+//    description: 'Open the command palette', active: true }]
+```
+
+`keys` are resolved for the current platform (`meta` on macOS, `control` elsewhere for `ControlOrMeta`) with modifiers first, ready to render as keycaps.
+
 ## Phases
 
 A handler runs in the `'down'` phase unless you ask for others:
@@ -83,8 +108,9 @@ shortcutter.contexts.active(); // ['modal', 'default']
 
 Returns:
 
-- `listen(shortcut, handler, options?)`: registers a shortcut and returns a function that removes it. Options: `context`, `phases`, `ignoreInputs`, `preventDefault`. The handler gets `(event, { phase, shortcut, context })`. Registering the same shortcut twice for a phase in one context throws.
+- `listen(shortcut, handler, options?)`: registers a shortcut and returns a function that removes it. Options: `description`, `context`, `phases`, `ignoreInputs`, `preventDefault`. The handler gets `(event, { phase, shortcut, pattern, context, description })`. Registering the same shortcut twice for a phase in one context throws.
 - `unlisten(shortcut, { context?, phases? })`: removes a shortcut; does nothing if it is not registered.
+- `shortcuts({ active?, context? })`: the registered shortcuts with their keys, context, phases, description and whether they work right now.
 - `contexts.activate(...names)`, `contexts.active()`, `contexts.isActive(name)`.
 - `pressed()`: keys held right now, e.g. `['k', 'shift']`.
 - `subscribe(listener)`: calls `listener(pressed, event)` whenever the held keys change and returns an unsubscribe function. Useful for key visualizers or React's `useSyncExternalStore`.
@@ -128,16 +154,16 @@ createShortcut('ControlOrMeta+K', () => setOpen(true), { preventDefault: true })
 
 ## Migrating from 0.2
 
-| 0.2                                                    | 0.3                                                           |
-| ------------------------------------------------------ | ------------------------------------------------------------- |
-| `useShortcutter({ eventTarget })`                      | `createShortcutter({ target })`                               |
-| `listen('ctx', ['controlleft', 'k'], cb, PHASES.DOWN)` | `listen('Control+K', cb, { context: 'ctx', phases: 'down' })` |
-| `PHASES.DOWN_UP`                                       | `['down', 'up']`                                              |
-| default phases `down` + `press`                        | default phase `down`                                          |
-| `cb(event, phase)`                                     | `cb(event, { phase, shortcut, context })`                     |
-| `unlisten('ctx', keys, phases)`                        | `unlisten('Control+K', { context: 'ctx', phases })`           |
-| `setActiveContext(name)` / `getActiveContext()`        | `contexts.activate(...names)` / `contexts.active()`           |
-| listeners removed on `unload`                          | `destroy()` or `signal`                                       |
+| 0.2                                                    | 0.3                                                             |
+| ------------------------------------------------------ | --------------------------------------------------------------- |
+| `useShortcutter({ eventTarget })`                      | `createShortcutter({ target })`                                 |
+| `listen('ctx', ['controlleft', 'k'], cb, PHASES.DOWN)` | `listen('Control+K', cb, { context: 'ctx', phases: 'down' })`   |
+| `PHASES.DOWN_UP`                                       | `['down', 'up']`                                                |
+| default phases `down` + `press`                        | default phase `down`                                            |
+| `cb(event, phase)`                                     | `cb(event, { phase, shortcut, pattern, context, description })` |
+| `unlisten('ctx', keys, phases)`                        | `unlisten('Control+K', { context: 'ctx', phases })`             |
+| `setActiveContext(name)` / `getActiveContext()`        | `contexts.activate(...names)` / `contexts.active()`             |
+| listeners removed on `unload`                          | `destroy()` or `signal`                                         |
 
 Also new: shortcuts are ignored while typing in inputs, `'down'` no longer fires again for keys left after a release, and stuck keys after <kbd>⌘</kbd> on macOS are fixed.
 
