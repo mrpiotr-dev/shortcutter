@@ -12,9 +12,11 @@ describe('publicAPI', () => {
     expect(Object.keys(sc).sort()).toEqual([
       'contexts',
       'destroy',
+      'isPressed',
       'listen',
       'observe',
       'pressed',
+      'resolve',
       'shortcuts',
       'subscribe',
       'unlisten',

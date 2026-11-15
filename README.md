@@ -112,10 +112,30 @@ Returns:
 - `unlisten(shortcut, { context?, phases? })`: removes a shortcut; does nothing if it is not registered.
 - `shortcuts({ active?, context? })`: the registered shortcuts with their keys, context, phases, description and whether they work right now.
 - `contexts.activate(...names)`, `contexts.active()`, `contexts.isActive(name)`.
+- `isPressed(shortcut)`: whether all its keys are held right now: `isPressed('Shift')`, `isPressed('Shift+W')`, `isPressed('Arrow*')`.
+- `resolve(shortcut)`: its keys for this platform, modifiers first: `resolve('ControlOrMeta+K')` is `['meta', 'k']` on macOS.
 - `pressed()`: keys held right now, e.g. `['k', 'shift']`.
 - `subscribe(listener)`: calls `listener(pressed, event)` whenever the held keys change and returns an unsubscribe function. Useful for key visualizers or React's `useSyncExternalStore`.
 - `observe(listener)`: calls `listener(event, { phase, shortcut })` for every `down`, `press` and `up` of any key combination, matched or not, before handlers run. Useful for key loggers and visualizers.
 - `destroy()`: removes all event listeners.
+
+## Sequences (optional)
+
+Vim-style sequences such as <kbd>G</kbd> then <kbd>I</kbd> live in a separate entry, so apps that do not use them do not ship them (about 0.7 kB gzipped):
+
+```ts
+import { createShortcutter } from 'shortcutter';
+import { createSequences } from 'shortcutter/sequences';
+
+const shortcutter = createShortcutter();
+const sequences = createSequences(shortcutter, { timeout: 1000 });
+
+sequences.listen('G I', () => goToInbox(), { description: 'Go to the inbox' });
+sequences.listen('G Shift+P', () => goToProfile());
+sequences.sequences(); // for help screens, like shortcuts()
+```
+
+Steps are separated by spaces and each step is a shortcut (modifiers and wildcards work). Steps must follow each other within `timeout` milliseconds; pressing a modifier on its own does not count as a step. Sequences respect contexts, the input guard and `preventDefault`, like `listen()`.
 
 ## Frameworks
 

@@ -343,6 +343,29 @@ describe('createShortcutter', () => {
     });
   });
 
+  describe('isPressed and resolve', () => {
+    it('checks held keys by name, alias, combination or wildcard', () => {
+      const { sc, kb } = setup({ mac: true });
+
+      kb.down('ShiftLeft');
+      kb.down('KeyW');
+
+      expect(sc.isPressed('Shift')).toBe(true);
+      expect(sc.isPressed('w')).toBe(true);
+      expect(sc.isPressed('KeyW+Shift')).toBe(true);
+      expect(sc.isPressed('Key*')).toBe(true);
+      expect(sc.isPressed('Arrow*')).toBe(false);
+      expect(sc.isPressed('ControlOrMeta')).toBe(false);
+      expect(sc.isPressed('Shift+A')).toBe(false);
+    });
+
+    it('resolves shortcuts for the platform, modifiers first', () => {
+      expect(setup({ mac: true }).sc.resolve('k+ControlOrMeta')).toEqual(['meta', 'k']);
+      expect(setup({ mac: false }).sc.resolve('k+ControlOrMeta')).toEqual(['control', 'k']);
+      expect(() => setup().sc.resolve('')).toThrow();
+    });
+  });
+
   describe('subscribe', () => {
     it('reports the held keys whenever they change', () => {
       const { sc, kb } = setup();

@@ -157,3 +157,18 @@ export function detectMac(): boolean {
 
   return /mac|iphone|ipad|ipod/i.test(platform);
 }
+
+/** Whether a key event comes from typing: a form field, contenteditable or IME composition. */
+export function isTyping(event: KeyboardEvent): boolean {
+  if (event.isComposing) return true;
+
+  const target = (event.composedPath?.()[0] ?? event.target) as Partial<HTMLElement> | null;
+
+  return (
+    !!target &&
+    (target.isContentEditable === true ||
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'SELECT')
+  );
+}

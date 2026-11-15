@@ -116,6 +116,16 @@ export type Shortcutter = {
   };
   /** Registered shortcuts in registration order, e.g. to build a keyboard help screen. */
   shortcuts(filter?: ShortcutsFilter): ShortcutInfo[];
+  /**
+   * Canonical key names of `shortcut` for this instance's platform, modifiers first:
+   * `resolve('ControlOrMeta+K')` is `['meta', 'k']` on macOS. Throws on an invalid shortcut.
+   */
+  resolve(shortcut: string): string[];
+  /**
+   * Whether every key of `shortcut` is held right now, other keys may be held too:
+   * `isPressed('Shift')`, `isPressed('Shift+W')`, `isPressed('Arrow*')` (any arrow).
+   */
+  isPressed(shortcut: string): boolean;
   /** Canonical names of the keys pressed right now, sorted. */
   pressed(): string[];
   /**

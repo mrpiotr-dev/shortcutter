@@ -6,7 +6,8 @@ const pack = libraryPack(pkg);
 
 export default defineConfig({
   pack: [
-    pack,
+    // shortcutter/sequences is an optional entry: apps that do not import it do not ship it.
+    { ...pack, entry: ['src/index.ts', 'src/sequences.ts'] },
     {
       ...pack,
       // Minified <script>-tag build for CDNs: window.Shortcutter

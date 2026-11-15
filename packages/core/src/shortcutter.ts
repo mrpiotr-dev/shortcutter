@@ -4,6 +4,7 @@ import {
   detectMac,
   isModifier,
   isModifierHeld,
+  isTyping,
   isWildcard,
   keyFromCode,
   parseShortcutKeys,
@@ -58,20 +59,6 @@ function toPhases(phases: Phases): Phase[] {
   }
 
   return [...new Set(list as Phase[])];
-}
-
-function isTyping(event: KeyboardEvent): boolean {
-  if (event.isComposing) return true;
-
-  const target = (event.composedPath?.()[0] ?? event.target) as Partial<HTMLElement> | null;
-
-  return (
-    !!target &&
-    (target.isContentEditable === true ||
-      target.tagName === 'INPUT' ||
-      target.tagName === 'TEXTAREA' ||
-      target.tagName === 'SELECT')
-  );
 }
 
 /**
@@ -243,6 +230,16 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
     options.signal?.addEventListener('abort', destroy, listenerOptions);
   }
 
+  function isPressed(shortcut: string): boolean {
+    const keys = parseShortcutKeys(shortcut, mac);
+
+    return keys.every((key) =>
+      isWildcard(key)
+        ? [...pressed].some((held) => wildcardMatcher([key])([held]))
+        : pressed.has(key),
+    );
+  }
+
   /** Removes one phase of a binding, and the binding's registration once no phase is left. */
   function remove(context: string, key: string, phase: Phase, only?: Binding): void {
     const bindings = registry.get(context);
@@ -359,6 +356,8 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
       isActive: (name: string) => active.includes(name),
     },
     shortcuts,
+    resolve: (shortcut: string) => parseShortcutKeys(shortcut, mac),
+    isPressed,
     pressed: () => [...pressed].sort(),
     subscribe(listener: KeysListener) {
       if (typeof listener !== 'function') {
