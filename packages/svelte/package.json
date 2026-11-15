@@ -1,6 +1,6 @@
 {
   "name": "@shortcutter/svelte",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Svelte 5 helpers and attachment for shortcutter keyboard shortcuts.",
   "keywords": [
     "hotkey",
