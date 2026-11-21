@@ -66,8 +66,8 @@ Cloudflare Workers Builds deploys `main` to www.shortcutter.dev and uploads a pr
 
 ## Branches
 
-- `main`: released code only. Pull requests come from `develop`, `release/*` or `hotfix/*` and are merged with a merge commit.
-- `develop`: the default branch where finished work is integrated. Task branches are squash-merged into it.
+- `main`: released code only. Pull requests come from `develop` (or `hotfix/*`) and are merged with a merge commit, never squashed: a squash would give `main` commits that `develop` does not have.
+- `develop`: the default branch where finished work is integrated. Task branches are merged into it with a merge commit, which keeps their commits; squash a branch only when its commits are not worth keeping.
 - Task branches follow [Conventional Branch](https://conventionalbranch.org): `<type>/<description>`, with type `feature` (or `feat`), `bugfix` (or `fix`), `hotfix`, `release` or `chore`. Use lowercase letters, digits and single hyphens; dots only in versions. Examples: `feat/issue-12-mod-key`, `fix/meta-stuck-keys`, `release/v0.3.0`.
 - Hotfixes branch from `main`, merge into `main`, then back into `develop`.
 
@@ -79,8 +79,9 @@ Every pull request that changes a published package adds a changeset (`pnpm chan
 
 To release:
 
-1. Branch `release/vX.Y.Z` from `develop` and run `pnpm run version-packages`. It bumps the versions, writes `CHANGELOG.md` in every package and removes the used changesets. Commit and open a pull request into `main`.
-2. Merging it runs the Release workflow: it builds, publishes the new versions to npm with provenance (npm Trusted Publishing, no token), pushes a git tag per package (`shortcutter@X.Y.Z`, `@shortcutter/react@X.Y.Z`, …) and creates a GitHub release with the changelog.
-3. Merge `main` back into `develop`.
+1. Branch `release/vX.Y.Z` from `develop` and run `pnpm run version-packages`. It bumps the versions, writes `CHANGELOG.md` in every package and removes the used changesets. Commit and merge it into `develop`.
+2. Open a pull request from `develop` into `main` and merge it with a merge commit. That runs the Release workflow: it builds, publishes the new versions to npm with provenance (npm Trusted Publishing, no token), pushes a git tag per package (`shortcutter@X.Y.Z`, `@shortcutter/react@X.Y.Z`, …) and creates a GitHub release with the changelog.
+
+Every change reaches `main` through `develop`, so nothing has to be merged back. `main` only gains merge commits, which change no files. The exception is a hotfix: branch it from `main`, merge it into `main`, then merge `main` into `develop`.
 
 The documentation shows the same changelog at `/docs/changelog/`, one page per version, built from `packages/core/CHANGELOG.md`.
