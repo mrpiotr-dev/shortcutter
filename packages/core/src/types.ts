@@ -1,3 +1,5 @@
+import type { ShortcutString } from './shortcut-types';
+
 /**
  * When a handler runs:
  * - `down`: every key of the shortcut became pressed;
@@ -103,10 +105,17 @@ export type Shortcutter = {
    * A key may contain `*`: `'Shift+Arrow*'`, `'Digit*'` (any digit), `'Key*'` (any letter),
    * `'F*'` (function keys), `'Control+*'` (any key). Each wildcard matches one key and never a
    * modifier. Within a context, an exact shortcut wins over wildcards for the same keys.
+   *
+   * A literal shortcut is checked by TypeScript: `'Ctlr+K'` or `'Control+/'` (use `Slash`) is a
+   * type error naming the unknown key. A shortcut in a `string` variable is not checked.
    */
-  listen(shortcut: string, handler: ShortcutHandler, options?: ListenOptions): () => void;
+  listen<S extends string>(
+    shortcut: ShortcutString<S>,
+    handler: ShortcutHandler,
+    options?: ListenOptions,
+  ): () => void;
   /** Removes a shortcut. Does nothing if it is not registered. */
-  unlisten(shortcut: string, options?: UnlistenOptions): void;
+  unlisten<S extends string>(shortcut: ShortcutString<S>, options?: UnlistenOptions): void;
   contexts: {
     /** Makes exactly these contexts active; handlers run in this order. Unknown names are allowed. */
     activate(...names: string[]): void;
@@ -120,12 +129,12 @@ export type Shortcutter = {
    * Canonical key names of `shortcut` for this instance's platform, modifiers first:
    * `resolve('ControlOrMeta+K')` is `['meta', 'k']` on macOS. Throws on an invalid shortcut.
    */
-  resolve(shortcut: string): string[];
+  resolve<S extends string>(shortcut: ShortcutString<S>): string[];
   /**
    * Whether every key of `shortcut` is held right now, other keys may be held too:
    * `isPressed('Shift')`, `isPressed('Shift+W')`, `isPressed('Arrow*')` (any arrow).
    */
-  isPressed(shortcut: string): boolean;
+  isPressed<S extends string>(shortcut: ShortcutString<S>): boolean;
   /** Canonical names of the keys pressed right now, sorted. */
   pressed(): string[];
   /**

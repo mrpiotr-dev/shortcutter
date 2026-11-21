@@ -19,3 +19,4 @@ export type {
   ShortcutterOptions,
   UnlistenOptions,
 } from './types';
+export type { KeyName, SequenceString, ShortcutString } from './shortcut-types';

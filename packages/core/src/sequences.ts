@@ -6,6 +6,7 @@
  * @module shortcutter/sequences
  */
 import { combination, isModifier, isTyping, isWildcard, wildcardMatcher } from './keys';
+import type { SequenceString } from './shortcut-types';
 import type { Shortcutter } from './types';
 
 export type SequenceDetail = {
@@ -51,7 +52,11 @@ export type Sequences = {
    * `'G Shift+P'` or `'ArrowUp ArrowUp ArrowDown ArrowDown'`. Each step is a shortcut (wildcards
    * included); steps are separated by spaces. Returns a function that removes the sequence.
    */
-  listen(sequence: string, handler: SequenceHandler, options?: SequenceOptions): () => void;
+  listen<S extends string>(
+    sequence: SequenceString<S>,
+    handler: SequenceHandler,
+    options?: SequenceOptions,
+  ): () => void;
   /** Registered sequences in registration order, e.g. to add them to a keyboard help screen. */
   sequences(filter?: { active?: boolean; context?: string }): SequenceInfo[];
   /** Stops matching and removes every sequence. */
