@@ -14,7 +14,7 @@ export default function Playground() {
   useShortcut('Shift+J', () => setCount((c) => c - 10));
 
   return (
-    <div className="fw-demo">
+    <div className="fw-demo not-content">
       <output>{count}</output>
       <p>
         <kbd>K</kbd> up, <kbd>J</kbd> down, with <kbd>Shift</kbd> by 10

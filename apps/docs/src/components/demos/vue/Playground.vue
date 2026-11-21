@@ -15,7 +15,7 @@ useShortcut('Shift+J', () => (count.value -= 10));
 </script>
 
 <template>
-  <div class="fw-demo">
+  <div class="fw-demo not-content">
     <output>{{ count }}</output>
     <p><kbd>K</kbd> up, <kbd>J</kbd> down, with <kbd>Shift</kbd> by 10</p>
     <p class="fw-demo-held" aria-live="polite">
