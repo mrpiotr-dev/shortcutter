@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>shortcutter playground</title>
+    <style>
+      body {
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+        max-width: 48rem;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      kbd {
+        border: 1px solid #8884;
+        border-radius: 4px;
+        padding: 0 0.4em;
+        font-family: ui-monospace, monospace;
+      }
+      #log {
+        font-family: ui-monospace, monospace;
+        white-space: pre-wrap;
+        border: 1px solid #8884;
+        padding: 0.5rem;
+        min-height: 12rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>shortcutter playground</h1>
+    <p>
+      Press <kbd>A</kbd> + <kbd>S</kbd> or <kbd>Ctrl/Cmd</kbd> + <kbd>K</kbd> (context
+      <code>default</code>). Toggle the <code>modal</code> context with <kbd>Escape</kbd>, then try
+      <kbd>Q</kbd>.
+    </p>
+    <p>Active contexts: <strong id="contexts"></strong></p>
+    <div id="log"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,92 @@
+---
+title: Websites
+description: Search on ⌘K or /, a ? help dialog, go-to sequences and accessible single-key shortcuts.
+---
+
+Content sites and docs need only a few shortcuts, but they should feel native: open search, show the shortcuts, close what is open. They also have to stay out of the way of people typing and of assistive technology.
+
+## Search on ⌘K and /
+
+```ts
+import { createShortcutter } from 'shortcutter';
+
+const shortcutter = createShortcutter();
+const search = document.querySelector<HTMLInputElement>('#search')!;
+
+shortcutter.listen('ControlOrMeta+K', () => search.focus(), {
+  preventDefault: true, // instead of the browser's own Ctrl+K (its search bar)
+  description: 'Search',
+});
+shortcutter.listen('Slash', () => search.focus(), {
+  preventDefault: true, // do not type "/" into the field
+  description: 'Search',
+});
+```
+
+Both are ignored while the user types in a field, so a `/` inside the search box is just a slash.
+
+## Help dialog and keyboard layouts
+
+Two conventions are common: <kbd>⌘</kbd> / <kbd>Ctrl</kbd> + <kbd>/</kbd> (Google Docs, Slack) and <kbd>?</kbd> (Gmail, GitHub). Register both, describe them, then build the dialog from the registry:
+
+```ts
+shortcutter.listen('ControlOrMeta+Slash', openHelp, {
+  preventDefault: true,
+  description: 'Show keyboard shortcuts',
+});
+shortcutter.listen('Shift+Slash', openHelp, { description: 'Show keyboard shortcuts (?)' });
+
+function openHelp() {
+  list.replaceChildren(
+    ...shortcutter.shortcuts({ active: true }).map(({ keys, description }) => row(keys, description)),
+  );
+  dialog.showModal();
+}
+```
+
+:::note[Why Shift+Slash and not ?]
+Shortcuts follow physical keys (`KeyboardEvent.code`), so they work the same on every layout, but the characters printed on the keys move. On US layouts <kbd>?</kbd> is <kbd>Shift</kbd> + <kbd>/</kbd>, so it is declared as `Shift+Slash`. On a German layout <kbd>?</kbd> is <kbd>Shift</kbd> + <kbd>ß</kbd>, which is `Shift+Minus`. If your audience is mostly on one layout, register that combination. For a global audience, lead with a shortcut that does not depend on the printed character, such as `ControlOrMeta+Slash` (the Slash key exists on every layout, only its label differs), and also offer a visible button. The home page of this site does exactly that.
+:::
+
+## Close with Escape
+
+```ts
+shortcutter.listen('Escape', () => dialog.close(), {
+  context: 'dialog',
+  ignoreInputs: false, // also from inside the dialog's search field
+});
+dialog.addEventListener('close', () => shortcutter.contexts.activate('default'));
+```
+
+## Go-to sequences
+
+GitHub-style <kbd>G</kbd> then <kbd>H</kbd> navigation comes from the optional sequences entry, so pages without it ship nothing extra:
+
+```ts
+import { createSequences } from 'shortcutter/sequences';
+
+const sequences = createSequences(shortcutter);
+
+sequences.listen('G H', () => location.assign('/'), { description: 'Go home' });
+sequences.listen('G D', () => location.assign('/docs/'), { description: 'Go to the docs' });
+```
+
+## Accessibility
+
+WCAG 2.1 success criterion 2.1.4 (Character Key Shortcuts) asks that shortcuts made of a single character can be **turned off or remapped**, because speech-input users trigger them by accident. Contexts make the off switch one line:
+
+```ts
+// Single-key shortcuts live in their own context…
+shortcutter.listen('Slash', focusSearch, { context: 'single-keys' });
+shortcutter.listen('Shift+Slash', openHelp, { context: 'single-keys' });
+
+// …that a setting can leave out.
+const contexts = settings.singleKeyShortcuts ? ['default', 'single-keys'] : ['default'];
+shortcutter.contexts.activate(...contexts);
+```
+
+Shortcuts with <kbd>⌘</kbd>/<kbd>Ctrl</kbd> are not affected by this criterion.
+
+## Server rendering
+
+Importing shortcutter on the server is safe: without a `window`, nothing is attached. In Astro, Next, Nuxt or SvelteKit, register shortcuts in client code, or use the [framework adapters](/docs/), which only register after mount.

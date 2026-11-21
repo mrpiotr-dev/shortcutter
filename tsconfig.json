@@ -1,13 +1,10 @@
 {
-  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
+    "noEmit": true,
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true
   },
-  "include": [
-    "src/**/*",
-    "test/dev.ts"
-  ],
-  "exclude": [
-    "src/__tests__"
-  ]
+  "include": ["vite.config.ts"]
 }

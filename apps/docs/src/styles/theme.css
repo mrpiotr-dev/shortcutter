@@ -1,0 +1,170 @@
+/*
+ * shortcutter: Bauhaus, matching the mrpiotr.dev art direction.
+ * Paper / ink, primaries with a job each, sharp corners, Jost.
+ * - cobalt: links and interactive things
+ * - red: the "pressed" moment (keys, markers)
+ * - yellow: rare highlight (selection)
+ * Starlight's --sl-color-* variables are mapped onto these tokens.
+ */
+:root {
+  --sc-paper: #eeeae1;
+  --sc-paper-2: #e3ded2;
+  --sc-paper-3: #d3cdbe;
+  --sc-ink: #141414;
+  --sc-ink-2: #1e1e1e;
+  --sc-ink-3: #2c2c2c;
+  --sc-red: #d7351f;
+  --sc-cobalt: #2551b5;
+  --sc-yellow: #f2be1a;
+  --sc-border: 2px;
+
+  --sl-font: 'Jost Variable', 'Jost', ui-sans-serif, system-ui, sans-serif;
+  --sl-font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+}
+
+/* Ink: Starlight's default (dark) theme, the same system printed in reverse. */
+:root {
+  --sc-red: #e4462f;
+  --sc-cobalt: #4f7be0;
+
+  --sl-color-accent-low: #18223d;
+  --sl-color-accent: var(--sc-cobalt);
+  --sl-color-accent-high: #c3d2f6;
+  --sl-color-white: var(--sc-paper);
+  --sl-color-gray-1: var(--sc-paper-3);
+  --sl-color-gray-2: #aaa496;
+  --sl-color-gray-3: #7f7a6f;
+  --sl-color-gray-4: #57544d;
+  --sl-color-gray-5: var(--sc-ink-3);
+  --sl-color-gray-6: var(--sc-ink-2);
+  --sl-color-black: var(--sc-ink);
+  --sl-color-text-invert: #000000;
+
+  /* Asides: tip = cobalt, caution = yellow, danger = red, note = neutral. */
+  --sl-color-purple-low: #18223d;
+  --sl-color-purple: var(--sc-cobalt);
+  --sl-color-purple-high: #c3d2f6;
+  --sl-color-orange-low: #3a2e05;
+  --sl-color-orange: var(--sc-yellow);
+  --sl-color-orange-high: #fbe6a3;
+  --sl-color-red-low: #3d1510;
+  --sl-color-red: var(--sc-red);
+  --sl-color-red-high: #f8c4bb;
+  --sl-color-blue-low: var(--sc-ink-2);
+  --sl-color-blue: var(--sc-paper-3);
+  --sl-color-blue-high: var(--sc-paper);
+}
+
+/* Paper: light theme. */
+:root[data-theme='light'] {
+  --sc-red: #d7351f;
+  --sc-cobalt: #2551b5;
+
+  --sl-color-accent-low: #d3dcf2;
+  --sl-color-accent: var(--sc-cobalt);
+  --sl-color-accent-high: #183a86;
+  --sl-color-white: #000000;
+  --sl-color-gray-1: var(--sc-ink);
+  --sl-color-gray-2: var(--sc-ink-3);
+  --sl-color-gray-3: #4f4c45;
+  --sl-color-gray-4: #7a7569;
+  --sl-color-gray-5: var(--sc-paper-3);
+  --sl-color-gray-6: var(--sc-paper-2);
+  --sl-color-gray-7: #e8e4da;
+  --sl-color-black: var(--sc-paper);
+  --sl-color-text-invert: #ffffff;
+
+  --sl-color-purple-low: #d3dcf2;
+  --sl-color-purple: var(--sc-cobalt);
+  --sl-color-purple-high: #183a86;
+  --sl-color-orange-low: #f7e3a6;
+  --sl-color-orange: #c99400;
+  --sl-color-orange-high: #4a3700;
+  --sl-color-red-low: #f3cfc7;
+  --sl-color-red: var(--sc-red);
+  --sl-color-red-high: #7a1a0d;
+  --sl-color-blue-low: var(--sc-paper-2);
+  --sl-color-blue: var(--sc-ink-3);
+  --sl-color-blue-high: var(--sc-ink);
+}
+
+/* Asides: flat blocks with a thick left rule. */
+.starlight-aside {
+  border-inline-start-width: 6px;
+}
+
+/* Sharp corners everywhere. */
+body,
+body *,
+body *::before,
+body *::after {
+  border-radius: 0 !important;
+}
+
+:focus-visible {
+  outline: 3px solid var(--sc-cobalt);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--sc-yellow);
+  color: #000000;
+}
+
+h1,
+h2,
+h3,
+.site-title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Title in ink, like the mrpiotr.dev headings; cobalt stays for links. */
+.site-title {
+  color: var(--sl-color-white);
+}
+
+/* A red square marks each section, like a key being pressed. */
+.sl-markdown-content h2::before {
+  content: '';
+  display: inline-block;
+  width: 0.45em;
+  height: 0.45em;
+  margin-inline-end: 0.4em;
+  vertical-align: 0.12em;
+  background: var(--sc-red);
+}
+
+/* Keycaps in content: flat, 2px ink border, a heavier bottom edge. */
+.sl-markdown-content kbd,
+.keycap {
+  font-family: var(--sl-font-mono);
+  font-size: 0.85em;
+  padding: 0.05em 0.45em;
+  border: var(--sc-border) solid var(--sl-color-white);
+  border-bottom-width: 4px;
+  background: var(--sl-color-black);
+  color: var(--sl-color-white);
+}
+
+.sl-markdown-content kbd:active,
+.keycap:active,
+.keycap.is-pressed {
+  border-bottom-width: var(--sc-border);
+  background: var(--sc-red);
+  color: #ffffff;
+  transform: translateY(2px);
+}
+
+/* Current page in the sidebar: a solid cobalt block. */
+.sidebar-content a[aria-current='page'] {
+  background: var(--sc-cobalt);
+  /* Black on the bright dark-theme cobalt, white on the deep light-theme one (as on mrpiotr.dev). */
+  color: var(--sl-color-text-invert);
+  font-weight: 600;
+}
+
+/* Header rule: 2px ink, the same as on the landing page. */
+header.header {
+  border-bottom: var(--sc-border) solid var(--sl-color-white);
+}

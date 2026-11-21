@@ -1,0 +1,62 @@
+packages:
+  - apps/*
+  - packages/*
+
+catalogMode: prefer
+
+catalog:
+  '@changesets/cli': ^3.0.3
+  astro: ^7.4.12
+  '@vitest/coverage-v8': 5.1.0
+  publint: ^0.3.25
+  '@arethetypeswrong/core': ^0.18.5
+  happy-dom: ^21.0.4
+  typescript: ^7.0.2
+  vite: npm:@voidzero-dev/vite-plus-core@1.6.0
+  vite-plus: 1.6.0
+  '@astrojs/react': ^7.1.9
+  '@astrojs/solid-js': ^7.1.6
+  '@astrojs/starlight': ^0.43.1
+  '@astrojs/svelte': ^9.1.6
+  '@astrojs/vue': ^7.1.6
+  astro-expressive-code: ^0.44.3
+  starlight-changelogs: ^0.7.1
+  starlight-llms-txt: ^0.12.0
+  starlight-typedoc: ^0.23.2
+  typedoc: ^0.28.20
+  typedoc-plugin-markdown: ^4.14.1
+  '@fontsource-variable/jost': ^5.3.0
+  '@fontsource-variable/jetbrains-mono': ^5.3.0
+  '@sveltejs/vite-plugin-svelte': ^7.3.1
+  '@types/react': ^19.3.0
+  '@types/react-dom': ^19.3.0
+  react: ^19.3.1
+  react-dom: ^19.3.1
+  solid-js: ^1.9.19
+  svelte: ^5.57.3
+  vue: ^3.5.45
+  wrangler: ^4.162.0
+overrides:
+  vite@*: 'catalog:'
+  minimatch@>=7.0.0 <11.0.1: ^11.0.9
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: '*'
+minimumReleaseAgeExclude:
+  - '@voidzero-dev/vite-plus-core@1.6.0'
+  - '@voidzero-dev/vite-plus-darwin-arm64@1.6.0'
+  - '@voidzero-dev/vite-plus-darwin-x64@1.6.0'
+  - '@voidzero-dev/vite-plus-linux-arm64-gnu@1.6.0'
+  - '@voidzero-dev/vite-plus-linux-arm64-musl@1.6.0'
+  - '@voidzero-dev/vite-plus-linux-x64-gnu@1.6.0'
+  - '@voidzero-dev/vite-plus-linux-x64-musl@1.6.0'
+  - '@voidzero-dev/vite-plus-win32-arm64-msvc@1.6.0'
+  - '@voidzero-dev/vite-plus-win32-x64-msvc@1.6.0'
+  - vite-plus@1.6.0
+
+# Install scripts allowed to run (wrangler needs these for local preview).
+allowBuilds:
+  esbuild: true
+  workerd: true

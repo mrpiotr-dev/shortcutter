@@ -1,8 +1,15 @@
 node_modules
-coverage
-.cache
 dist
-dev*.*
-lib
-!.config/*
+coverage
+*.log
+.DS_Store
+.cache
+*.local
+
+# legacy 0.2.0 build output and local sandbox
 bundle
+local
+
+# copied into packages by prepack
+packages/*/LICENSE
+packages/core/README.md
