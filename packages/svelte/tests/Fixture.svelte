@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import type { Shortcutter } from 'shortcutter';
   import { sequence, setShortcutter, shortcut, useSequence, useShortcut } from '../src/index';
 
@@ -18,9 +19,10 @@
     showAttached?: boolean;
   } = $props();
 
-  setShortcutter(shortcutter);
-  useShortcut('Control+K', onmount);
-  useSequence('G I', onsequence);
+  // Props are read once on purpose: the hooks register during initialisation.
+  setShortcutter(untrack(() => shortcutter));
+  useShortcut('Control+K', () => onmount());
+  useSequence('G I', () => onsequence());
 </script>
 
 {#if showAttached}
