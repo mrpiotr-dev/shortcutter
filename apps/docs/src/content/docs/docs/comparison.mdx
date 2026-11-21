@@ -22,7 +22,7 @@ All exports of each library, bundled with its dependencies, minified and gzipped
 | hotkeys-js | 4.1.2 | 10.7 kB | **4.03 kB** |
 | @tanstack/hotkeys | 0.29.0 | 59.7 kB | **16.5 kB** |
 
-None of them has runtime dependencies. shortcutter's sequences live in a separate entry, so they cost nothing unless imported.
+None of them has runtime dependencies. shortcutter's sequences live in a separate entry, so they cost nothing unless imported. The same goes for the key labels of `shortcutter/format`, added in 0.4 (about 0.7 kB gzipped); the core entry did not grow in 0.4.
 
 ## Game input: movement and sprint
 
@@ -73,13 +73,13 @@ From each library's own README:
 
 ## Where shortcutter fits
 
-shortcutter aims for the feature set of the larger libraries at the size of the small ones: contexts with several active at once, three phases including key repeat, wildcards, self-documenting shortcuts, a key-state API, optional sequences, adapters for React, Vue, Svelte and Solid, and safe server rendering, in under 3 kB gzipped for the core.
+shortcutter aims for the feature set of the larger libraries at the size of the small ones: contexts with several active at once, three phases including key repeat, wildcards, self-documenting shortcuts, type-checked shortcut strings, a key-state API with pressed-keys hooks, optional sequences and platform key labels, adapters for React, Vue, Svelte and Solid, and safe server rendering, in under 3 kB gzipped for the core.
 
 Pick something else when:
 
 - you only need a handful of shortcuts and every byte counts: **tinykeys**;
 - you want shortcuts declared in HTML attributes: **@github/hotkey**;
-- you need a shortcut recorder UI, devtools or type-checked shortcut strings today: **@tanstack/hotkeys**.
+- you need a shortcut recorder UI or devtools today: **@tanstack/hotkeys**.
 
 ## Method
 
