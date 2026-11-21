@@ -2,6 +2,7 @@
 // instance, its properties, the methods called on it and plain functions read apart:
 // keywords cobalt, strings red, calls yellow/ochre, constants green, properties grey,
 // variables plain ink/paper, parameters italic, punctuation and comments dimmed.
+// Every token colour has at least 5.5:1 contrast on its background (WCAG AA is 4.5:1).
 
 /**
  * @param {{ name: string, type: 'dark' | 'light', bg: string, fg: string, comment: string,
@@ -103,13 +104,13 @@ export const bauhausInk = theme({
   type: 'dark',
   bg: '#1e1e1e',
   fg: '#eeeae1',
-  comment: '#8f8a7f',
+  comment: '#99958b',
   keyword: '#7c9cf0',
   string: '#f07a66',
   call: '#f2be1a',
   constant: '#5cc28a',
   property: '#c2bba9',
-  punctuation: '#8f8a7f',
+  punctuation: '#99958b',
 });
 
 export const bauhausPaper = theme({
@@ -117,11 +118,11 @@ export const bauhausPaper = theme({
   type: 'light',
   bg: '#e3ded2',
   fg: '#141414',
-  comment: '#6b665c',
-  keyword: '#2551b5',
-  string: '#b52a17',
-  call: '#7a5c00',
-  constant: '#1f6b3f',
+  comment: '#59554c',
+  keyword: '#244fb1',
+  string: '#a12514',
+  call: '#6b5100',
+  constant: '#1c6139',
   property: '#4f4c45',
-  punctuation: '#6b665c',
+  punctuation: '#59554c',
 });

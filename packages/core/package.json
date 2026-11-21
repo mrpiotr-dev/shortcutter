@@ -1,6 +1,6 @@
 {
   "name": "shortcutter",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Tiny, dependency-free keyboard shortcuts with contexts and key phases. SSR-safe.",
   "keywords": [
     "hotkey",
@@ -38,6 +38,10 @@
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./format": {
+      "import": "./dist/format.js",
+      "require": "./dist/format.cjs"
     },
     "./sequences": {
       "import": "./dist/sequences.js",

@@ -1,0 +1,195 @@
+---
+title: Svelte
+description: Keyboard shortcuts in Svelte 5 with useShortcut and attachments, contexts for modals, sequences, held keys and a help screen.
+---
+
+import Playground from '../../../../components/demos/svelte/Playground.svelte';
+
+`@shortcutter/svelte` registers shortcuts for the lifetime of a component, or of an element with an attachment. It needs Svelte 5.29 or later and works with server rendering (SvelteKit included).
+
+<Playground client:visible />
+
+## Install
+
+```sh
+pnpm add shortcutter @shortcutter/svelte
+```
+
+## Your first shortcut
+
+Call `useShortcut` during component initialisation:
+
+```svelte
+<script lang="ts">
+  import { useShortcut } from '@shortcutter/svelte';
+
+  let open = $state(false);
+
+  useShortcut('ControlOrMeta+K', () => (open = true), {
+    preventDefault: true,
+    description: 'Open the command palette',
+  });
+</script>
+```
+
+- The shortcut is registered on mount and removed when the component is destroyed.
+- The arguments are read once, at mount. For a shortcut that follows state, use an attachment (below) or put the component in an `{#if}`.
+- The options are the ones of [`listen()`](/docs/api/shortcutter/type-aliases/listenoptions/), plus `enabled`: `description`, `context`, `phases`, `ignoreInputs` and `preventDefault`.
+
+A shortcut written as a string literal is checked by TypeScript, so `useShortcut('Ctlr+K', …)` is a compile error naming the unknown key.
+
+## Attachments
+
+The `shortcut` attachment ties a shortcut to an element. It is registered while the element exists, and again whenever its arguments change, so it follows `$state`:
+
+```svelte
+<script lang="ts">
+  import { shortcut } from '@shortcutter/svelte';
+
+  let open = $state(false);
+  let { close } = $props();
+</script>
+
+{#if open}
+  <dialog open {@attach shortcut('Escape', close, { ignoreInputs: false })}>…</dialog>
+{/if}
+
+<button {@attach shortcut('ControlOrMeta+S', save, { enabled: !saving, preventDefault: true })}>
+  Save
+</button>
+```
+
+Attachments use the shared instance on `window`. To use your own, pass it: `shortcut('Escape', close, { shortcutter })`.
+
+## Your own instance
+
+Without one, `useShortcut` uses an instance shared by the whole page and listening on `window`. Set your own in a parent component, during initialisation:
+
+```svelte
+<script lang="ts">
+  import { setShortcutter } from '@shortcutter/svelte';
+  import { createShortcutter } from 'shortcutter';
+
+  setShortcutter(createShortcutter({ defaultContext: 'app' }));
+</script>
+```
+
+`getShortcutter()` returns the instance set by a parent, or the shared one. Call it during initialisation too.
+
+## A modal with its own keys
+
+Give the modal a context and activate it while the modal is mounted. Shortcuts of the page stop working, the modal's start, and destroying the modal brings the previous contexts back:
+
+```svelte
+<script lang="ts">
+  import { getShortcutter, useShortcut } from '@shortcutter/svelte';
+  import { onMount } from 'svelte';
+
+  let { onclose }: { onclose: () => void } = $props();
+  const shortcutter = getShortcutter();
+
+  onMount(() => {
+    const previous = shortcutter.contexts.active();
+
+    shortcutter.contexts.activate('modal');
+    return () => shortcutter.contexts.activate(...previous);
+  });
+
+  useShortcut('Escape', () => onclose(), { context: 'modal', ignoreInputs: false });
+</script>
+```
+
+To keep the page's shortcuts working under the modal, activate both: `activate('modal', ...previous)`. Handlers run in the order of the contexts, modal first.
+
+## Sequences
+
+`useSequence` and the `sequence` attachment register a sequence such as <kbd>G</kbd> then <kbd>I</kbd>, from the optional `shortcutter/sequences` entry:
+
+```svelte
+<script lang="ts">
+  import { sequence, useSequence } from '@shortcutter/svelte';
+
+  useSequence('G I', () => goto('/inbox'), { description: 'Go to the inbox' });
+</script>
+
+<nav {@attach sequence('G H', () => goto('/'))}>…</nav>
+```
+
+Sequence code is only bundled when you use them.
+
+## Held keys
+
+`usePressedKeys()` returns an object whose `current` holds the keys held right now. Reading it in the template, `$derived` or `$effect` updates them when the keys change; nothing is tracked during server rendering:
+
+```svelte
+<script lang="ts">
+  import { usePressedKeys } from '@shortcutter/svelte';
+  import { formatKeys } from 'shortcutter/format';
+
+  const pressed = usePressedKeys(); // pressed.current: e.g. ['k', 'shift']
+  const sprinting = $derived(pressed.current.includes('shift'));
+</script>
+
+<p>{#each formatKeys(pressed.current) as key (key)}<kbd>{key}</kbd>{/each}</p>
+```
+
+## A help screen
+
+Every `description` is listed by `shortcuts()`, and `shortcutter/format` writes the keys the way the platform does. Read the list when the dialog opens, so it shows what works right now:
+
+```svelte
+<script lang="ts">
+  // Render this component inside {#if helpOpen}.
+  import { getShortcutter } from '@shortcutter/svelte';
+  import { formatKeys } from 'shortcutter/format';
+
+  const shortcuts = getShortcutter()
+    .shortcuts({ active: true })
+    .filter((s) => s.description);
+</script>
+
+<dl>
+  {#each shortcuts as s (`${s.context}:${s.shortcut}`)}
+    <div>
+      <dt>{#each formatKeys(s.keys) as key (key)}<kbd>{key}</kbd>{/each}</dt>
+      <dd>{s.description}</dd>
+    </div>
+  {/each}
+</dl>
+```
+
+## Server rendering
+
+`onMount` and attachments do not run on the server, so nothing listens during server rendering and `usePressedKeys()` subscribes only in the browser. The functions are safe in SvelteKit pages and layouts as they are.
+
+## Testing
+
+Set an instance that listens on its own target, then dispatch keyboard events to it:
+
+```ts
+const target = new EventTarget();
+const shortcutter = createShortcutter({ target, mac: false });
+
+// A test wrapper component calls setShortcutter(shortcutter) and renders the component under test.
+mount(Wrapper, { target: document.body, props: { shortcutter } });
+flushSync();
+
+target.dispatchEvent(new KeyboardEvent('keydown', { code: 'ControlLeft', ctrlKey: true }));
+target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyK', ctrlKey: true }));
+```
+
+`mac: false` makes `ControlOrMeta` mean <kbd>Ctrl</kbd> whatever machine runs the tests. Set the modifier flags (`ctrlKey`, `shiftKey`, …) on the events, as browsers do.
+
+## API
+
+| Export                                     | What it does                                                             |
+| ------------------------------------------ | ------------------------------------------------------------------------ |
+| `useShortcut(shortcut, handler, options?)` | Registers a shortcut while the component is mounted.                     |
+| `shortcut(shortcut, handler, options?)`    | Attachment: registers while the element exists, again when args change. |
+| `useSequence(sequence, handler, options?)` | Registers a key sequence while the component is mounted.                 |
+| `sequence(sequence, handler, options?)`    | Attachment for a key sequence.                                           |
+| `usePressedKeys()`                         | `{ current }`: the keys held right now, reactive when read.              |
+| `getShortcutter()`                         | The instance set by a parent, or the shared one on `window`.             |
+| `setShortcutter(shortcutter)`              | Sets the instance used by descendants.                                   |
+
+Every option and type is in the [Svelte API reference](/docs/frameworks/svelte/api/readme/).

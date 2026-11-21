@@ -3,7 +3,7 @@ title: Comparison
 description: Size and behaviour of shortcutter next to tinykeys, hotkeys-js, mousetrap, keymaster, @github/hotkey, react-hotkeys-hook and @tanstack/hotkeys.
 ---
 
-Every number on this page was measured, not copied from a README. Measured on 15 November 2026 with the versions listed; the method is at the end so you can repeat it.
+Every number on this page was measured, not copied from a README. Sizes were measured on 21 November 2026 and behaviour on 15 November 2026, with the versions listed; the method is at the end so you can repeat it.
 
 ## Size
 
@@ -11,20 +11,24 @@ All exports of each library, bundled with its dependencies, minified and gzipped
 
 | Library | Version | Minified | Gzipped |
 | --- | --- | --- | --- |
-| tinykeys | 4.0.1 | 2.4 kB | **1.24 kB** |
-| keymaster | 1.6.2 | 4.9 kB | **2.04 kB** |
-| **shortcutter** | 0.3 | 7.4 kB | **2.80 kB** |
-| @github/hotkey | 3.1.4 | 6.3 kB | **2.80 kB** |
-| mousetrap | 1.6.5 | 7.7 kB | **2.96 kB** |
-| **shortcutter + @shortcutter/react** | 0.3 | | **3.03 kB** |
-| **shortcutter + sequences** | 0.3 | 9.8 kB | **3.51 kB** |
-| react-hotkeys-hook (React only) | 5.4.0 | 10.2 kB | **3.48 kB** |
-| hotkeys-js | 4.1.2 | 10.7 kB | **4.03 kB** |
-| @tanstack/hotkeys | 0.29.0 | 59.7 kB | **16.5 kB** |
+| tinykeys | 4.0.1 | 2.4 kB | **1.23 kB** |
+| keymaster | 1.6.2 | 5.0 kB | **2.07 kB** |
+| @github/hotkey | 3.1.4 | 6.2 kB | **2.78 kB** |
+| **shortcutter** | 0.4 | 7.5 kB | **2.81 kB** |
+| mousetrap | 1.6.5 | 7.8 kB | **2.98 kB** |
+| **shortcutter + @shortcutter/react**, `useShortcut` only | 0.4 | 8.1 kB | **3.04 kB** |
+| react-hotkeys-hook (React only) | 5.4.0 | 10.1 kB | **3.45 kB** |
+| **shortcutter + sequences** | 0.4 | 9.9 kB | **3.52 kB** |
+| **shortcutter + format** | 0.4 | 9.3 kB | **3.55 kB** |
+| **shortcutter + @shortcutter/react**, all exports | 0.4 | 11.5 kB | **4.02 kB** |
+| hotkeys-js | 4.1.3 | 12.8 kB | **4.69 kB** |
+| @tanstack/hotkeys | 0.33.0 | 60.3 kB | **16.93 kB** |
 
-None of them has runtime dependencies. shortcutter's sequences live in a separate entry, so they cost nothing unless imported.
+None of them has runtime dependencies. shortcutter's sequences (`shortcutter/sequences`) and key labels (`shortcutter/format`) live in separate entries, so they cost nothing unless imported. The adapters' sequence hooks pull in the sequences entry, which is why all exports of `@shortcutter/react` weigh more than `useShortcut` alone: a bundler keeps only what the app imports.
 
 ## Game input: movement and sprint
+
+Measured with shortcutter 0.3, hotkeys-js 4.1.2 and @tanstack/hotkeys 0.29.0, and the versions in the size table for the others. shortcutter's key handling did not change in 0.4.
 
 A player holds <kbd>A</kbd>, adds <kbd>Shift</kbd>, adds <kbd>W</kbd>, releases <kbd>A</kbd>, releases <kbd>W</kbd>, presses <kbd>D</kbd> and releases <kbd>Shift</kbd>. After each of the 10 steps the game reads which directions are held and whether the player sprints. Events were realistic: `key` turns uppercase while <kbd>Shift</kbd> is held, `keyCode` is set for older libraries, and the last key auto-repeats.
 
@@ -69,19 +73,19 @@ From each library's own README:
 - **mousetrap**: sequences and keyup bindings; widely used, last released as 1.6.5.
 - **react-hotkeys-hook**: React only. Scopes, sequences, and a `description` option with a list of registered hotkeys for help panels.
 - **hotkeys-js**: scopes, keyup, a catch-all `*` listener and a pressed-keys query.
-- **@tanstack/hotkeys**: the most complete. A cross-platform `Mod` key, keydown and keyup, sequences, key-state tracking, cheatsheet and recorder helpers, framework adapters, devtools and SSR support.
+- **@tanstack/hotkeys**: the most complete. Type-safe shortcut strings, a cross-platform `Mod` key, keydown and keyup, `preventDefault` and `stopPropagation`, sequences, key-state tracking, recorder UI helpers, framework adapters and devtools.
 
 ## Where shortcutter fits
 
-shortcutter aims for the feature set of the larger libraries at the size of the small ones: contexts with several active at once, three phases including key repeat, wildcards, self-documenting shortcuts, a key-state API, optional sequences, adapters for React, Vue, Svelte and Solid, and safe server rendering, in under 3 kB gzipped for the core.
+shortcutter aims for the feature set of the larger libraries at the size of the small ones: contexts with several active at once, three phases including key repeat, wildcards, self-documenting shortcuts, type-checked shortcut strings, a key-state API with pressed-keys hooks, optional sequences and platform key labels, adapters for React, Vue, Svelte and Solid, and safe server rendering, in under 3 kB gzipped for the core.
 
 Pick something else when:
 
 - you only need a handful of shortcuts and every byte counts: **tinykeys**;
 - you want shortcuts declared in HTML attributes: **@github/hotkey**;
-- you need a shortcut recorder UI, devtools or type-checked shortcut strings today: **@tanstack/hotkeys**.
+- you need a shortcut recorder UI, devtools or `stopPropagation` handling today: **@tanstack/hotkeys**.
 
 ## Method
 
-- **Size:** each library installed from npm with install scripts disabled; an entry file re-exporting everything was bundled with Vite (Rolldown) in library mode, minified, and gzipped at level 9. React and React DOM were external.
+- **Size:** each library installed from npm with install scripts disabled (shortcutter 0.4 from its release build); an entry file re-exporting everything (the default export for the CommonJS packages keymaster and mousetrap, or only `useShortcut` where the table says so) was bundled with Vite (Rolldown, as shipped in Vite+ 1.6.0) in library mode, minified, and gzipped at level 9. React and React DOM were external.
 - **Behaviour:** each library ran in happy-dom with synthetic keyboard events dispatched on the document body; game state was read after each step through the library's documented API.

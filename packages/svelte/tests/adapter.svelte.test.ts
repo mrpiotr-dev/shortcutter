@@ -2,6 +2,7 @@ import { flushSync, mount, unmount } from 'svelte';
 import { describe, expect, it, vi } from 'vite-plus/test';
 import { createShortcutter } from 'shortcutter';
 import { keyboard } from '../../core/tests/keyboard';
+import { sequence, shortcut, useSequence, useShortcut } from '../src/index';
 import Fixture from './Fixture.svelte';
 
 function setup() {
@@ -18,11 +19,12 @@ function setup() {
     attachKeys: 'B',
     showAttached: true,
   });
-  const component = mount(Fixture, { target: document.createElement('div'), props });
+  const element = document.createElement('div');
+  const component = mount(Fixture, { target: element, props });
 
   flushSync();
 
-  return { kb: keyboard(target), onmount, onattach, onsequence, props, component };
+  return { kb: keyboard(target), onmount, onattach, onsequence, props, component, element };
 }
 
 describe('svelte adapter', () => {
@@ -75,5 +77,38 @@ describe('svelte adapter', () => {
     kb.press('KeyO');
     expect(onsequence).toHaveBeenCalledTimes(2);
     await unmount(component);
+  });
+
+  it('usePressedKeys updates the markup with the held keys', async () => {
+    const { kb, component, element } = setup();
+    const shown = () => element.querySelector('output')!.textContent;
+
+    expect(shown()).toBe('');
+    kb.down('ShiftLeft');
+    kb.down('KeyW');
+    flushSync();
+    expect(shown()).toBe('shift+w');
+    kb.up('KeyW');
+    flushSync();
+    expect(shown()).toBe('shift');
+
+    await unmount(component);
+  });
+
+  it('type-checks literal shortcuts', () => {
+    const compileOnly = () => {
+      useShortcut('ControlOrMeta+K', () => {});
+      shortcut('Shift+Arrow*', () => {});
+      useSequence('G I', () => {});
+      sequence('G H', () => {});
+      // @ts-expect-error -- typo
+      useShortcut('Ctlr+K', () => {});
+      // @ts-expect-error -- "/" is "Slash"
+      shortcut('Control+/', () => {});
+      // @ts-expect-error -- typo in a step
+      sequence('G Ctlr+I', () => {});
+    };
+
+    expect(compileOnly).toBeTypeOf('function');
   });
 });

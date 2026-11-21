@@ -1,8 +1,9 @@
 name: Release
 
-# Runs when a release/* (or hotfix/*) branch is merged into main. The version bump and changelog
-# were made on that branch with `pnpm run version-packages`, so here Changesets only publishes the
-# versions that are not on npm yet, pushes their git tags and creates a GitHub release for each.
+# Runs when develop (or a hotfix/* branch) is merged into main. The version bump and changelog
+# were made earlier with `pnpm run version-packages` on a release/* branch merged into develop, so
+# here Changesets only publishes the versions that are not on npm yet, pushes their git tags and
+# creates a GitHub release for each.
 
 on:
   push:
@@ -31,10 +32,8 @@ jobs:
           cache: true
           run-install: true
 
-      # Trusted Publishing needs npm 11.5.1 or newer.
-      - name: Update npm
-        run: npm install -g npm@latest
-
+      # pnpm (pinned in package.json) publishes itself: it exchanges the GitHub OIDC token for npm
+      # Trusted Publishing and adds provenance, so no npm token and no npm upgrade are needed.
       - name: Publish
         uses: changesets/action@v2.1.2
         with:

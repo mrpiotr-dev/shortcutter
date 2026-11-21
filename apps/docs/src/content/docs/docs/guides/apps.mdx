@@ -76,13 +76,20 @@ dialog.addEventListener('open', () => shortcutter.contexts.activate('dialog'));
 
 ## Show what is available
 
-Every `description` above feeds a help screen that stays in sync with the code:
+Every `description` above feeds a help screen that stays in sync with the code. `shortcutter/format` writes the keys the way each platform does, <kbd>⇧⌘Z</kbd> on macOS and <kbd>Ctrl+Shift+Z</kbd> elsewhere:
 
 ```ts
+import { formatKeys, formatShortcut } from 'shortcutter/format';
+
 for (const { keys, description } of shortcutter.shortcuts({ active: true })) {
-  addRow(keys, description); // e.g. ['meta', 'z'], 'Undo'
+  addRow(formatShortcut(keys), description); // '⇧⌘Z', 'Redo'
 }
+
+// Or one <kbd> per key: ['⇧', '⌘', 'Z'] on macOS, ['Ctrl', 'Shift', 'Z'] elsewhere.
+formatKeys('ControlOrMeta+Shift+Z');
 ```
+
+Menus can use the same labels next to each command, and `labels` renames keys for your language or audience, e.g. `formatShortcut(keys, { labels: { meta: 'Win' } })`.
 
 ## In a framework
 

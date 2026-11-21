@@ -24,6 +24,8 @@ Without a bundler, load the script build, which exposes `window.Shortcutter`:
 <script src="https://unpkg.com/shortcutter"></script>
 <!-- optional: key sequences, exposes window.ShortcutterSequences -->
 <script src="https://unpkg.com/shortcutter/dist/sequences.iife.js"></script>
+<!-- optional: key labels, exposes window.ShortcutterFormat -->
+<script src="https://unpkg.com/shortcutter/dist/format.iife.js"></script>
 <script>
   const shortcutter = Shortcutter.createShortcutter();
   const sequences = ShortcutterSequences.createSequences(shortcutter);
@@ -41,6 +43,15 @@ A shortcut is a `+`-separated list of keys. Names are case-insensitive and the o
 shortcutter.listen('Shift+ArrowUp', selectAbove);
 shortcutter.listen('Escape', close, { ignoreInputs: false });
 ```
+
+In TypeScript, a shortcut written as a string literal is checked when it is compiled, so a typo or a key that would never fire is an error instead of a silent no-op:
+
+```ts
+shortcutter.listen('Ctlr+K', save); // error: Unknown key "Ctlr" in shortcut "Ctlr+K". …
+shortcutter.listen('Control+/', help); // error: the key is "Slash"
+```
+
+A shortcut held in a `string` variable is not checked. Use `ShortcutString<S>` to check shortcuts in your own functions, and `KeyName` for the list of accepted names.
 
 ### Wildcards
 
@@ -66,6 +77,21 @@ shortcutter.shortcuts({ active: true });
 ```
 
 `keys` are resolved for the current platform (`meta` on macOS, `control` elsewhere for `ControlOrMeta`) with modifiers first, ready to render as keycaps.
+
+`shortcutter/format` turns them into the labels people expect on each platform. It is an optional entry (about 0.7 kB gzipped), so apps that do not use it do not ship it:
+
+```ts
+import { formatKeys, formatShortcut } from 'shortcutter/format';
+
+formatShortcut('ControlOrMeta+Shift+K'); // '⇧⌘K' on macOS, 'Ctrl+Shift+K' elsewhere
+formatKeys('ControlOrMeta+Shift+K'); // ['⇧', '⌘', 'K'] or ['Ctrl', 'Shift', 'K'], one per <kbd>
+
+for (const { keys, description } of shortcutter.shortcuts({ active: true })) {
+  addHelpRow(formatShortcut(keys), description);
+}
+```
+
+Both take a shortcut string or the `keys` of a `shortcuts()` entry, and the options `mac` (detected by default), `separator` (`''` on macOS, `'+'` elsewhere) and `labels` to rename keys: `{ meta: 'Win' }`, `{ space: 'Leertaste' }`. Arrows show as ↑↓←→, punctuation as its character, and wildcards as ranges (`Digit*` is `0–9`, `Arrow*` is `←↑→↓`).
 
 ## Phases
 
@@ -176,6 +202,20 @@ useShortcut('ControlOrMeta+K', () => (open.value = true), { preventDefault: true
 import { createShortcut, useShortcutter, ShortcutterContext } from '@shortcutter/solid';
 
 createShortcut('ControlOrMeta+K', () => setOpen(true), { preventDefault: true });
+```
+
+Each adapter also tracks the held keys, for games and key visualizers. They update while the component is mounted and are empty during server rendering:
+
+| Adapter | Hook                  | Returns                                   |
+| ------- | --------------------- | ----------------------------------------- |
+| React   | `usePressedKeys()`    | `string[]`, re-rendering when keys change |
+| Vue     | `usePressedKeys()`    | a read-only ref                           |
+| Svelte  | `usePressedKeys()`    | `{ current }`, reactive when read         |
+| Solid   | `createPressedKeys()` | an accessor                               |
+
+```tsx
+const pressed = usePressedKeys(); // React
+const speed = pressed.includes('shift') ? 2 : 1;
 ```
 
 ## Migrating from 0.2
