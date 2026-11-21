@@ -87,6 +87,8 @@ export default defineConfig({
           frames: { frameBoxShadowCssValue: 'none' },
         },
       },
+      // Adds the Privacy, llms.txt and GitHub links under every docs page.
+      components: { Footer: './src/components/overrides/Footer.astro' },
       customCss: [
         '@fontsource-variable/jost',
         '@fontsource-variable/jetbrains-mono',

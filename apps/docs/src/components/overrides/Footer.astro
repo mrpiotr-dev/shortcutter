@@ -1,0 +1,23 @@
+---
+// Starlight's footer (edit link, pagination) plus the site links the landing page has too.
+import Default from '@astrojs/starlight/components/Footer.astro';
+---
+
+<Default />
+<p class="sc-footer-links">
+  <a href="/privacy/">Privacy</a>{' · '}<a href="/llms.txt">llms.txt</a>{' · '}<a
+    href="https://github.com/mrpiotr-dev/shortcutter"
+    rel="external noopener">GitHub</a
+  >
+</p>
+
+<style>
+  .sc-footer-links {
+    margin-top: 1.5rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .sc-footer-links a {
+    color: inherit;
+  }
+</style>
