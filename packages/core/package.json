@@ -1,6 +1,6 @@
 {
   "name": "shortcutter",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Tiny, dependency-free keyboard shortcuts with contexts and key phases. SSR-safe.",
   "keywords": [
     "hotkey",
