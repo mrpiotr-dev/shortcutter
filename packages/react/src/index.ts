@@ -1,3 +1,9 @@
+/**
+ * React hooks for shortcutter: shortcuts, sequences and held keys for the lifetime of a component.
+ *
+ * @packageDocumentation
+ * @module @shortcutter/react
+ */
 import {
   createContext,
   createElement,

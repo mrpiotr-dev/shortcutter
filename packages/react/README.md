@@ -22,9 +22,12 @@ function Palette() {
 - `useShortcutter()`: the instance, e.g. to switch contexts.
 - `<ShortcutterProvider shortcutter={createShortcutter(...)}>`: use your own instance instead of the shared one on `window`.
 - `useSequence(sequence, handler, options?)`: a key sequence such as `'G I'` (from `shortcutter/sequences`), same options as `useShortcut`.
+- `usePressedKeys()`: the keys held right now, e.g. `['k', 'shift']`; re-renders when they change (empty on the server).
 
 Sequence code is only bundled if you use it.
 
-Shortcuts are registered only after mount, so nothing runs during server rendering. Full docs: https://www.shortcutter.dev/docs/
+Shortcuts are registered only after mount, so nothing runs during server rendering. Literal shortcut strings are type-checked, so a typo such as `'Ctlr+K'` is a compile error.
+
+Guide with recipes (modals, help screens, testing): https://www.shortcutter.dev/docs/frameworks/react/
 
 MIT © SLAVICTECH PIOTR LASZCZKOWSKI

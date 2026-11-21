@@ -1,3 +1,9 @@
+/**
+ * Svelte 5 functions and attachments for shortcutter: shortcuts, sequences and held keys.
+ *
+ * @packageDocumentation
+ * @module @shortcutter/svelte
+ */
 import { getContext, onMount, setContext } from 'svelte';
 import type { Attachment } from 'svelte/attachments';
 import { createSubscriber } from 'svelte/reactivity';

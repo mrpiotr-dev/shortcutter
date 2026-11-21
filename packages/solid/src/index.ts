@@ -1,3 +1,9 @@
+/**
+ * Solid primitives for shortcutter: shortcuts, sequences and held keys for the lifetime of an owner.
+ *
+ * @packageDocumentation
+ * @module @shortcutter/solid
+ */
 import {
   createContext,
   createEffect,

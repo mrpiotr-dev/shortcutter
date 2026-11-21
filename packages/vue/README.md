@@ -23,9 +23,12 @@ useShortcut(
 - `useShortcutter()`: the instance, e.g. to switch contexts.
 - `provideShortcutter(instance)` or `app.provide(shortcutterKey, instance)`: use your own instance instead of the shared one on `window`.
 - `useSequence(sequence, handler, options?)`: a key sequence such as `'G I'` (from `shortcutter/sequences`); refs and getters work as in `useShortcut`.
+- `usePressedKeys()`: a read-only ref with the keys held right now, e.g. `['k', 'shift']`.
 
 Sequence code is only bundled if you use it.
 
-Shortcuts are registered only after mount, so nothing runs during server rendering. Full docs: https://www.shortcutter.dev/docs/
+Shortcuts are registered only after mount, so nothing runs during server rendering. Literal shortcut strings are type-checked, so a typo such as `'Ctlr+K'` is a compile error.
+
+Guide with recipes (modals, help screens, testing): https://www.shortcutter.dev/docs/frameworks/vue/
 
 MIT © SLAVICTECH PIOTR LASZCZKOWSKI
