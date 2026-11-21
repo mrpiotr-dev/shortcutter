@@ -5,6 +5,7 @@ import {
   type ShortcutHandler,
   type ShortcutInfo,
 } from 'shortcutter';
+import { formatKeys, formatShortcut } from 'shortcutter/format';
 import { createSequences } from 'shortcutter/sequences';
 import { DEMO_EVENT } from '../components/demos/active';
 
@@ -19,58 +20,9 @@ const $ = <T extends Element>(selector: string) => document.querySelector<T>(sel
 
 /* ---------- Key labels ---------- */
 
-const LABELS: Record<string, string> = {
-  control: 'Ctrl',
-  meta: mac ? '⌘' : 'Meta',
-  alt: mac ? '⌥' : 'Alt',
-  shift: '⇧',
-  escape: 'Esc',
-  enter: '↵',
-  space: 'Space',
-  tab: 'Tab',
-  backspace: '⌫',
-  arrowup: '↑',
-  arrowdown: '↓',
-  arrowleft: '←',
-  arrowright: '→',
-  slash: '/',
-  backslash: '\\',
-  period: '.',
-  comma: ',',
-  semicolon: ';',
-  quote: "'",
-  backquote: '`',
-  minus: '-',
-  equal: '=',
-  bracketleft: '[',
-  bracketright: ']',
-};
-
-/** Wildcard keys, as listed by shortcuts(). */
-const WILDCARD_LABELS: Record<string, string> = {
-  'digit*': '0–9',
-  'key*': 'A–Z',
-  'arrow*': '←↑→↓',
-  'f*': 'F1–F24',
-  '*': 'any key',
-};
-
-const label = (key: string) =>
-  LABELS[key] ??
-  WILDCARD_LABELS[key] ??
-  (key.length === 1 ? key.toUpperCase() : key[0]!.toUpperCase() + key.slice(1)).replaceAll(
-    '*',
-    '…',
-  );
-
-/** Modifiers first, the way people write shortcuts: ⌘ + K, not K + ⌘. */
-const MODIFIER_ORDER = ['control', 'meta', 'alt', 'shift'];
-const rank = (key: string) => (MODIFIER_ORDER.includes(key) ? MODIFIER_ORDER.indexOf(key) : 9);
-const labels = (keys: string[]) =>
-  [...keys]
-    .sort((a, b) => rank(a) - rank(b))
-    .map(label)
-    .join(' + ');
+/** Display labels from shortcutter/format: ⌘ ⇧ K on macOS, Ctrl Shift K elsewhere, modifiers first. */
+const labelsOf = (keys: string[]) => formatKeys(keys, { mac });
+const shortcutText = (keys: string[]) => formatShortcut(keys, { mac, separator: ' + ' });
 
 const keycap = (text: string, pressed = false) => {
   const kbd = document.createElement('kbd');
@@ -93,12 +45,10 @@ const contextsEl = $<HTMLElement>('[data-contexts]');
 const logEl = $<HTMLOListElement>('[data-log]');
 
 function renderPressed(keys: string[]): void {
-  const ordered = [...keys].sort((a, b) => rank(a) - rank(b));
-
   pressedEl.replaceChildren(
-    ...(ordered.length ? ordered.map((key) => keycap(label(key), true)) : [emptyEl]),
+    ...(keys.length ? labelsOf(keys).map((text) => keycap(text, true)) : [emptyEl]),
   );
-  shortcutEl.textContent = ordered.length ? labels(ordered) : '–';
+  shortcutEl.textContent = keys.length ? shortcutText(keys) : '–';
 }
 
 // The library reports every change of the held keys, including keys released because the page was
@@ -122,7 +72,7 @@ function log({ phase, shortcut }: { phase: string; shortcut: string }): void {
 
   item.innerHTML = `<span class="log-context"></span><span class="log-keys"></span><span class="log-phase"></span>`;
   item.children[0]!.textContent = '–';
-  item.children[1]!.textContent = labels(shortcut.split('+'));
+  item.children[1]!.textContent = shortcutText(shortcut.split('+'));
   item.children[2]!.textContent = phase;
   item.dataset.phase = phase;
   logEl.prepend(item);
@@ -274,7 +224,7 @@ const keycaps = (keys: string[]) => {
   const span = document.createElement('span');
 
   span.className = 'keys';
-  span.append(...keys.map((key) => keycap(label(key))));
+  span.append(...labelsOf(keys).map((text) => keycap(text)));
   return span;
 };
 
@@ -285,7 +235,7 @@ const stepCaps = (steps: string[][]) => {
   span.className = 'keys';
   steps.forEach((step, index) => {
     if (index > 0) span.append(' then ');
-    span.append(...step.map((key) => keycap(label(key))));
+    span.append(...labelsOf(step).map((text) => keycap(text)));
   });
   return span;
 };
@@ -510,6 +460,6 @@ document.querySelectorAll<HTMLElement>('.kbd-chip[data-chip-shortcut]').forEach(
     .find((entry) => entry.shortcut === chip.dataset.chipShortcut);
 
   if (!info) return;
-  chip.textContent = info.keys.map(label).join(' ');
-  chip.title = `Keyboard shortcut: ${info.keys.map(label).join(' + ')}`;
+  chip.textContent = labelsOf(info.keys).join(' ');
+  chip.title = `Keyboard shortcut: ${shortcutText(info.keys)}`;
 });

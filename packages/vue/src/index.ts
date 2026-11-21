@@ -1,11 +1,21 @@
+/**
+ * Vue composables for shortcutter: shortcuts, sequences and held keys for the lifetime of a component.
+ *
+ * @packageDocumentation
+ * @module @shortcutter/vue
+ */
 import {
   inject,
   onMounted,
+  onUnmounted,
   provide,
+  readonly,
+  shallowRef,
   toValue,
   watchEffect,
   type InjectionKey,
   type MaybeRefOrGetter,
+  type ShallowRef,
 } from 'vue';
 import {
   getDefaultShortcutter,
@@ -15,7 +25,7 @@ import {
   type UseSequenceOptions,
   type UseShortcutOptions,
 } from './shared';
-import type { ShortcutHandler, Shortcutter } from 'shortcutter';
+import type { SequenceString, ShortcutHandler, ShortcutString, Shortcutter } from 'shortcutter';
 import type { SequenceHandler } from 'shortcutter/sequences';
 
 export type { UseSequenceOptions, UseShortcutOptions } from './shared';
@@ -40,8 +50,8 @@ export function useShortcutter(): Shortcutter {
  * @example
  * useShortcut('ControlOrMeta+K', () => (open.value = true), { preventDefault: true });
  */
-export function useShortcut(
-  shortcut: MaybeRefOrGetter<string>,
+export function useShortcut<S extends string>(
+  shortcut: ShortcutString<S> | Exclude<MaybeRefOrGetter<string>, string>,
   handler: ShortcutHandler,
   options: MaybeRefOrGetter<UseShortcutOptions> = {},
 ): void {
@@ -55,7 +65,13 @@ export function useShortcut(
 
       if (opts.enabled === false) return;
 
-      onCleanup(shortcutter.listen(toValue(shortcut), handler, toListenOptions(opts)));
+      onCleanup(
+        shortcutter.listen(
+          toValue(shortcut as MaybeRefOrGetter<string>),
+          handler,
+          toListenOptions(opts),
+        ),
+      );
     });
   });
 }
@@ -67,8 +83,8 @@ export function useShortcut(
  * @example
  * useSequence('G I', () => router.push('/inbox'), { description: 'Go to the inbox' });
  */
-export function useSequence(
-  sequence: MaybeRefOrGetter<string>,
+export function useSequence<S extends string>(
+  sequence: SequenceString<S> | Exclude<MaybeRefOrGetter<string>, string>,
   handler: SequenceHandler,
   options: MaybeRefOrGetter<UseSequenceOptions> = {},
 ): void {
@@ -81,8 +97,35 @@ export function useSequence(
       if (opts.enabled === false) return;
 
       onCleanup(
-        getSequences(shortcutter).listen(toValue(sequence), handler, toSequenceOptions(opts)),
+        getSequences(shortcutter).listen(
+          toValue(sequence as MaybeRefOrGetter<string>),
+          handler,
+          toSequenceOptions(opts),
+        ),
       );
     });
   });
+}
+
+/**
+ * The keys held right now (sorted canonical names, e.g. `['k', 'shift']`) as a read-only ref,
+ * updated while the component is mounted. Empty during server rendering. Call it in `setup()`.
+ *
+ * @example
+ * const pressed = usePressedKeys();
+ * const sprinting = computed(() => pressed.value.includes('shift'));
+ */
+export function usePressedKeys(): Readonly<ShallowRef<readonly string[]>> {
+  const shortcutter = useShortcutter();
+  const keys = shallowRef<readonly string[]>([]);
+  let stop: (() => void) | undefined;
+
+  // Subscribing on mount keeps server rendering free of side effects.
+  onMounted(() => {
+    keys.value = shortcutter.pressed();
+    stop = shortcutter.subscribe((pressed) => (keys.value = pressed));
+  });
+  onUnmounted(() => stop?.());
+
+  return readonly(keys);
 }

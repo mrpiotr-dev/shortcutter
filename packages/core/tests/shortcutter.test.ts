@@ -362,6 +362,7 @@ describe('createShortcutter', () => {
     it('resolves shortcuts for the platform, modifiers first', () => {
       expect(setup({ mac: true }).sc.resolve('k+ControlOrMeta')).toEqual(['meta', 'k']);
       expect(setup({ mac: false }).sc.resolve('k+ControlOrMeta')).toEqual(['control', 'k']);
+      // @ts-expect-error -- runtime guard for JS users
       expect(() => setup().sc.resolve('')).toThrow();
     });
   });

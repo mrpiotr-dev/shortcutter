@@ -234,8 +234,8 @@ catalogs:
       specifier: ^1.9.19
       version: 1.9.19
     starlight-changelogs:
-      specifier: ^0.7.1
-      version: 0.7.1
+      specifier: ^0.7.2
+      version: 0.7.2
     starlight-llms-txt:
       specifier: ^0.12.0
       version: 0.12.0
@@ -347,7 +347,7 @@ importers:
         version: 7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1)
       starlight-changelogs:
         specifier: 'catalog:'
-        version: 0.7.1(@astrojs/starlight@0.43.1(astro@7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))(supports-color@10.2.2)(typescript@6.0.3))(astro@7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))(supports-color@10.2.2)
+        version: 0.7.2(@astrojs/starlight@0.43.1(astro@7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))(supports-color@10.2.2)(typescript@6.0.3))(astro@7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))(supports-color@10.2.2)
       starlight-llms-txt:
         specifier: 'catalog:'
         version: 0.12.0(@astrojs/markdown-satteri@0.4.10)(@astrojs/starlight@0.43.1(astro@7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))(supports-color@10.2.2)(typescript@6.0.3))(astro@7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))(supports-color@10.2.2)
@@ -3836,8 +3836,8 @@ packages:
   space-separated-tokens@2.0.2:
     resolution: {integrity: sha512-PEGlAwrG8yXGXRjW32fGbg66JAlOAwbObuqVoJpv/mRgoWDQfgH1wDPvtzWyUSNAXBGSk8h755YDbbcEy3SH2Q==}
 
-  starlight-changelogs@0.7.1:
-    resolution: {integrity: sha512-JKuNEzq9HbiM+Uhu5vQmFuyM3LA6ZlrWRQn2DJ8ubFRvbbeexL9G8sAA7DZcjXxCrDwn6V/oK042uCD0PnNhJw==}
+  starlight-changelogs@0.7.2:
+    resolution: {integrity: sha512-fGz7EbNZMHQlApXVLegNPAwZyahlXYGgO8zen5xajd0TwsCbxe/+/tW6iYycR789k934IHEQgvNJK/wKYHa9uw==}
     peerDependencies:
       '@astrojs/starlight': '>=0.38.0'
 
@@ -7853,14 +7853,15 @@ snapshots:
 
   space-separated-tokens@2.0.2: {}
 
-  starlight-changelogs@0.7.1(@astrojs/starlight@0.43.1(astro@7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))(supports-color@10.2.2)(typescript@6.0.3))(astro@7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))(supports-color@10.2.2):
+  starlight-changelogs@0.7.2(@astrojs/starlight@0.43.1(astro@7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))(supports-color@10.2.2)(typescript@6.0.3))(astro@7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))(supports-color@10.2.2):
     dependencies:
       '@ascorbic/loader-utils': 1.0.2(astro@7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))
       '@astrojs/starlight': 0.43.1(astro@7.4.12(@arethetypeswrong/core@0.18.5)(@types/node@26.6.6)(esbuild@0.28.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))(supports-color@10.2.2)(typescript@6.0.3)
       github-slugger: 2.0.0
       mdast-util-from-markdown: 2.1.0(supports-color@10.2.2)
-      mdast-util-to-markdown: 2.2.3
+      mdast-util-gfm: 3.1.0(supports-color@10.2.2)
       mdast-util-to-string: 4.0.0
+      micromark-extension-gfm: 3.0.0
       unist-util-visit: 5.2.0
     transitivePeerDependencies:
       - astro

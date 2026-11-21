@@ -43,6 +43,21 @@ Every step is reported: pressing <kbd>A</kbd>, adding <kbd>Shift</kbd> and <kbd>
 `listen('W', …)` matches the **whole** combination. Holding <kbd>Shift</kbd> + <kbd>W</kbd> is the shortcut `Shift+W`, not `W`, and releasing <kbd>Shift</kbd> afterwards does not fire `W` again. That is what you want for app shortcuts (releasing <kbd>Shift</kbd> from undo-redo must not undo) and not what you want for movement.
 :::
 
+## In a framework
+
+The adapters keep the held keys in your framework's state, so a HUD or a key visualizer re-renders by itself:
+
+```tsx
+import { usePressedKeys } from '@shortcutter/react';
+
+function Hud() {
+  const pressed = usePressedKeys(); // ['shift', 'w'], a new array only when the keys change
+  return <p>{pressed.includes('shift') ? 'Sprinting' : 'Walking'}</p>;
+}
+```
+
+Vue and Svelte have `usePressedKeys()` too (a read-only ref, and an object with a reactive `current`), and Solid has `createPressedKeys()`, an accessor. For the game loop itself, keep reading `isPressed()` each frame.
+
 ## No stuck keys
 
 When the window loses focus, the tab is hidden or the page is left, the browser never sends the keyups for keys that were still down. shortcutter releases every key in those moments and notifies `subscribe()` with an empty list. It also trusts the modifier flags of each event, so a <kbd>Shift</kbd> released in another window is not held forever.

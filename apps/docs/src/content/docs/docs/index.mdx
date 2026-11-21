@@ -54,6 +54,15 @@ Press <kbd>⌘</kbd> + <kbd>K</kbd> on macOS or <kbd>Ctrl</kbd> + <kbd>K</kbd> e
 `ControlOrMeta` is the same name Playwright uses: <kbd>⌘</kbd> on macOS, <kbd>Ctrl</kbd> on Windows and Linux.
 :::
 
+In TypeScript, shortcut strings are checked when you compile. A typo, or a key that could never fire, is an error that names the key:
+
+```ts
+shortcutter.listen('Ctlr+K', save); // error: Unknown key "Ctlr" in shortcut "Ctlr+K". …
+shortcutter.listen('Control+/', help); // error: the slash key is "Slash"
+```
+
+A shortcut in a `string` variable is not checked, so shortcuts loaded from settings keep working.
+
 ## Phases
 
 A handler runs when the shortcut goes **down** unless you ask for more:

@@ -1,0 +1,182 @@
+---
+title: Vue
+description: Keyboard shortcuts in Vue 3 with useShortcut, refs and getters, contexts for modals, sequences, held keys and a help screen.
+---
+
+import Playground from '../../../../components/demos/vue/Playground.vue';
+
+`@shortcutter/vue` registers shortcuts for the lifetime of a component. It works with Vue 3.3 and later, and with server rendering (Nuxt included).
+
+<Playground client:visible />
+
+## Install
+
+```sh
+pnpm add shortcutter @shortcutter/vue
+```
+
+## Your first shortcut
+
+Call the composables in `setup()` or `<script setup>`:
+
+```vue
+<script setup lang="ts">
+import { useShortcut } from '@shortcutter/vue';
+import { ref } from 'vue';
+
+const open = ref(false);
+
+useShortcut('ControlOrMeta+K', () => (open.value = true), {
+  preventDefault: true,
+  description: 'Open the command palette',
+});
+useShortcut('Escape', () => (open.value = false), () => ({
+  enabled: open.value,
+  ignoreInputs: false,
+}));
+</script>
+```
+
+- The shortcut is registered on mount and removed on unmount.
+- The shortcut and the options may be plain values, **refs or getters**. When they change, the shortcut is registered again, so `() => ({ enabled: open.value })` follows `open`.
+- `enabled: false` removes the shortcut while keeping the component.
+- The options are the ones of [`listen()`](/docs/api/shortcutter/type-aliases/listenoptions/): `description`, `context`, `phases`, `ignoreInputs` and `preventDefault`.
+
+A shortcut written as a string literal is checked by TypeScript, so `useShortcut('Ctlr+K', …)` is a compile error naming the unknown key. Refs and getters hold a `string` and are not checked.
+
+## Your own instance
+
+Without one, the composables share an instance listening on `window`. Provide your own app-wide, or for a subtree:
+
+```ts
+// main.ts
+import { shortcutterKey } from '@shortcutter/vue';
+import { createShortcutter } from 'shortcutter';
+
+app.provide(shortcutterKey, createShortcutter({ defaultContext: 'app' }));
+```
+
+```ts
+// or in a component's setup(), for its descendants
+import { provideShortcutter } from '@shortcutter/vue';
+
+provideShortcutter(createShortcutter({ target: editorElement }));
+```
+
+`useShortcutter()` returns the provided instance, or the shared one.
+
+## A modal with its own keys
+
+Give the modal a context and activate it while the modal is mounted. Shortcuts of the page stop working, the modal's start, and unmounting brings the previous contexts back:
+
+```vue
+<script setup lang="ts">
+import { useShortcut, useShortcutter } from '@shortcutter/vue';
+import { onMounted, onUnmounted } from 'vue';
+
+const emit = defineEmits<{ close: [] }>();
+const shortcutter = useShortcutter();
+let previous: string[] = [];
+
+onMounted(() => {
+  previous = shortcutter.contexts.active();
+  shortcutter.contexts.activate('modal');
+});
+onUnmounted(() => shortcutter.contexts.activate(...previous));
+
+useShortcut('Escape', () => emit('close'), { context: 'modal', ignoreInputs: false });
+</script>
+```
+
+To keep the page's shortcuts working under the modal, activate both: `activate('modal', ...previous)`. Handlers run in the order of the contexts, modal first.
+
+## Sequences
+
+`useSequence` registers a sequence such as <kbd>G</kbd> then <kbd>I</kbd>, from the optional `shortcutter/sequences` entry. The sequence and options may be refs or getters too:
+
+```ts
+import { useSequence } from '@shortcutter/vue';
+
+useSequence('G I', () => router.push('/inbox'), { description: 'Go to the inbox' });
+```
+
+Sequence code is only bundled when you use the composable.
+
+## Held keys
+
+`usePressedKeys()` returns a read-only ref with the keys held right now. It updates while the component is mounted and is empty during server rendering:
+
+```vue
+<script setup lang="ts">
+import { usePressedKeys } from '@shortcutter/vue';
+import { formatKeys } from 'shortcutter/format';
+import { computed } from 'vue';
+
+const pressed = usePressedKeys(); // e.g. ['k', 'shift']
+const labels = computed(() => formatKeys(pressed.value));
+const sprinting = computed(() => pressed.value.includes('shift'));
+</script>
+
+<template>
+  <p><kbd v-for="key in labels" :key="key">{{ key }}</kbd></p>
+</template>
+```
+
+## A help screen
+
+Every `description` is listed by `shortcuts()`, and `shortcutter/format` writes the keys the way the platform does. Read the list when the dialog opens, so it shows what works right now:
+
+```vue
+<script setup lang="ts">
+import { useShortcutter } from '@shortcutter/vue';
+import { formatKeys } from 'shortcutter/format';
+
+// Mount this component with v-if when the dialog opens.
+const shortcuts = useShortcutter()
+  .shortcuts({ active: true })
+  .filter((s) => s.description);
+</script>
+
+<template>
+  <dl>
+    <div v-for="s in shortcuts" :key="`${s.context}:${s.shortcut}`">
+      <dt><kbd v-for="key in formatKeys(s.keys)" :key="key">{{ key }}</kbd></dt>
+      <dd>{{ s.description }}</dd>
+    </div>
+  </dl>
+</template>
+```
+
+## Server rendering
+
+Shortcuts are registered and held keys tracked only after mount, which never happens on the server. Nothing listens during server rendering, so the composables are safe in Nuxt pages and components without `<ClientOnly>`.
+
+## Testing
+
+Provide an instance that listens on its own target and dispatch keyboard events to it:
+
+```ts
+const target = new EventTarget();
+const app = createApp(CommandPalette);
+
+app.provide(shortcutterKey, createShortcutter({ target, mac: false }));
+app.mount(document.createElement('div'));
+
+target.dispatchEvent(new KeyboardEvent('keydown', { code: 'ControlLeft', ctrlKey: true }));
+target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyK', ctrlKey: true }));
+```
+
+`mac: false` makes `ControlOrMeta` mean <kbd>Ctrl</kbd> whatever machine runs the tests. Set the modifier flags (`ctrlKey`, `shiftKey`, …) on the events, as browsers do.
+
+## API
+
+| Export                                      | What it does                                                                  |
+| ------------------------------------------- | ----------------------------------------------------------------------------- |
+| `useShortcut(shortcut, handler, options?)`  | Registers a shortcut while mounted. Shortcut and options may be refs/getters. |
+| `useSequence(sequence, handler, options?)`  | Registers a key sequence while mounted.                                       |
+| `usePressedKeys()`                          | A read-only ref with the keys held right now.                                 |
+| `useShortcutter()`                          | The provided instance, or the shared one on `window`.                         |
+| `provideShortcutter(shortcutter)`           | Provides an instance to descendants.                                          |
+| `shortcutterKey`                            | Injection key for `app.provide()`.                                            |
+
+Every option and type is in the [Vue API reference](/docs/frameworks/vue/api/readme/).

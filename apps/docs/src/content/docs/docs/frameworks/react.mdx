@@ -1,0 +1,195 @@
+---
+title: React
+description: Keyboard shortcuts in React with useShortcut, contexts for modals, sequences, held keys and a help screen.
+---
+
+import Playground from '../../../../components/demos/react/Playground.tsx';
+
+`@shortcutter/react` registers shortcuts for the lifetime of a component. It works with React 18 and 19, including StrictMode and server rendering.
+
+<Playground client:visible />
+
+## Install
+
+```sh
+pnpm add shortcutter @shortcutter/react
+```
+
+## Your first shortcut
+
+```tsx
+import { useShortcut } from '@shortcutter/react';
+import { useState } from 'react';
+
+function CommandPalette() {
+  const [open, setOpen] = useState(false);
+
+  useShortcut('ControlOrMeta+K', () => setOpen(true), {
+    preventDefault: true,
+    description: 'Open the command palette',
+  });
+  useShortcut('Escape', () => setOpen(false), { enabled: open, ignoreInputs: false });
+
+  return open ? <Palette /> : null;
+}
+```
+
+- The shortcut is registered after mount and removed on unmount. StrictMode's extra mount and unmount is handled.
+- The **latest** handler is always called, so it can read fresh state and does not need `useCallback`. Changing the handler does not register the shortcut again.
+- `enabled: false` removes the shortcut while keeping the component. Changing the shortcut string or any other option registers it again.
+- The options are the ones of [`listen()`](/docs/api/shortcutter/type-aliases/listenoptions/): `description`, `context`, `phases`, `ignoreInputs` and `preventDefault`.
+
+A shortcut written as a string literal is checked by TypeScript, so `useShortcut('Ctlr+K', …)` is a compile error naming the unknown key.
+
+## Your own instance
+
+Without a provider, the hooks share one instance listening on `window`. Provide your own to choose the target, the default context or the platform:
+
+```tsx
+import { ShortcutterProvider } from '@shortcutter/react';
+import { createShortcutter } from 'shortcutter';
+
+const shortcutter = createShortcutter({ defaultContext: 'app' });
+
+export function Root() {
+  return (
+    <ShortcutterProvider shortcutter={shortcutter}>
+      <App />
+    </ShortcutterProvider>
+  );
+}
+```
+
+Create it once, outside the component (or with `useState(() => createShortcutter())`), so every render gets the same instance. `useShortcutter()` returns the instance below a provider, or the shared one.
+
+## A modal with its own keys
+
+Give the modal a context and activate it while the modal is open. Shortcuts of the page stop working, the modal's start, and closing the modal brings the previous contexts back:
+
+```tsx
+import { useShortcut, useShortcutter } from '@shortcutter/react';
+import { useEffect } from 'react';
+
+function Modal({ onClose }: { onClose: () => void }) {
+  const shortcutter = useShortcutter();
+
+  useEffect(() => {
+    const previous = shortcutter.contexts.active();
+
+    shortcutter.contexts.activate('modal');
+    return () => shortcutter.contexts.activate(...previous);
+  }, [shortcutter]);
+
+  useShortcut('Escape', onClose, { context: 'modal', ignoreInputs: false });
+  useShortcut('ControlOrMeta+Enter', submit, { context: 'modal', ignoreInputs: false });
+  // …
+}
+```
+
+To keep the page's shortcuts working under the modal, activate both: `activate('modal', ...previous)`. Handlers run in the order of the contexts, modal first.
+
+## Sequences
+
+`useSequence` registers a sequence such as <kbd>G</kbd> then <kbd>I</kbd>, from the optional `shortcutter/sequences` entry. It takes the same options as `useShortcut` except `phases`:
+
+```tsx
+import { useSequence } from '@shortcutter/react';
+
+useSequence('G I', () => navigate('/inbox'), { description: 'Go to the inbox' });
+useSequence('G S', () => navigate('/settings'), { description: 'Go to settings' });
+```
+
+Sequence code is only bundled when you use the hook.
+
+## Held keys
+
+`usePressedKeys()` returns the keys held right now and re-renders when they change. It is built on `useSyncExternalStore`, returns the same array until the keys change, and an empty one during server rendering:
+
+```tsx
+import { usePressedKeys } from '@shortcutter/react';
+import { formatKeys } from 'shortcutter/format';
+
+function KeyOverlay() {
+  const pressed = usePressedKeys(); // e.g. ['k', 'shift']
+
+  return (
+    <p>
+      {formatKeys(pressed).map((key) => (
+        <kbd key={key}>{key}</kbd>
+      ))}
+    </p>
+  );
+}
+```
+
+For a game loop, read `useShortcutter().isPressed('Shift')` inside the frame callback instead: it does not re-render anything.
+
+## A help screen
+
+Every `description` is listed by `shortcuts()`, and `shortcutter/format` writes the keys the way the platform does. Read the list when the dialog opens, so it shows what works right now:
+
+```tsx
+import { useShortcutter } from '@shortcutter/react';
+import { formatKeys } from 'shortcutter/format';
+
+function HelpDialog() {
+  const shortcutter = useShortcutter();
+  const shortcuts = shortcutter.shortcuts({ active: true }).filter((s) => s.description);
+
+  return (
+    <dl>
+      {shortcuts.map(({ shortcut, context, keys, description }) => (
+        <div key={`${context}:${shortcut}`}>
+          <dt>
+            {formatKeys(keys).map((key) => (
+              <kbd key={key}>{key}</kbd>
+            ))}
+          </dt>
+          <dd>{description}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+// Render it only while open, e.g. {helpOpen && <HelpDialog />}, and open it with:
+useShortcut('Shift+Slash', () => setHelpOpen(true), { description: 'Show keyboard shortcuts' });
+```
+
+## Server rendering
+
+Hooks register in effects, which do not run on the server, so nothing listens during server rendering and `usePressedKeys()` is empty. In the Next.js App Router, components that use the hooks are client components: add `'use client'` at the top of their file.
+
+## Testing
+
+Provide an instance that listens on its own target and dispatch keyboard events to it:
+
+```tsx
+const target = new EventTarget();
+const shortcutter = createShortcutter({ target, mac: false });
+
+render(
+  <ShortcutterProvider shortcutter={shortcutter}>
+    <CommandPalette />
+  </ShortcutterProvider>,
+);
+
+act(() => {
+  target.dispatchEvent(new KeyboardEvent('keydown', { code: 'ControlLeft', ctrlKey: true }));
+  target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyK', ctrlKey: true }));
+});
+```
+
+`mac: false` makes `ControlOrMeta` mean <kbd>Ctrl</kbd> whatever machine runs the tests. Set the modifier flags (`ctrlKey`, `shiftKey`, …) on the events, as browsers do.
+
+## API
+
+| Export                                   | What it does                                                                     |
+| ---------------------------------------- | -------------------------------------------------------------------------------- |
+| `useShortcut(shortcut, handler, options?)` | Registers a shortcut while mounted. Options: `listen()` options and `enabled`.   |
+| `useSequence(sequence, handler, options?)` | Registers a key sequence while mounted.                                          |
+| `usePressedKeys()`                       | The keys held right now, re-rendering when they change.                          |
+| `useShortcutter()`                       | The provided instance, or the shared one on `window`.                            |
+| `<ShortcutterProvider shortcutter>`      | Makes an instance the one used by the hooks below it.                            |
+
+Every option and type is in the [React API reference](/docs/frameworks/react/api/readme/).

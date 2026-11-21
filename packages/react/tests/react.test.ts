@@ -2,7 +2,13 @@ import { act, createElement, StrictMode, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vite-plus/test';
 import { createShortcutter } from 'shortcutter';
-import { ShortcutterProvider, useSequence, useShortcut, useShortcutter } from '../src/index';
+import {
+  ShortcutterProvider,
+  usePressedKeys,
+  useSequence,
+  useShortcut,
+  useShortcutter,
+} from '../src/index';
 import { keyboard } from '../../core/tests/keyboard';
 
 beforeAll(() => {
@@ -142,6 +148,30 @@ describe('react adapter', () => {
     expect(seen).toBe(shortcutter);
   });
 
+  it('re-renders with the held keys', () => {
+    const { shortcutter, kb } = setup();
+    const renders: string[][] = [];
+    const App = () => {
+      renders.push(usePressedKeys());
+      return null;
+    };
+
+    render(createElement(ShortcutterProvider, { shortcutter }, createElement(App)));
+    act(() => void kb.down('ShiftLeft'));
+    act(() => void kb.down('KeyW'));
+    act(() => void kb.down('KeyW', { repeat: true })); // repeat: same keys, no re-render
+    act(() => void kb.up('KeyW'));
+    act(() => kb.blur());
+
+    expect(renders[renders.length - 1]).toEqual([]);
+    expect(renders.map((keys) => keys.join('+'))).toEqual(
+      expect.arrayContaining(['shift', 'shift+w']),
+    );
+    // Same snapshot while the keys stay the same (StrictMode renders twice).
+    const distinct = renders.filter((keys, i) => i === 0 || keys !== renders[i - 1]);
+    expect(distinct.map((keys) => keys.join('+'))).toEqual(['', 'shift', 'shift+w', 'shift', '']);
+  });
+
   it('falls back to a shared instance on window', () => {
     const handler = vi.fn();
     const App = () => {
@@ -154,5 +184,18 @@ describe('react adapter', () => {
     window.dispatchEvent(new KeyboardEvent('keyup', { code: 'F2' }));
 
     expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('type-checks literal shortcuts', () => {
+    const compileOnly = () => {
+      useShortcut('ControlOrMeta+K', () => {});
+      useSequence('G I', () => {});
+      // @ts-expect-error -- typo
+      useShortcut('Ctlr+K', () => {});
+      // @ts-expect-error -- typo in a step
+      useSequence('G Ctlr+I', () => {});
+    };
+
+    expect(compileOnly).toBeTypeOf('function');
   });
 });

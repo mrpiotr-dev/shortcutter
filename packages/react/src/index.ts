@@ -1,11 +1,26 @@
-import { createContext, createElement, useContext, useEffect, useRef, type ReactNode } from 'react';
+/**
+ * React hooks for shortcutter: shortcuts, sequences and held keys for the lifetime of a component.
+ *
+ * @packageDocumentation
+ * @module @shortcutter/react
+ */
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react';
 import {
   getDefaultShortcutter,
   getSequences,
   type UseSequenceOptions,
   type UseShortcutOptions,
 } from './shared';
-import type { ShortcutHandler, Shortcutter } from 'shortcutter';
+import type { SequenceString, ShortcutHandler, ShortcutString, Shortcutter } from 'shortcutter';
 import type { SequenceHandler } from 'shortcutter/sequences';
 
 export type { UseSequenceOptions, UseShortcutOptions } from './shared';
@@ -29,8 +44,8 @@ export function useShortcutter(): Shortcutter {
  * @example
  * useShortcut('ControlOrMeta+K', () => setOpen(true), { preventDefault: true });
  */
-export function useShortcut(
-  shortcut: string,
+export function useShortcut<S extends string>(
+  shortcut: ShortcutString<S>,
   handler: ShortcutHandler,
   options: UseShortcutOptions = {},
 ): void {
@@ -46,13 +61,17 @@ export function useShortcut(
   useEffect(() => {
     if (!enabled) return undefined;
 
-    return shortcutter.listen(shortcut, (event, detail) => latest.current(event, detail), {
-      description,
-      context,
-      phases,
-      ignoreInputs,
-      preventDefault,
-    });
+    return shortcutter.listen(
+      shortcut as string,
+      (event, detail) => latest.current(event, detail),
+      {
+        description,
+        context,
+        phases,
+        ignoreInputs,
+        preventDefault,
+      },
+    );
     // `phases` is tracked through `phaseKey`, so a new array with the same phases is not a change.
   }, [
     shortcutter,
@@ -73,8 +92,8 @@ export function useShortcut(
  * @example
  * useSequence('G I', () => navigate('/inbox'), { description: 'Go to the inbox' });
  */
-export function useSequence(
-  sequence: string,
+export function useSequence<S extends string>(
+  sequence: SequenceString<S>,
   handler: SequenceHandler,
   options: UseSequenceOptions = {},
 ): void {
@@ -90,7 +109,7 @@ export function useSequence(
     if (!enabled) return undefined;
 
     return getSequences(shortcutter).listen(
-      sequence,
+      sequence as string,
       (event, detail) => latest.current(event, detail),
       {
         description,
@@ -100,4 +119,35 @@ export function useSequence(
       },
     );
   }, [shortcutter, sequence, enabled, description, context, ignoreInputs, preventDefault]);
+}
+
+const NONE: string[] = [];
+
+/**
+ * The keys held right now (sorted canonical names, e.g. `['k', 'shift']`), re-rendering when they
+ * change. Empty during server rendering.
+ *
+ * @example
+ * const pressed = usePressedKeys();
+ * const sprinting = pressed.includes('shift');
+ */
+export function usePressedKeys(): string[] {
+  const shortcutter = useShortcutter();
+  const snapshot = useRef<string[]>(NONE);
+
+  const subscribe = useCallback(
+    (onChange: () => void) => shortcutter.subscribe(() => onChange()),
+    [shortcutter],
+  );
+  // useSyncExternalStore needs the same array until the keys change.
+  const getSnapshot = () => {
+    const keys = shortcutter.pressed();
+
+    if (keys.join('+') !== snapshot.current.join('+')) {
+      snapshot.current = keys.length === 0 ? NONE : keys;
+    }
+    return snapshot.current;
+  };
+
+  return useSyncExternalStore(subscribe, getSnapshot, () => NONE);
 }

@@ -1,0 +1,196 @@
+---
+title: Solid
+description: Keyboard shortcuts in Solid with createShortcut, accessors, contexts for modals, sequences, held keys and a help screen.
+---
+
+import Playground from '../../../../components/demos/solid/Playground.tsx';
+
+`@shortcutter/solid` registers shortcuts for the lifetime of the current owner: a component, or any root. It works with Solid 1.8 and later, and with server rendering (SolidStart included).
+
+<Playground client:visible />
+
+## Install
+
+```sh
+pnpm add shortcutter @shortcutter/solid
+```
+
+## Your first shortcut
+
+```tsx
+import { createShortcut } from '@shortcutter/solid';
+import { createSignal, Show } from 'solid-js';
+
+function CommandPalette() {
+  const [open, setOpen] = createSignal(false);
+
+  createShortcut('ControlOrMeta+K', () => setOpen(true), {
+    preventDefault: true,
+    description: 'Open the command palette',
+  });
+  createShortcut('Escape', () => setOpen(false), () => ({
+    enabled: open(),
+    ignoreInputs: false,
+  }));
+
+  return (
+    <Show when={open()}>
+      <Palette />
+    </Show>
+  );
+}
+```
+
+- The shortcut is registered in an effect and removed when the owner is disposed.
+- The shortcut and the options may be values or **accessors**. When an accessor changes, the shortcut is registered again, so `() => ({ enabled: open() })` follows `open`.
+- `enabled: false` removes the shortcut while keeping the component.
+- The options are the ones of [`listen()`](/docs/api/shortcutter/type-aliases/listenoptions/): `description`, `context`, `phases`, `ignoreInputs` and `preventDefault`.
+
+A shortcut written as a string literal is checked by TypeScript, so `createShortcut('Ctlr+K', …)` is a compile error naming the unknown key. Accessors return a `string` and are not checked.
+
+## Your own instance
+
+Without a provider, the primitives share one instance listening on `window`. Provide your own with the context:
+
+```tsx
+import { ShortcutterContext } from '@shortcutter/solid';
+import { createShortcutter } from 'shortcutter';
+
+const shortcutter = createShortcutter({ defaultContext: 'app' });
+
+export function Root() {
+  return (
+    <ShortcutterContext.Provider value={shortcutter}>
+      <App />
+    </ShortcutterContext.Provider>
+  );
+}
+```
+
+`useShortcutter()` returns the provided instance, or the shared one.
+
+## A modal with its own keys
+
+Give the modal a context and activate it while the modal is mounted. Shortcuts of the page stop working, the modal's start, and disposing the modal brings the previous contexts back:
+
+```tsx
+import { createShortcut, useShortcutter } from '@shortcutter/solid';
+import { onCleanup, onMount } from 'solid-js';
+
+function Modal(props: { onClose: () => void }) {
+  const shortcutter = useShortcutter();
+
+  onMount(() => {
+    const previous = shortcutter.contexts.active();
+
+    shortcutter.contexts.activate('modal');
+    onCleanup(() => shortcutter.contexts.activate(...previous));
+  });
+
+  createShortcut('Escape', () => props.onClose(), { context: 'modal', ignoreInputs: false });
+  // …
+}
+```
+
+To keep the page's shortcuts working under the modal, activate both: `activate('modal', ...previous)`. Handlers run in the order of the contexts, modal first.
+
+## Sequences
+
+`createSequence` registers a sequence such as <kbd>G</kbd> then <kbd>I</kbd>, from the optional `shortcutter/sequences` entry. The sequence and options may be accessors too:
+
+```tsx
+import { createSequence } from '@shortcutter/solid';
+
+createSequence('G I', () => navigate('/inbox'), { description: 'Go to the inbox' });
+```
+
+Sequence code is only bundled when you use it.
+
+## Held keys
+
+`createPressedKeys()` returns an accessor with the keys held right now. It starts tracking on mount and stops when the owner is disposed:
+
+```tsx
+import { createPressedKeys } from '@shortcutter/solid';
+import { formatKeys } from 'shortcutter/format';
+import { For } from 'solid-js';
+
+function KeyOverlay() {
+  const pressed = createPressedKeys(); // e.g. ['k', 'shift']
+  const sprinting = () => pressed().includes('shift');
+
+  return (
+    <p>
+      <For each={formatKeys(pressed())}>{(key) => <kbd>{key}</kbd>}</For>
+    </p>
+  );
+}
+```
+
+## A help screen
+
+Every `description` is listed by `shortcuts()`, and `shortcutter/format` writes the keys the way the platform does. Read the list when the dialog opens, so it shows what works right now:
+
+```tsx
+import { useShortcutter } from '@shortcutter/solid';
+import { formatKeys } from 'shortcutter/format';
+import { For } from 'solid-js';
+
+// Render it inside <Show when={helpOpen()}>.
+function HelpDialog() {
+  const shortcuts = useShortcutter()
+    .shortcuts({ active: true })
+    .filter((s) => s.description);
+
+  return (
+    <dl>
+      <For each={shortcuts}>
+        {(s) => (
+          <div>
+            <dt>
+              <For each={formatKeys(s.keys)}>{(key) => <kbd>{key}</kbd>}</For>
+            </dt>
+            <dd>{s.description}</dd>
+          </div>
+        )}
+      </For>
+    </dl>
+  );
+}
+```
+
+## Server rendering
+
+Effects and `onMount` do not run on the server, so nothing listens during server rendering and `createPressedKeys()` stays empty. The primitives are safe in SolidStart routes as they are.
+
+## Testing
+
+Provide an instance that listens on its own target and dispatch keyboard events to it:
+
+```tsx
+const target = new EventTarget();
+const shortcutter = createShortcutter({ target, mac: false });
+
+render(() => (
+  <ShortcutterContext.Provider value={shortcutter}>
+    <CommandPalette />
+  </ShortcutterContext.Provider>
+));
+
+target.dispatchEvent(new KeyboardEvent('keydown', { code: 'ControlLeft', ctrlKey: true }));
+target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyK', ctrlKey: true }));
+```
+
+`mac: false` makes `ControlOrMeta` mean <kbd>Ctrl</kbd> whatever machine runs the tests. Set the modifier flags (`ctrlKey`, `shiftKey`, …) on the events, as browsers do.
+
+## API
+
+| Export                                        | What it does                                                               |
+| --------------------------------------------- | -------------------------------------------------------------------------- |
+| `createShortcut(shortcut, handler, options?)` | Registers a shortcut for the owner's lifetime. Values or accessors.        |
+| `createSequence(sequence, handler, options?)` | Registers a key sequence for the owner's lifetime.                         |
+| `createPressedKeys()`                         | An accessor with the keys held right now.                                  |
+| `useShortcutter()`                            | The provided instance, or the shared one on `window`.                      |
+| `ShortcutterContext`                          | `<ShortcutterContext.Provider value={shortcutter}>` provides an instance.  |
+
+Every option and type is in the [Solid API reference](/docs/frameworks/solid/api/readme/).

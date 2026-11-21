@@ -168,3 +168,56 @@ h3,
 header.header {
   border-bottom: var(--sc-border) solid var(--sl-color-white);
 }
+
+/*
+ * Live demo on the framework pages: a counter and the keys held right now. Its root has the
+ * `not-content` class, so Starlight's spacing between content elements does not move the keycaps.
+ */
+.fw-demo {
+  display: grid;
+  place-content: center;
+  gap: 0.5rem;
+  min-height: 12rem;
+  padding: 1rem;
+  border: var(--sc-border) solid var(--sl-color-gray-5);
+  background: var(--sl-color-gray-6);
+  text-align: center;
+}
+
+.fw-demo output {
+  font: 600 4.5rem/1 var(--sl-font);
+  color: var(--sc-red);
+}
+
+.fw-demo p {
+  margin: 0;
+  color: var(--sl-color-gray-2);
+}
+
+/* One keycap size for the hint and the held keys, whatever the glyph (⇧ comes from a fallback font). */
+.fw-demo kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 1.9em;
+  min-width: 1.9em;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* Taller than a keycap, so holding keys never changes the demo's height. */
+.fw-demo-held {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+}
+
+/* Held keys look pressed: red, with a thin bottom edge, at the same outer size. */
+.fw-demo-held kbd {
+  border-bottom-width: var(--sc-border);
+  background: var(--sc-red);
+  color: #ffffff;
+}

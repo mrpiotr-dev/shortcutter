@@ -6,8 +6,9 @@ const pack = libraryPack(pkg);
 
 export default defineConfig({
   pack: [
-    // shortcutter/sequences is an optional entry: apps that do not import it do not ship it.
-    { ...pack, entry: ['src/index.ts', 'src/sequences.ts'] },
+    // shortcutter/sequences and shortcutter/format are optional entries: apps that do not import
+    // them do not ship them, and the core <script> build stays small.
+    { ...pack, entry: ['src/index.ts', 'src/sequences.ts', 'src/format.ts'] },
     {
       ...pack,
       // Minified <script>-tag build for CDNs: window.Shortcutter
@@ -25,6 +26,18 @@ export default defineConfig({
       entry: ['src/sequences.ts'],
       format: ['iife'],
       globalName: 'ShortcutterSequences',
+      minify: true,
+      dts: false,
+      exports: false,
+      publint: false,
+      attw: false,
+    },
+    {
+      ...pack,
+      // <script>-tag build of the optional format entry: window.ShortcutterFormat
+      entry: ['src/format.ts'],
+      format: ['iife'],
+      globalName: 'ShortcutterFormat',
       minify: true,
       dts: false,
       exports: false,

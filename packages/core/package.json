@@ -39,6 +39,10 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./format": {
+      "import": "./dist/format.js",
+      "require": "./dist/format.cjs"
+    },
     "./sequences": {
       "import": "./dist/sequences.js",
       "require": "./dist/sequences.cjs"
