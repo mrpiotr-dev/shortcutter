@@ -64,7 +64,11 @@ export default defineConfig({
         starlightChangelogs(),
         // API reference generated from the TSDoc comments of the core package.
         starlightTypeDoc({
-          entryPoints: ['../../packages/core/src/index.ts', '../../packages/core/src/sequences.ts'],
+          entryPoints: [
+            '../../packages/core/src/index.ts',
+            '../../packages/core/src/sequences.ts',
+            '../../packages/core/src/format.ts',
+          ],
           tsconfig: '../../packages/core/tsconfig.build.json',
           output: 'docs/api',
           sidebar: { label: 'API reference', collapsed: false },
