@@ -80,7 +80,14 @@ Every pull request that changes a published package adds a changeset (`pnpm chan
 To release:
 
 1. Branch `release/vX.Y.Z` from `develop` and run `pnpm run version-packages`. It bumps the versions, writes `CHANGELOG.md` in every package and removes the used changesets. Commit and merge it into `develop`.
-2. Open a pull request from `develop` into `main` and merge it with a merge commit. That runs the Release workflow: it builds, publishes the new versions to npm with provenance (npm Trusted Publishing, no token), pushes a git tag per package (`shortcutter@X.Y.Z`, `@shortcutter/react@X.Y.Z`, …) and creates a GitHub release with the changelog.
+2. Open a pull request from `develop` into `main` and merge it with a merge commit. That runs the Release workflow, which builds the packages and **stages** every version that is not on npm yet, with provenance (npm Trusted Publishing with the "stage publish" permission, no token). Staged versions are not public: CI alone can never publish.
+3. Make them public from your machine, logged in to npm (`pnpm login`), with a one-time password:
+
+   ```sh
+   pnpm stage approve   # pick the staged versions; approves them in dependency order with one 2FA code
+   ```
+
+4. Run `gh workflow run release.yml` (or "Run workflow" on the Release workflow in GitHub). It pushes a git tag for every public version without one (`shortcutter@X.Y.Z`, `@shortcutter/react@X.Y.Z`, …) and creates the GitHub release from the changelog.
 
 Every change reaches `main` through `develop`, so nothing has to be merged back. `main` only gains merge commits, which change no files. The exception is a hotfix: branch it from `main`, merge it into `main`, then merge `main` into `develop`.
 

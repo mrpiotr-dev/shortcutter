@@ -11,7 +11,7 @@
     "prepare": "vp config",
     "changeset": "changeset",
     "version-packages": "changeset version && vp fmt",
-    "release": "vp run -r build && changeset publish"
+    "release": "vp run -r build && pnpm -r stage publish --access public --no-git-checks"
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
