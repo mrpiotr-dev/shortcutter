@@ -23,6 +23,47 @@ pnpm run test         # unit tests
 pnpm run build        # library build (+ publint, attw) and playground build
 ```
 
+## Documentation
+
+The site at www.shortcutter.dev lives in `apps/docs/` (Astro + Starlight). It imports the built packages, so build them once before starting it, and again after changing a package:
+
+```sh
+pnpm run build                  # packages first: the docs use their dist/ and type declarations
+pnpm --filter docs run dev      # http://localhost:4321/, reloads on content changes
+pnpm --filter docs run build    # full static build into apps/docs/dist/, the same as CI
+```
+
+### Where things are
+
+| Path in `apps/docs/`                              | What                                                                           |
+| ------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `src/content/docs/docs/`                          | the docs pages (`.mdx`): getting started, `guides/`, `frameworks/`, comparison |
+| `astro.config.mjs`                                | sidebar, API reference, llms.txt and changelog setup                           |
+| `src/pages/index.astro`, `src/scripts/landing.ts` | the landing page and its interactive demos                                     |
+| `src/components/demos/{react,vue,svelte,solid}/`  | live framework islands, used by the landing and the framework pages            |
+| `src/styles/theme.css`, `src/code-themes.mjs`     | Bauhaus theme and code-block colours                                           |
+
+### Adding or changing a page
+
+- Write pages in MDX under `src/content/docs/docs/`. A new page also needs an entry in `sidebar` in `astro.config.mjs`.
+- Keep the root `README.md` in step with the docs: it is the npm page of `shortcutter`. Each adapter's `README.md` is its npm page and links to its framework guide.
+- Write shortcuts the way the API takes them (`'ControlOrMeta+K'`) in code, and as keycaps in text: `<kbd>⌘</kbd> + <kbd>K</kbd>`.
+- The formatter skips `.mdx` (it breaks code fences inside components), so format code in MDX by hand, in the repository style.
+- Code blocks use the themes in `src/code-themes.mjs`. Keep every token colour at 5.5:1 contrast or more on its background, in both themes.
+- A live demo is a framework component in `src/components/demos/<framework>/`, used in MDX with `client:visible`. React and Solid both use JSX, so each one's components must stay in its own folder: the integrations pick files by folder.
+
+### Generated pages
+
+These are generated during the build and are not committed (see `apps/docs/.gitignore`), so change their source instead:
+
+- **API reference** (`/docs/api/` for the core, `/docs/frameworks/<framework>/api/` for each adapter): built by TypeDoc from the TSDoc comments in `packages/*/src/`. Document every export there, with an `@example` where it helps.
+- **Changelog** (`/docs/changelog/`): built from `packages/core/CHANGELOG.md`, which Changesets writes.
+- **`/llms.txt`, `/llms-full.txt`, `/llms-small.txt`**: built from the page sources.
+
+### Deployment
+
+Cloudflare Workers Builds deploys `main` to www.shortcutter.dev and uploads a preview version for every other branch. Setup and URL rules are in [`apps/docs/README.md`](apps/docs/README.md).
+
 ## Branches
 
 - `main`: released code only. Pull requests come from `develop`, `release/*` or `hotfix/*` and are merged with a merge commit.

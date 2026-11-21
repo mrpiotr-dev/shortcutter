@@ -7,8 +7,41 @@ import vue from '@astrojs/vue';
 import { defineConfig } from 'astro/config';
 import starlightChangelogs, { makeChangelogsSidebarLinks } from 'starlight-changelogs';
 import starlightLlmsTxt from 'starlight-llms-txt';
-import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc';
+import starlightTypeDoc, {
+  createStarlightTypeDocPlugin,
+  typeDocSidebarGroup,
+} from 'starlight-typedoc';
 import { bauhausInk, bauhausPaper } from './src/code-themes.mjs';
+
+const ADAPTERS = [
+  { name: 'react', label: 'React' },
+  { name: 'vue', label: 'Vue' },
+  { name: 'svelte', label: 'Svelte' },
+  { name: 'solid', label: 'Solid' },
+];
+
+// One API reference per adapter, next to its framework guide: /docs/frameworks/react/api/, …
+const adapterApis = ADAPTERS.map(({ name, label }) => {
+  const [plugin, sidebarGroup] = createStarlightTypeDocPlugin();
+
+  return {
+    name,
+    label,
+    sidebarGroup,
+    plugin: plugin({
+      entryPoints: [`../../packages/${name}/src/index.ts`],
+      tsconfig: `../../packages/${name}/tsconfig.build.json`,
+      output: `docs/frameworks/${name}/api`,
+      sidebar: { label: 'API reference', collapsed: true },
+      typeDoc: {
+        excludePrivate: true,
+        excludeInternal: true,
+        readme: 'none',
+        gitRevision: 'main',
+      },
+    }),
+  };
+});
 
 // Telemetry is disabled with ASTRO_TELEMETRY_DISABLED=1 in the package scripts (Astro has no config option).
 export default defineConfig({
@@ -80,9 +113,12 @@ export default defineConfig({
             gitRevision: 'main',
           },
         }),
+        ...adapterApis.map(({ plugin }) => plugin),
         // /llms.txt, /llms-full.txt and /llms-small.txt for AI assistants.
         starlightLlmsTxt({
           projectName: 'shortcutter',
+          // Page sources as written: the plugin cannot render the React/Vue/Svelte/Solid demo islands.
+          rawContent: true,
           description:
             'Tiny, dependency-free keyboard shortcuts for the browser with contexts, key phases, wildcards, sequences and self-documenting shortcuts. Adapters for React, Vue, Svelte and Solid.',
         }),
@@ -96,6 +132,14 @@ export default defineConfig({
             { slug: 'docs/guides/apps' },
             { slug: 'docs/guides/websites' },
           ],
+        },
+        {
+          label: 'Frameworks',
+          items: adapterApis.map(({ name, label, sidebarGroup }) => ({
+            label,
+            collapsed: true,
+            items: [{ label: 'Guide', slug: `docs/frameworks/${name}` }, sidebarGroup],
+          })),
         },
         { label: 'Comparison', slug: 'docs/comparison' },
         {

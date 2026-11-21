@@ -168,3 +168,39 @@ h3,
 header.header {
   border-bottom: var(--sc-border) solid var(--sl-color-white);
 }
+
+/* Live demo on the framework pages: a counter and the keys held right now. */
+.fw-demo {
+  display: grid;
+  place-content: center;
+  gap: 0.5rem;
+  min-height: 12rem;
+  padding: 1rem;
+  border: var(--sc-border) solid var(--sl-color-gray-5);
+  background: var(--sl-color-gray-6);
+  text-align: center;
+}
+
+.fw-demo output {
+  font: 600 4.5rem/1 var(--sl-font);
+  color: var(--sc-red);
+}
+
+.fw-demo p {
+  margin: 0;
+  color: var(--sl-color-gray-2);
+}
+
+.fw-demo-held {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+}
+
+/* Held keys look pressed. */
+.fw-demo-held kbd {
+  border-bottom-width: var(--sc-border);
+  background: var(--sc-red);
+  color: #ffffff;
+}
