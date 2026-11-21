@@ -4,6 +4,7 @@ import { createShortcutter } from 'shortcutter';
 import {
   provideShortcutter,
   shortcutterKey,
+  usePressedKeys,
   useSequence,
   useShortcut,
   useShortcutter,
@@ -91,5 +92,40 @@ describe('vue adapter', () => {
     app.mount(document.createElement('div'));
 
     expect(seen).toBe(shortcutter);
+  });
+  it('exposes the held keys as a ref, and stops on unmount', () => {
+    let pressed: ReturnType<typeof usePressedKeys> | undefined;
+    const { kb } = mount(() => {
+      pressed = usePressedKeys();
+    });
+
+    expect(pressed!.value).toEqual([]);
+    kb.down('ShiftLeft');
+    kb.down('KeyW');
+    expect(pressed!.value).toEqual(['shift', 'w']);
+    kb.up('KeyW');
+    expect(pressed!.value).toEqual(['shift']);
+
+    app!.unmount();
+    app = undefined;
+    kb.up('ShiftLeft');
+    expect(pressed!.value).toEqual(['shift']);
+  });
+
+  it('type-checks literal shortcuts and accepts refs', () => {
+    const compileOnly = () => {
+      useShortcut('ControlOrMeta+K', () => {});
+      useShortcut(ref('Control+/'), () => {}); // refs are not checked
+      useSequence(
+        () => 'G I',
+        () => {},
+      );
+      // @ts-expect-error -- typo
+      useShortcut('Ctlr+K', () => {});
+      // @ts-expect-error -- typo in a step
+      useSequence('G Ctlr+I', () => {});
+    };
+
+    expect(compileOnly).toBeTypeOf('function');
   });
 });

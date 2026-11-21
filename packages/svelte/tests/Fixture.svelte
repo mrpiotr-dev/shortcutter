@@ -1,7 +1,14 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import type { Shortcutter } from 'shortcutter';
-  import { sequence, setShortcutter, shortcut, useSequence, useShortcut } from '../src/index';
+  import {
+    sequence,
+    setShortcutter,
+    shortcut,
+    usePressedKeys,
+    useSequence,
+    useShortcut,
+  } from '../src/index';
 
   let {
     shortcutter,
@@ -23,6 +30,8 @@
   setShortcutter(untrack(() => shortcutter));
   useShortcut('Control+K', () => onmount());
   useSequence('G I', () => onsequence());
+
+  const pressed = usePressedKeys();
 </script>
 
 {#if showAttached}
@@ -31,3 +40,5 @@
     {@attach sequence('G O', onsequence, { shortcutter })}
   ></div>
 {/if}
+
+<output>{pressed.current.join('+')}</output>

@@ -1,7 +1,13 @@
 import { createComponent, createRoot, createSignal } from 'solid-js';
 import { describe, expect, it, vi } from 'vite-plus/test';
 import { createShortcutter } from 'shortcutter';
-import { createSequence, createShortcut, ShortcutterContext, useShortcutter } from '../src/index';
+import {
+  createPressedKeys,
+  createSequence,
+  createShortcut,
+  ShortcutterContext,
+  useShortcutter,
+} from '../src/index';
 import { keyboard } from '../../core/tests/keyboard';
 
 function setup() {
@@ -85,5 +91,39 @@ describe('solid adapter', () => {
     withProvider(shortcutter, () => (seen = useShortcutter()))();
 
     expect(seen).toBe(shortcutter);
+  });
+
+  it('exposes the held keys as an accessor until disposed', () => {
+    const { shortcutter, kb } = setup();
+    let pressed: (() => string[]) | undefined;
+    const dispose = withProvider(shortcutter, () => {
+      pressed = createPressedKeys();
+    });
+
+    expect(pressed!()).toEqual([]);
+    kb.down('ShiftLeft');
+    kb.down('KeyW');
+    expect(pressed!()).toEqual(['shift', 'w']);
+
+    dispose();
+    kb.up('KeyW');
+    expect(pressed!()).toEqual(['shift', 'w']);
+  });
+
+  it('type-checks literal shortcuts and accepts accessors', () => {
+    const compileOnly = () => {
+      createShortcut('ControlOrMeta+K', () => {});
+      createShortcut(
+        () => 'Control+/',
+        () => {},
+      ); // accessors are not checked
+      createSequence('G I', () => {});
+      // @ts-expect-error -- typo
+      createShortcut('Ctlr+K', () => {});
+      // @ts-expect-error -- typo in a step
+      createSequence('G Ctlr+I', () => {});
+    };
+
+    expect(compileOnly).toBeTypeOf('function');
   });
 });

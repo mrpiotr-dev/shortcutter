@@ -1,4 +1,12 @@
-import { createContext, createEffect, onCleanup, useContext, type Accessor } from 'solid-js';
+import {
+  createContext,
+  createEffect,
+  createSignal,
+  onCleanup,
+  onMount,
+  useContext,
+  type Accessor,
+} from 'solid-js';
 import {
   getDefaultShortcutter,
   getSequences,
@@ -7,7 +15,7 @@ import {
   type UseSequenceOptions,
   type UseShortcutOptions,
 } from './shared';
-import type { ShortcutHandler, Shortcutter } from 'shortcutter';
+import type { SequenceString, ShortcutHandler, ShortcutString, Shortcutter } from 'shortcutter';
 import type { SequenceHandler } from 'shortcutter/sequences';
 
 export type { UseSequenceOptions, UseShortcutOptions } from './shared';
@@ -27,8 +35,8 @@ export function useShortcutter(): Shortcutter {
  * @example
  * createShortcut('ControlOrMeta+K', () => setOpen(true), { preventDefault: true });
  */
-export function createShortcut(
-  shortcut: string | Accessor<string>,
+export function createShortcut<S extends string>(
+  shortcut: ShortcutString<S> | Accessor<string>,
   handler: ShortcutHandler,
   options: UseShortcutOptions | Accessor<UseShortcutOptions> = {},
 ): void {
@@ -41,7 +49,7 @@ export function createShortcut(
     if (opts.enabled === false) return;
 
     const off = shortcutter.listen(
-      typeof shortcut === 'function' ? shortcut() : shortcut,
+      typeof shortcut === 'function' ? shortcut() : (shortcut as string),
       handler,
       toListenOptions(opts),
     );
@@ -57,8 +65,8 @@ export function createShortcut(
  * @example
  * createSequence('G I', () => navigate('/inbox'), { description: 'Go to the inbox' });
  */
-export function createSequence(
-  sequence: string | Accessor<string>,
+export function createSequence<S extends string>(
+  sequence: SequenceString<S> | Accessor<string>,
   handler: SequenceHandler,
   options: UseSequenceOptions | Accessor<UseSequenceOptions> = {},
 ): void {
@@ -70,11 +78,32 @@ export function createSequence(
     if (opts.enabled === false) return;
 
     const off = getSequences(shortcutter).listen(
-      typeof sequence === 'function' ? sequence() : sequence,
+      typeof sequence === 'function' ? sequence() : (sequence as string),
       handler,
       toSequenceOptions(opts),
     );
 
     onCleanup(off);
   });
+}
+
+/**
+ * The keys held right now (sorted canonical names, e.g. `['k', 'shift']`) as an accessor, updated
+ * for the lifetime of the current owner. Empty during server rendering.
+ *
+ * @example
+ * const pressed = createPressedKeys();
+ * const sprinting = () => pressed().includes('shift');
+ */
+export function createPressedKeys(): Accessor<string[]> {
+  const shortcutter = useShortcutter();
+  const [keys, setKeys] = createSignal<string[]>([]);
+
+  // onMount does not run during server rendering.
+  onMount(() => {
+    setKeys(shortcutter.pressed());
+    onCleanup(shortcutter.subscribe((pressed) => setKeys(pressed)));
+  });
+
+  return keys;
 }
