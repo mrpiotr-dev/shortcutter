@@ -103,7 +103,8 @@ function label(key: string, mac: boolean, labels: Record<string, string> | undef
  * One display label per key of a shortcut, modifiers first in the platform's order, e.g. for
  * rendering each key in a `<kbd>`: `['⌘', 'K']` on macOS, `['Ctrl', 'K']` elsewhere.
  *
- * Takes a shortcut string (`'ControlOrMeta+Shift+K'`) or the `keys` of a `shortcuts()` entry.
+ * Takes a shortcut string (`'ControlOrMeta+Shift+K'`) or a list of keys: the `keys` of a
+ * `shortcuts()` entry, or `pressed()`. An empty list gives an empty list.
  *
  * @example
  * formatKeys('ControlOrMeta+Shift+K'); // ['⌘', '⇧', 'K'] on macOS, ['Ctrl', 'Shift', 'K'] elsewhere
@@ -112,6 +113,9 @@ export function formatKeys<S extends string>(
   shortcut: ShortcutString<S> | readonly string[],
   options: FormatOptions = {},
 ): string[] {
+  // No keys, e.g. pressed() while nothing is held: nothing to label. An empty string still throws.
+  if (typeof shortcut !== 'string' && shortcut.length === 0) return [];
+
   const mac = options.mac ?? detectMac();
   const text: string = typeof shortcut === 'string' ? shortcut : shortcut.join('+');
   const keys = parseShortcutKeys(text, mac);

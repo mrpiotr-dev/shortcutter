@@ -63,6 +63,11 @@ describe('formatShortcut', () => {
     expect(formatShortcut('ControlOrMeta+K', { mac: true, separator: ' ' })).toBe('⌘ K');
   });
 
+  it('formats an empty key list, e.g. pressed() with nothing held, as nothing', () => {
+    expect(formatKeys([], mac)).toEqual([]);
+    expect(formatShortcut([], other)).toBe('');
+  });
+
   it('throws on an invalid shortcut, like listen()', () => {
     // @ts-expect-error -- runtime guard for JS users
     expect(() => formatShortcut('', other)).toThrow();
