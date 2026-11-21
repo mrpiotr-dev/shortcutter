@@ -1,13 +1,18 @@
 name: Release
 
-# Runs when develop (or a hotfix/* branch) is merged into main. The version bump and changelog
-# were made earlier with `pnpm run version-packages` on a release/* branch merged into develop, so
-# here Changesets only publishes the versions that are not on npm yet, pushes their git tags and
-# creates a GitHub release for each.
+# Staged releases: CI can upload a release to npm but never make it public on its own.
+#
+# 1. Merging develop (or a hotfix/* branch) into main stages every package version that is not on
+#    npm yet, through npm Trusted Publishing (OIDC, "stage publish" permission) with provenance.
+#    The versions and changelogs were made earlier with `pnpm run version-packages`.
+# 2. A maintainer makes them public with `pnpm stage approve`, confirmed with 2FA.
+# 3. Running this workflow by hand (`gh workflow run release.yml`) then pushes a git tag for every
+#    published version that has none and creates the GitHub release.
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write # git tags and GitHub releases
@@ -18,12 +23,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
+  stage:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - uses: voidzero-dev/setup-vp@v1.22.0
         with:
@@ -32,14 +36,22 @@ jobs:
           cache: true
           run-install: true
 
-      # pnpm (pinned in package.json) publishes itself: it exchanges the GitHub OIDC token for npm
-      # Trusted Publishing and adds provenance, so no npm token and no npm upgrade are needed.
-      - name: Publish
-        uses: changesets/action@v2.1.2
+      # Versions already on npm are skipped, and private packages (docs, playground) are never sent.
+      - name: Stage new versions on npm
+        run: pnpm run release
+
+      - name: Summary
+        run: node scripts/release.mjs summary >> "$GITHUB_STEP_SUMMARY"
+
+  tag:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
         with:
-          publish-script: pnpm run release
-          create-github-releases: true
-          push-git-tags: true
+          fetch-depth: 0
+
+      - name: Tag published versions and create the GitHub release
+        run: node scripts/release.mjs tag
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: 'true'
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
