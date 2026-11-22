@@ -28,6 +28,10 @@ updates:
       - dependency-name: vite-plus
       - dependency-name: vite
       - dependency-name: '@vitest/coverage-v8'
+      # The docs app pins TypeScript 6: TypeDoc (API reference) needs the TypeScript JS API, which
+      # TypeScript 7 does not provide yet. The packages already build with TypeScript 7.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
       # A new framework major needs adapter work and a release note, so it is planned, not bumped.
       - dependency-name: react
         update-types: ['version-update:semver-major']
