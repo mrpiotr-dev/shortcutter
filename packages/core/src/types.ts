@@ -58,6 +58,16 @@ export type ShortcutterOptions = {
   preventDefault?: boolean;
   /** Treat the platform as macOS (`ControlOrMeta` = Meta). Detected from `navigator` by default. */
   mac?: boolean;
+  /**
+   * How a pressed key is matched to the keys of a shortcut:
+   * - `'code'` (default): the **physical** key (`KeyboardEvent.code`). `W` `A` `S` `D` stay in the same
+   *   place on every layout, which suits games and position-based controls.
+   * - `'key'`: the **printed** letter (`KeyboardEvent.key`). `Control+Z` follows the key labelled Z on
+   *   QWERTZ and AZERTY too, like the browser's own shortcuts. Keys that print no Latin letter (digits,
+   *   punctuation, a Cyrillic or Greek layout) keep their physical name, so `Control+C` still works
+   *   on a Russian layout.
+   */
+  match?: 'code' | 'key';
 };
 
 export type ListenOptions = {
