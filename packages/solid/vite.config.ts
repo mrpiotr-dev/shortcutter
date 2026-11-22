@@ -9,6 +9,7 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     server: { deps: { inline: [/solid-js/] } },
-    coverage: { provider: 'v8', include: ['src/**/*.ts'] },
+    // json-summary feeds the coverage badge on shortcutter.dev (apps/docs/src/pages/badges/coverage.json.ts).
+    coverage: { provider: 'v8', include: ['src/**/*.ts'], reporter: ['text', 'json-summary'] },
   },
 });

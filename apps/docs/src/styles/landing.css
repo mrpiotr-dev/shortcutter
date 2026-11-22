@@ -98,6 +98,27 @@ code {
   border-bottom: var(--border) solid var(--line);
 }
 
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.version {
+  padding: 0.1rem 0.45rem;
+  border: var(--border) solid var(--line);
+  color: var(--fg-2);
+  font: 0.8rem var(--mono);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.version:hover {
+  border-color: var(--cobalt);
+  color: var(--cobalt);
+}
+
 .brand {
   display: inline-flex;
   align-items: center;

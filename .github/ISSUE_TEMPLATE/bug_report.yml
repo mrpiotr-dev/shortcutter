@@ -1,0 +1,52 @@
+name: Bug report
+description: A shortcut fires when it shouldn't, doesn't fire, or something else is broken.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! For security issues, please use [private vulnerability reporting](https://github.com/mrpiotr-dev/shortcutter/security/advisories/new) instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The shortcut(s) you registered, the keys you pressed, and a minimal code sample or a link to a reproduction (StackBlitz, CodeSandbox, a repo).
+      render: ts
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Package and version
+      placeholder: shortcutter 0.4.0, @shortcutter/react 0.4.0
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Chrome 140 on macOS 26, Firefox 145 on Windows 11
+    validations:
+      required: true
+  - type: input
+    id: layout
+    attributes:
+      label: Keyboard layout
+      description: Shortcuts follow physical keys, so the layout often matters.
+      placeholder: US QWERTY, German QWERTZ, French AZERTY, Polish programmer, Russian…
+    validations:
+      required: true
+  - type: dropdown
+    id: framework
+    attributes:
+      label: Framework
+      options: [None (plain TypeScript/JavaScript), React, Vue, Svelte, Solid, Other]
+    validations:
+      required: true
