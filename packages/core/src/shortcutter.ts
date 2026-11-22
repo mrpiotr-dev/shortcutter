@@ -45,6 +45,16 @@ type Binding = {
 
 const PHASE_NAMES: readonly Phase[] = ['down', 'press', 'up'];
 
+/** Adds `listener` to `set` and returns the function that removes it. */
+function addListener<T>(set: Set<T>, listener: T): () => void {
+  if (typeof listener !== 'function') {
+    throw new Error('Listener has to be a function.');
+  }
+
+  set.add(listener);
+  return () => void set.delete(listener);
+}
+
 function toPhases(phases: Phases): Phase[] {
   const list: readonly unknown[] = Array.isArray(phases) ? phases : [phases];
 
@@ -430,30 +440,9 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
     resolve: (shortcut: string) => parseShortcutKeys(shortcut, mac),
     isPressed,
     pressed: () => [...pressed].sort(),
-    subscribe(listener: KeysListener) {
-      if (typeof listener !== 'function') {
-        throw new Error('Listener has to be a function.');
-      }
-
-      subscribers.add(listener);
-      return () => void subscribers.delete(listener);
-    },
-    observe(listener: PhaseListener) {
-      if (typeof listener !== 'function') {
-        throw new Error('Listener has to be a function.');
-      }
-
-      observers.add(listener);
-      return () => void observers.delete(listener);
-    },
-    watch(listener: () => void) {
-      if (typeof listener !== 'function') {
-        throw new Error('Listener has to be a function.');
-      }
-
-      watchers.add(listener);
-      return () => void watchers.delete(listener);
-    },
+    subscribe: (listener: KeysListener) => addListener(subscribers, listener),
+    observe: (listener: PhaseListener) => addListener(observers, listener),
+    watch: (listener: () => void) => addListener(watchers, listener),
     destroy,
   };
 }

@@ -1,14 +1,10 @@
-/** Modifiers are matched regardless of side: ShiftLeft and ShiftRight are both `shift`. */
-export const MODIFIERS = ['alt', 'control', 'meta', 'shift'] as const;
+/**
+ * Modifiers are matched regardless of side: ShiftLeft and ShiftRight are both `shift`. Listed in
+ * the order shortcuts show them: Control, Meta, Alt, Shift.
+ */
+export const MODIFIERS = ['control', 'meta', 'alt', 'shift'] as const;
 
 export type Modifier = (typeof MODIFIERS)[number];
-
-const MODIFIER_FLAGS: Record<Modifier, 'altKey' | 'ctrlKey' | 'metaKey' | 'shiftKey'> = {
-  alt: 'altKey',
-  control: 'ctrlKey',
-  meta: 'metaKey',
-  shift: 'shiftKey',
-};
 
 /** Friendly names accepted in shortcut strings, mapped to canonical key names. */
 const ALIASES: Record<string, string> = {
@@ -57,7 +53,8 @@ export function isModifier(key: string): key is Modifier {
 
 /** Whether the event still reports `modifier` as held (catches keyups the OS swallowed). */
 export function isModifierHeld(event: KeyboardEvent, modifier: Modifier): boolean {
-  return event[MODIFIER_FLAGS[modifier]];
+  // ctrlKey is the only flag not named after its modifier (altKey, metaKey, shiftKey).
+  return event[`${modifier === 'control' ? 'ctrl' : modifier}Key`];
 }
 
 /**
@@ -84,12 +81,10 @@ export function parseShortcutKeys(shortcut: string, isMac: boolean): string[] {
   const unique = [...new Set(keys)];
 
   return [
-    ...DISPLAY_MODIFIERS.filter((key) => unique.includes(key)),
+    ...MODIFIERS.filter((key) => unique.includes(key)),
     ...unique.filter((key) => !isModifier(key)),
   ];
 }
-
-const DISPLAY_MODIFIERS: readonly Modifier[] = ['control', 'meta', 'alt', 'shift'];
 
 /**
  * Normalizes a shortcut like `'ControlOrMeta+Shift+K'` to a canonical, order-independent
