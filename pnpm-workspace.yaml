@@ -13,7 +13,7 @@ catalog:
   happy-dom: ^21.0.4
   typescript: ^7.0.2
   vite: npm:@voidzero-dev/vite-plus-core@1.6.0
-  vite-plus: 1.6.0
+  vite-plus: 1.7.0
   '@astrojs/react': ^7.1.9
   '@astrojs/solid-js': ^7.1.6
   '@astrojs/starlight': ^0.43.1
