@@ -48,7 +48,8 @@ Without a bundler, load the script build, which exposes `window.Shortcutter`:
 A shortcut is a `+`-separated list of keys. Names are case-insensitive and the order does not matter.
 
 - Modifiers: `Control` (`Ctrl`), `Shift`, `Alt` (`Option`), `Meta` (`Cmd`, `Command`), `ControlOrMeta`. Left and right keys match alike.
-- Keys follow [`KeyboardEvent.code`](https://developer.mozilla.org/docs/Web/API/UI_Events/Keyboard_event_code_values), so they match the physical key whatever the keyboard layout: `K` (or `KeyK`), `1` (or `Digit1`), `Escape` (`Esc`), `Enter` (`Return`), `ArrowUp` (`Up`), `Space`, `F1`, `Equal`, `Numpad1`, and so on.
+- Keys are named after [`KeyboardEvent.code`](https://developer.mozilla.org/docs/Web/API/UI_Events/Keyboard_event_code_values): `K` (or `KeyK`), `1` (or `Digit1`), `Escape` (`Esc`), `Enter` (`Return`), `ArrowUp` (`Up`), `Space`, `F1`, `Equal`, `Numpad1`, and so on.
+- By default they match the **physical** key, whatever the layout. With `createShortcutter({ match: 'key' })`, letters match the **printed** letter instead, so `Control+Z` follows the key labelled Z on QWERTZ and AZERTY too. Control and Alt are ignored while AltGr is held, so `Control+Alt` shortcuts do not fire while typing `ą` or `@`. See [Keyboard layouts](https://www.shortcutter.dev/docs/guides/keyboard-layouts/).
 
 ```ts
 shortcutter.listen('Shift+ArrowUp', selectAbove);
