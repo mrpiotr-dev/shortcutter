@@ -415,6 +415,35 @@ describe('createShortcutter', () => {
     });
   });
 
+  describe('stopping propagation in a handler', () => {
+    it('lets an inner shortcutter decide whether an outer one sees the key', () => {
+      const outerTarget = document.createElement('div');
+      const innerTarget = outerTarget.appendChild(document.createElement('div'));
+      const outer = createShortcutter({ mac: false, target: outerTarget });
+      const inner = createShortcutter({ mac: false, target: innerTarget });
+      const kb = keyboard(innerTarget);
+      const closePanel = vi.fn();
+      let autocompleteOpen = true;
+
+      outer.listen('Escape', closePanel);
+      inner.listen('Escape', (event) => {
+        if (!autocompleteOpen) return;
+        autocompleteOpen = false;
+        event.stopPropagation();
+      });
+
+      kb.down('Escape');
+      expect(closePanel).not.toHaveBeenCalled();
+      expect(outer.pressed()).toEqual([]); // the stopped keydown never reached it
+
+      kb.up('Escape'); // its keyup is ignored
+      expect(outer.pressed()).toEqual([]);
+
+      kb.press('Escape'); // autocomplete closed: not stopped any more
+      expect(closePanel).toHaveBeenCalledOnce();
+    });
+  });
+
   describe('watch', () => {
     it('is called when shortcuts are added or removed and when contexts change', () => {
       const { sc } = setup();
