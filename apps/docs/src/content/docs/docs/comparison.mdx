@@ -1,6 +1,6 @@
 ---
 title: Comparison
-description: Size and behaviour of shortcutter next to tinykeys, hotkeys-js, mousetrap, keymaster, @github/hotkey, react-hotkeys-hook and @tanstack/hotkeys.
+description: Size, features and behaviour of shortcutter next to tinykeys, hotkeys-js, mousetrap, keymaster, @github/hotkey, react-hotkeys-hook and @tanstack/hotkeys.
 ---
 
 Every number on this page was measured, not copied from a README, on 22 November 2026 with the versions listed. The scripts that measure them are in the repository ([`scripts/compare/`](https://github.com/mrpiotr-dev/shortcutter/tree/main/scripts/compare)), so you can repeat them.
@@ -29,40 +29,46 @@ All exports of each library, bundled with its dependencies, fully minified and g
 
 None of them has runtime dependencies. shortcutter's sequences, key labels, recorder and keymap live in separate entries (`shortcutter/sequences`, `shortcutter/format`, `shortcutter/record`, `shortcutter/keymap`), so they cost nothing unless imported. The adapters' sequence, recorder and keymap hooks pull in those entries, which is why all exports of `@shortcutter/react` weigh more than `useShortcut` alone: a bundler keeps only what the app imports.
 
-## Game input: movement and sprint
+## Features
 
-A player holds <kbd>A</kbd>, adds <kbd>Shift</kbd>, adds <kbd>W</kbd> (which auto-repeats once), releases <kbd>A</kbd>, releases <kbd>W</kbd>, presses <kbd>D</kbd> (auto-repeats once), releases <kbd>Shift</kbd> and releases <kbd>D</kbd>. After each of the 10 steps the game reads which directions are held and whether the player sprints. Events were realistic: `key` turns uppercase while <kbd>Shift</kbd> is held, `keyCode` is set for older libraries, and auto-repeats have `repeat` set.
+From each library's documentation, type definitions and source, for the versions above. ✓ means built in; optional entries and adapters count.
 
-| Library | How the game reads input | Steps right |
-| --- | --- | --- |
-| shortcutter | `isPressed()` | **10 / 10** |
-| hotkeys-js | `isPressed()` | **10 / 10** |
-| keymaster | `isPressed()` and the `shift` flag | **10 / 10** |
-| @tanstack/hotkeys | `KeyStateTracker` | **10 / 10** |
-| react-hotkeys-hook | `isHotkeyPressed()` | **10 / 10** |
-| tinykeys | a keydown and a keyup binding per key | 2 / 10 |
-| tinykeys | the same, plus `Shift+…` bindings for every key | **10 / 10** |
-| mousetrap | a keydown and a keyup binding per key | 2 / 10 |
-| mousetrap | the same, plus `shift+…` bindings for every key | **10 / 10** |
-| shortcutter | `listen()` per key (wrong tool, see below) | 2 / 10 |
+**Shortcuts**
 
-`listen()` matches whole combinations, which is right for app shortcuts and wrong for movement: see the [Games guide](/docs/guides/games/).
+| Library | Adapters | Contexts | Keyup | Sequences | Held keys | Mod key |
+| --- | :-: | :-: | :-: | :-: | :-: | :-: |
+| shortcutter | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| tinykeys | – | – | ✓ | ✓ | – | ✓ |
+| keymaster | – | ✓ | – | – | ✓ | – |
+| @github/hotkey | – | form fields | – | ✓ | – | ✓ |
+| mousetrap | – | – | ✓ | ✓ | – | ✓ |
+| react-hotkeys-hook | React | ✓ | ✓ | ✓ | ✓ | ✓ |
+| hotkeys-js | – | ✓ | ✓ | – | ✓ | – |
+| @tanstack/hotkeys | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
-## Stuck keys after alt-tab
+**Help screens and customization**
 
-<kbd>W</kbd> + <kbd>Shift</kbd> held, the window loses focus (the keyups happen elsewhere), the player comes back holding nothing, presses <kbd>D</kbd> and releases it. The right answers are "W", "W and sprint", "nothing held", "D", "nothing held".
+| Library | Typed strings | Descriptions | Key labels | Recorder | Conflicts | User overrides |
+| --- | :-: | :-: | :-: | :-: | :-: | :-: |
+| shortcutter | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| tinykeys | – | – | – | – | – | – |
+| keymaster | – | – | – | – | – | – |
+| @github/hotkey | – | – | – | – | – | – |
+| mousetrap | – | – | – | – | – | – |
+| react-hotkeys-hook | – | ✓ | – | ✓ | – | – |
+| hotkeys-js | – | – | – | – | – | – |
+| @tanstack/hotkeys | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
-| Library | Steps right |
-| --- | --- |
-| shortcutter | **5 / 5** |
-| hotkeys-js | **5 / 5** |
-| @tanstack/hotkeys | **5 / 5** |
-| react-hotkeys-hook | **5 / 5** |
-| keymaster | 2 / 5: keeps running with W + sprint |
-| tinykeys (with Shift bindings) | 2 / 5: state is kept by your own code, which never hears the keyups |
-| mousetrap (with Shift bindings) | 2 / 5: same as tinykeys |
+- **Adapters:** framework integrations; shortcutter's cover React, Vue, Svelte and Solid.
+- **Contexts:** groups of shortcuts that are switched on and off (scopes).
+- **Held keys:** a query for the keys held right now, for games.
+- **Mod key:** one name for <kbd>⌘</kbd> on macOS and <kbd>Ctrl</kbd> elsewhere.
+- **Typed strings:** a typo in a literal shortcut string is a compile error.
+- **Descriptions:** shortcuts carry a description and can be listed, for help screens.
+- **Key labels:** platform-style labels such as `⌘K` or `Ctrl+K`.
+- **Conflicts** and **User overrides:** a check for shortcuts already in use, and the user's changed shortcuts as data to save.
 
-shortcutter also releases keys when the tab is hidden or the page is left, and trusts each event's modifier flags, so a modifier pressed or released outside the page does not get stuck.
+shortcutter's sequences, key labels, recorder and keymap are optional entries that cost nothing unless imported. See [Customizable shortcuts](/docs/guides/customizable-shortcuts/) for the recorder, conflict detection and overrides.
 
 ## Keyboard layouts
 
@@ -81,16 +87,21 @@ How each library matches a key, from its own documentation and type definitions:
 
 Physical keys keep `W` `A` `S` `D` in place on every layout; printed keys make `Control+Z` follow the key labelled Z. See [Keyboard layouts](/docs/guides/keyboard-layouts/) for when to use which.
 
-## Customizable shortcuts
+## Stuck keys after alt-tab
 
-| Library | Recorder | Conflict detection | User overrides as data |
-| --- | --- | --- | --- |
-| shortcutter | Yes | Yes | Yes |
-| react-hotkeys-hook | Yes | No | No |
-| @tanstack/hotkeys | Yes | Yes | Yes |
-| tinykeys, keymaster, @github/hotkey, mousetrap, hotkeys-js | No | No | No |
+A game player holds <kbd>W</kbd> + <kbd>Shift</kbd>, the window loses focus (the keyups happen elsewhere), the player comes back holding nothing, presses <kbd>D</kbd> and releases it. The right answers are "W", "W and sprint", "nothing held", "D", "nothing held".
 
-shortcutter's recorder and keymap are optional entries (`shortcutter/record`, `shortcutter/keymap`); see [Customizable shortcuts](/docs/guides/customizable-shortcuts/).
+| Library | Steps right |
+| --- | --- |
+| shortcutter | **5 / 5** |
+| hotkeys-js | **5 / 5** |
+| @tanstack/hotkeys | **5 / 5** |
+| react-hotkeys-hook | **5 / 5** |
+| keymaster | 2 / 5: keeps running with W + sprint |
+| tinykeys (with Shift bindings) | 2 / 5: state is kept by your own code, which never hears the keyups |
+| mousetrap (with Shift bindings) | 2 / 5: same as tinykeys |
+
+shortcutter also releases keys when the tab is hidden or the page is left, and trusts each event's modifier flags, so a modifier pressed or released outside the page does not get stuck.
 
 ## What each one is built around
 
@@ -119,5 +130,6 @@ Pick something else when:
 The scripts are in [`scripts/compare/`](https://github.com/mrpiotr-dev/shortcutter/tree/main/scripts/compare): `install.mjs` installs the pinned versions from `libraries.mjs` into a separate folder with install scripts disabled, `size.mjs` and `behaviour.mjs` measure.
 
 - **Size:** an entry file re-exporting everything from each library (its default export for keymaster, mousetrap and hotkeys-js, or only `useShortcut` where the table says so) was bundled with Vite+ 1.6.0 (Rolldown) in library mode, fully minified, and gzipped at level 9. React and React DOM were external. shortcutter was measured from its release build.
-- **Behaviour:** each library ran in its own Node process on happy-dom 21, with synthetic keyboard events dispatched on the document body; game state was read after each step through the library's documented API.
+- **Behaviour (alt-tab):** each library ran in its own Node process on happy-dom 21, with realistic synthetic keyboard events dispatched on the document body (`key` upper case under <kbd>Shift</kbd>, legacy `keyCode` set); the held keys were read after each step through the library's documented API. `behaviour.mjs` also runs a movement-and-sprint scenario, kept for regression checks.
+- **Features:** read from each library's README, type definitions and, where the README is silent, its source (the `mod` alias of mousetrap and react-hotkeys-hook).
 - **Versions:** the latest of each library that had been on npm for at least a day (@tanstack/hotkeys 0.33.1 came out the day before).
