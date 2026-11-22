@@ -1,14 +1,10 @@
-/** Modifiers are matched regardless of side: ShiftLeft and ShiftRight are both `shift`. */
-export const MODIFIERS = ['alt', 'control', 'meta', 'shift'] as const;
+/**
+ * Modifiers are matched regardless of side: ShiftLeft and ShiftRight are both `shift`. Listed in
+ * the order shortcuts show them: Control, Meta, Alt, Shift.
+ */
+export const MODIFIERS = ['control', 'meta', 'alt', 'shift'] as const;
 
 export type Modifier = (typeof MODIFIERS)[number];
-
-const MODIFIER_FLAGS: Record<Modifier, 'altKey' | 'ctrlKey' | 'metaKey' | 'shiftKey'> = {
-  alt: 'altKey',
-  control: 'ctrlKey',
-  meta: 'metaKey',
-  shift: 'shiftKey',
-};
 
 /** Friendly names accepted in shortcut strings, mapped to canonical key names. */
 const ALIASES: Record<string, string> = {
@@ -57,7 +53,8 @@ export function isModifier(key: string): key is Modifier {
 
 /** Whether the event still reports `modifier` as held (catches keyups the OS swallowed). */
 export function isModifierHeld(event: KeyboardEvent, modifier: Modifier): boolean {
-  return event[MODIFIER_FLAGS[modifier]];
+  // ctrlKey is the only flag not named after its modifier (altKey, metaKey, shiftKey).
+  return event[`${modifier === 'control' ? 'ctrl' : modifier}Key`];
 }
 
 /**
@@ -84,12 +81,10 @@ export function parseShortcutKeys(shortcut: string, isMac: boolean): string[] {
   const unique = [...new Set(keys)];
 
   return [
-    ...DISPLAY_MODIFIERS.filter((key) => unique.includes(key)),
+    ...MODIFIERS.filter((key) => unique.includes(key)),
     ...unique.filter((key) => !isModifier(key)),
   ];
 }
-
-const DISPLAY_MODIFIERS: readonly Modifier[] = ['control', 'meta', 'alt', 'shift'];
 
 /**
  * Normalizes a shortcut like `'ControlOrMeta+Shift+K'` to a canonical, order-independent
@@ -110,17 +105,43 @@ const WILDCARD_GROUPS: Record<string, RegExp> = {
   'f*': /^f([1-9]|1[0-9]|2[0-4])$/, // function keys, not the letter F
 };
 
-function wildcardToRegExp(key: string): RegExp {
+/**
+ * Whether `text` matches `pattern`, where `*` stands for any run of characters. Two pointers with
+ * one saved position, so at most O(pattern × text) steps: unlike a regex built from the pattern
+ * (`^a.*b.*c.*$`), many stars cannot make it backtrack for seconds (ReDoS). Shortcut strings can
+ * come from user data, such as saved keymap overrides.
+ */
+function glob(pattern: string, text: string): boolean {
+  let p = 0;
+  let t = 0;
+  let star = -1;
+  let resume = 0;
+
+  while (t < text.length) {
+    if (pattern[p] === '*') {
+      star = p++;
+      resume = t;
+    } else if (pattern[p] === text[t]) {
+      p++;
+      t++;
+    } else if (star === -1) {
+      return false;
+    } else {
+      // Let the last star take one more character and retry from there.
+      p = star + 1;
+      t = ++resume;
+    }
+  }
+
+  while (pattern[p] === '*') p++;
+
+  return p === pattern.length;
+}
+
+function wildcardTest(key: string): (name: string) => boolean {
   const group = own(WILDCARD_GROUPS, key);
 
-  if (group) return group;
-
-  const source = key
-    .split('*')
-    .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
-    .join('.*');
-
-  return new RegExp(`^${source}$`);
+  return group ? (name) => group.test(name) : (name) => glob(key, name);
 }
 
 /**
@@ -129,7 +150,7 @@ function wildcardToRegExp(key: string): RegExp {
  */
 export function wildcardMatcher(keys: readonly string[]): (pressed: readonly string[]) => boolean {
   const exact = keys.filter((key) => !isWildcard(key));
-  const wildcards = keys.filter(isWildcard).map(wildcardToRegExp);
+  const wildcards = keys.filter(isWildcard).map(wildcardTest);
 
   return (pressed) => {
     if (pressed.length !== keys.length || !exact.every((key) => pressed.includes(key))) {
@@ -140,15 +161,19 @@ export function wildcardMatcher(keys: readonly string[]): (pressed: readonly str
 
     if (rest.some(isModifier)) return false;
 
-    // Assign each remaining key to a different wildcard (tiny sets, so plain backtracking).
-    const assign = (index: number, used: Set<number>): boolean =>
-      index === rest.length ||
-      wildcards.some(
-        (wildcard, w) =>
-          !used.has(w) && wildcard.test(rest[index]!) && assign(index + 1, new Set(used).add(w)),
-      );
+    // Give each remaining key its own wildcard: a bipartite matching (Kuhn's augmenting paths),
+    // polynomial in the number of keys, where trying every assignment would be factorial.
+    const owner: (number | undefined)[] = [];
+    const place = (key: number, tried: Set<number>): boolean =>
+      wildcards.some((matches, w) => {
+        if (tried.has(w) || !matches(rest[key]!)) return false;
+        tried.add(w);
+        if (owner[w] !== undefined && !place(owner[w]!, tried)) return false;
+        owner[w] = key;
+        return true;
+      });
 
-    return assign(0, new Set());
+    return rest.every((_, key) => place(key, new Set()));
   };
 }
 

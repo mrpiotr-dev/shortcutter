@@ -106,6 +106,8 @@ export default defineConfig({
             '../../packages/core/src/index.ts',
             '../../packages/core/src/sequences.ts',
             '../../packages/core/src/format.ts',
+            '../../packages/core/src/record.ts',
+            '../../packages/core/src/keymap.ts',
           ],
           tsconfig: '../../packages/core/tsconfig.build.json',
           output: 'docs/api',
@@ -137,6 +139,8 @@ export default defineConfig({
             { slug: 'docs/guides/apps' },
             { slug: 'docs/guides/websites' },
             { slug: 'docs/guides/keyboard-layouts' },
+            { slug: 'docs/guides/customizable-shortcuts' },
+            { slug: 'docs/guides/accessibility' },
           ],
         },
         {

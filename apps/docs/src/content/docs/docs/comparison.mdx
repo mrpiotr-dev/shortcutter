@@ -77,13 +77,13 @@ From each library's own README:
 
 ## Where shortcutter fits
 
-shortcutter aims for the feature set of the larger libraries at the size of the small ones: contexts with several active at once, three phases including key repeat, wildcards, self-documenting shortcuts, type-checked shortcut strings, a key-state API with pressed-keys hooks, optional sequences and platform key labels, adapters for React, Vue, Svelte and Solid, and safe server rendering, in under 3 kB gzipped for the core.
+shortcutter aims for the feature set of the larger libraries at the size of the small ones: contexts with several active at once, three phases including key repeat, wildcards, self-documenting shortcuts, type-checked shortcut strings, physical or printed-letter matching for every keyboard layout, a key-state API with pressed-keys hooks, adapters for React, Vue, Svelte and Solid, and safe server rendering, in under 3 kB gzipped for the core. Optional entries add sequences, platform key labels, a shortcut recorder and a keymap with user overrides and conflict detection, only for apps that import them.
 
 Pick something else when:
 
 - you only need a handful of shortcuts and every byte counts: **tinykeys**;
 - you want shortcuts declared in HTML attributes: **@github/hotkey**;
-- you need a shortcut recorder UI, devtools or `stopPropagation` handling today: **@tanstack/hotkeys**.
+- you need devtools or `stopPropagation` handling today: **@tanstack/hotkeys**.
 
 ## Method
 

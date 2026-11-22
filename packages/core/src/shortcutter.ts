@@ -45,6 +45,16 @@ type Binding = {
 
 const PHASE_NAMES: readonly Phase[] = ['down', 'press', 'up'];
 
+/** Adds `listener` to `set` and returns the function that removes it. */
+function addListener<T>(set: Set<T>, listener: T): () => void {
+  if (typeof listener !== 'function') {
+    throw new Error('Listener has to be a function.');
+  }
+
+  set.add(listener);
+  return () => void set.delete(listener);
+}
+
 function toPhases(phases: Phases): Phase[] {
   const list: readonly unknown[] = Array.isArray(phases) ? phases : [phases];
 
@@ -89,7 +99,13 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
   const learned = new Map<string, string>();
   const subscribers = new Set<KeysListener>();
   const observers = new Set<PhaseListener>();
+  const watchers = new Set<() => void>();
   let active: string[] = [defaultContext];
+
+  /** Tells watchers that shortcuts() or the active contexts changed. */
+  function changed(): void {
+    for (const watcher of watchers) watcher();
+  }
 
   /** Tells subscribers about a change of the held keys (`before` is the combination before it). */
   function notify(before: string, event: KeyboardEvent | Event): void {
@@ -283,6 +299,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
     names.clear();
     subscribers.clear();
     observers.clear();
+    watchers.clear();
   }
 
   if (options.signal?.aborted) {
@@ -317,6 +334,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
       registrations.delete(registration);
       wildcards.get(context)?.delete(binding);
     }
+    changed();
   }
 
   function listen(shortcut: string, handler: ShortcutHandler, opts: ListenOptions = {}) {
@@ -363,6 +381,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
 
       wildcards.set(context, set.add(binding));
     }
+    changed();
 
     return () => {
       // `only`: leave it alone if someone registered the shortcut again in the meantime.
@@ -412,6 +431,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
         }
 
         active = [...new Set(names)];
+        changed();
       },
       active: () => [...active],
       isActive: (name: string) => active.includes(name),
@@ -420,22 +440,9 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
     resolve: (shortcut: string) => parseShortcutKeys(shortcut, mac),
     isPressed,
     pressed: () => [...pressed].sort(),
-    subscribe(listener: KeysListener) {
-      if (typeof listener !== 'function') {
-        throw new Error('Listener has to be a function.');
-      }
-
-      subscribers.add(listener);
-      return () => void subscribers.delete(listener);
-    },
-    observe(listener: PhaseListener) {
-      if (typeof listener !== 'function') {
-        throw new Error('Listener has to be a function.');
-      }
-
-      observers.add(listener);
-      return () => void observers.delete(listener);
-    },
+    subscribe: (listener: KeysListener) => addListener(subscribers, listener),
+    observe: (listener: PhaseListener) => addListener(observers, listener),
+    watch: (listener: () => void) => addListener(watchers, listener),
     destroy,
   };
 }

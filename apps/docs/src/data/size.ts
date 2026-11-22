@@ -16,5 +16,6 @@ export function coreSize(): string | undefined {
 
   const bytes = gzipSync(readFileSync(file), { level: 9 }).length;
 
-  return `${(bytes / 1000).toFixed(1)} kB`;
+  // Rounded down, like the coverage badge, so it never overstates: 2,969 bytes is 2.9 kB.
+  return `${(Math.floor(bytes / 100) / 10).toFixed(1)} kB`;
 }

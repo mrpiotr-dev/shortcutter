@@ -4,7 +4,7 @@
  */
 import fc from 'fast-check';
 import { describe, expect, it, vi } from 'vite-plus/test';
-import { parseShortcut, parseShortcutKeys } from '../src/keys';
+import { parseShortcut, parseShortcutKeys, wildcardMatcher } from '../src/keys';
 import { createShortcutter } from '../src/index';
 import { keyboard } from './keyboard';
 import { AZERTY, DVORAK, QWERTY, QWERTZ, RUSSIAN } from './layouts';
@@ -114,6 +114,22 @@ describe('properties: parsing', () => {
           expect(error).not.toBeInstanceOf(TypeError);
         }
       }),
+    );
+  });
+});
+
+describe('properties: wildcards', () => {
+  it('match exactly like the regex they replaced, where * is any run of characters', () => {
+    const name = fc.stringMatching(/^[ab]{1,12}$/);
+    const pattern = fc.stringMatching(/^[ab*]{0,8}\*[ab*]{0,8}$/);
+
+    fc.assert(
+      fc.property(pattern, name, (wildcard, key) => {
+        const regex = new RegExp(`^${wildcard.split('*').join('.*')}$`);
+
+        expect(wildcardMatcher([wildcard])([key])).toBe(regex.test(key));
+      }),
+      { numRuns: 2000 },
     );
   });
 });

@@ -44,6 +44,14 @@
       "import": "./dist/format.js",
       "require": "./dist/format.cjs"
     },
+    "./keymap": {
+      "import": "./dist/keymap.js",
+      "require": "./dist/keymap.cjs"
+    },
+    "./record": {
+      "import": "./dist/record.js",
+      "require": "./dist/record.cjs"
+    },
     "./sequences": {
       "import": "./dist/sequences.js",
       "require": "./dist/sequences.cjs"

@@ -2,12 +2,17 @@ import { act, createElement, StrictMode, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vite-plus/test';
 import { createShortcutter } from 'shortcutter';
+import { createKeymap } from 'shortcutter/keymap';
 import {
   ShortcutterProvider,
   usePressedKeys,
+  useKeymap,
+  useRecorder,
   useSequence,
   useShortcut,
+  useShortcuts,
   useShortcutter,
+  type Recorder,
 } from '../src/index';
 import { keyboard } from '../../core/tests/keyboard';
 
@@ -197,5 +202,94 @@ describe('react adapter', () => {
     };
 
     expect(compileOnly).toBeTypeOf('function');
+  });
+
+  it('lists shortcuts and re-renders when they or the contexts change', () => {
+    const { shortcutter } = setup();
+    const seen: string[] = [];
+    const List = () => {
+      const shortcuts = useShortcuts({ active: true });
+      seen.push(shortcuts.map((s) => s.shortcut).join(','));
+      return null;
+    };
+
+    render(createElement(ShortcutterProvider, { shortcutter }, createElement(List)));
+    act(() => void shortcutter.listen('K', () => {}));
+    act(() => void shortcutter.listen('J', () => {}, { context: 'editor' }));
+    act(() => shortcutter.contexts.activate('default', 'editor'));
+
+    expect([...new Set(seen)]).toEqual(['', 'K', 'K,J']);
+  });
+
+  it('re-renders a keymap settings screen after changes', () => {
+    const { shortcutter } = setup();
+    const keymap = createKeymap(shortcutter, {
+      palette: { keys: 'ControlOrMeta+K', run: () => {} },
+    });
+    let keys: string[][] = [];
+    const Settings = () => {
+      keys.push(useKeymap(keymap)[0]!.keys);
+      return null;
+    };
+
+    render(createElement(Settings));
+    act(() => keymap.remap('palette', 'ControlOrMeta+P'));
+    act(() => keymap.disable('palette'));
+    keys = keys.filter((k, i) => i === 0 || k.join() !== keys[i - 1]!.join());
+
+    expect(keys).toEqual([['ControlOrMeta+K'], ['ControlOrMeta+P'], []]);
+  });
+
+  it('records a shortcut and shows the held keys while recording', async () => {
+    const { shortcutter, kb } = setup();
+    let recorder: Recorder | undefined;
+    const Button = () => {
+      recorder = useRecorder();
+      return null;
+    };
+
+    render(createElement(ShortcutterProvider, { shortcutter }, createElement(Button)));
+
+    let result: Promise<string | null> | undefined;
+    act(() => void (result = recorder!.start()));
+    expect(recorder!.recording).toBe(true);
+
+    act(() => void kb.down('ShiftLeft'));
+    expect(recorder!.keys).toEqual(['shift']);
+
+    await act(async () => {
+      kb.down('KeyK');
+      await result;
+    });
+
+    await expect(result).resolves.toBe('Shift+K');
+    expect(recorder!.recording).toBe(false);
+    expect(recorder!.keys).toEqual([]);
+  });
+
+  it('cancels a running recording on cancel() and on unmount', async () => {
+    const { shortcutter } = setup();
+    let recorder: Recorder | undefined;
+    const Button = () => {
+      recorder = useRecorder();
+      return null;
+    };
+
+    render(createElement(ShortcutterProvider, { shortcutter }, createElement(Button)));
+
+    let first: Promise<string | null> | undefined;
+    act(() => void (first = recorder!.start()));
+    await act(async () => {
+      recorder!.cancel();
+      await first;
+    });
+    await expect(first).resolves.toBeNull();
+
+    let second: Promise<string | null> | undefined;
+    act(() => void (second = recorder!.start()));
+    act(() => root!.unmount());
+    root = undefined;
+    await expect(second).resolves.toBeNull();
+    expect(shortcutter.contexts.active()).toEqual(['default']);
   });
 });
