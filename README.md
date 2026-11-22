@@ -146,6 +146,7 @@ shortcutter.contexts.active(); // ['modal', 'default']
 | `ignoreInputs`   | `true`      | Skip shortcuts while typing in inputs, textareas, selects, contenteditable or during IME composition. |
 | `preventDefault` | `false`     | Call `event.preventDefault()` when a handler runs.                                                    |
 | `mac`            | detected    | Treat the platform as macOS (`ControlOrMeta` = Meta).                                                 |
+| `match`          | `'code'`    | `'code'`: physical keys. `'key'`: letters match the printed letter (see Keyboard layouts).            |
 
 Returns:
 
@@ -158,6 +159,7 @@ Returns:
 - `pressed()`: keys held right now, e.g. `['k', 'shift']`.
 - `subscribe(listener)`: calls `listener(pressed, event)` whenever the held keys change and returns an unsubscribe function. Useful for key visualizers or React's `useSyncExternalStore`.
 - `observe(listener)`: calls `listener(event, { phase, shortcut })` for every `down`, `press` and `up` of any key combination, matched or not, before handlers run. Useful for key loggers and visualizers.
+- `watch(listener)`: calls `listener()` after a shortcut is added or removed and after the active contexts change. Useful for help screens that stay open.
 - `destroy()`: removes all event listeners.
 
 ## Sequences (optional)
@@ -179,6 +181,37 @@ sequences.sequences(); // for help screens, like shortcuts()
 The framework adapters wrap it too: `useSequence` (React, Vue, Svelte), `createSequence` (Solid) and the Svelte `sequence` attachment.
 
 Steps are separated by spaces and each step is a shortcut (modifiers and wildcards work). Steps must follow each other within `timeout` milliseconds; pressing a modifier on its own does not count as a step. Sequences respect contexts, the input guard and `preventDefault`, like `listen()`.
+
+## Customizable shortcuts (optional)
+
+Two more optional entries let users change shortcuts: `shortcutter/keymap` (about 2 kB gzipped) declares commands as data, applies the user's changes, checks conflicts and returns the changes as plain JSON; `shortcutter/record` (about 1 kB) captures a combination from the keyboard.
+
+```ts
+import { createKeymap, KeymapConflictError } from 'shortcutter/keymap';
+import { recordShortcut } from 'shortcutter/record';
+
+const keymap = createKeymap(
+  shortcutter,
+  {
+    undo: { keys: 'ControlOrMeta+Z', description: 'Undo', run: undo },
+    palette: { keys: 'ControlOrMeta+K', description: 'Command palette', run: openPalette },
+  },
+  { overrides: JSON.parse(localStorage.getItem('shortcuts') ?? '{}') },
+);
+
+const shortcut = await recordShortcut(shortcutter); // 'ControlOrMeta+Shift+P', or null on Escape
+
+if (shortcut) {
+  keymap.reserved(shortcut); // 'Closes the tab' for Ctrl+W: the browser keeps it
+  keymap.remap('palette', shortcut); // throws KeymapConflictError if in use; { force: true } takes it over
+  localStorage.setItem('shortcuts', JSON.stringify(keymap.overrides()));
+}
+
+keymap.disable('undo'); // or reset('undo') / reset()
+keymap.commands(); // current and default shortcuts per command, for the settings screen
+```
+
+While recording, the shortcutter's shortcuts are paused, so pressing a combination in use does not run it. See [Customizable shortcuts](https://www.shortcutter.dev/docs/guides/customizable-shortcuts/) for a full settings screen, and [Accessibility](https://www.shortcutter.dev/docs/guides/accessibility/) for how this covers WCAG 2.1.4 (single-key shortcuts that users can turn off or remap).
 
 ## Frameworks
 
@@ -229,6 +262,15 @@ Each adapter also tracks the held keys, for games and key visualizers. They upda
 const pressed = usePressedKeys(); // React
 const speed = pressed.includes('shift') ? 2 : 1;
 ```
+
+For help and settings screens, the adapters also keep `shortcuts()`, a keymap's commands and a recorder up to date:
+
+| Adapter | Registered shortcuts | Keymap commands                | Recorder           |
+| ------- | -------------------- | ------------------------------ | ------------------ |
+| React   | `useShortcuts()`     | `useKeymap(keymap)`            | `useRecorder()`    |
+| Vue     | `useShortcuts()`     | `useKeymap(keymap)`            | `useRecorder()`    |
+| Svelte  | `useShortcuts()`     | `useKeymap(keymap)`            | `useRecorder()`    |
+| Solid   | `createShortcuts()`  | `createKeymapCommands(keymap)` | `createRecorder()` |
 
 ## Migrating from 0.2
 

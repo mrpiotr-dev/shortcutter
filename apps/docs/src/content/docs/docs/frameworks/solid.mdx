@@ -159,6 +159,64 @@ function HelpDialog() {
 }
 ```
 
+## A live help screen
+
+`createShortcuts(filter)` returns a signal with `shortcuts(filter)`, updated when shortcuts are added or removed and when contexts change:
+
+```tsx
+import { createShortcuts } from '@shortcutter/solid';
+import { formatShortcut } from 'shortcutter/format';
+
+function ShortcutsPanel() {
+  const shortcuts = createShortcuts({ active: true });
+
+  return (
+    <ul>
+      <For each={shortcuts().filter((s) => s.description)}>
+        {(s) => (
+          <li>
+            <kbd>{formatShortcut(s.keys)}</kbd> {s.description}
+          </li>
+        )}
+      </For>
+    </ul>
+  );
+}
+```
+
+## A settings screen
+
+For shortcuts users can change, `createKeymapCommands(keymap)` returns a signal with the commands of a [keymap](/docs/guides/customizable-shortcuts/), updated after `remap()`, `disable()` and `reset()`. `createRecorder()` records a new shortcut; `recording` and `keys` are signals, and a recording still running when the owner is disposed is cancelled:
+
+```tsx
+import { createKeymapCommands, createRecorder } from '@shortcutter/solid';
+
+function ShortcutSettings(props: { keymap: Keymap }) {
+  const commands = createKeymapCommands(props.keymap);
+  const recorder = createRecorder();
+
+  async function change(id: string) {
+    const shortcut = await recorder.start(); // null if cancelled with Escape
+    if (shortcut) props.keymap.remap(id, shortcut);
+  }
+
+  return (
+    <>
+      <Show when={recorder.recording()}>
+        <p>{recorder.keys().join(' + ') || 'Press keys…'}</p>
+      </Show>
+      <For each={commands()}>
+        {(c) => (
+          <button onClick={() => change(c.id)}>
+            {c.description}: {c.keys.join(', ') || 'None'}
+          </button>
+        )}
+      </For>
+    </>
+  );
+}
+```
+
 ## Server rendering
 
 Effects and `onMount` do not run on the server, so nothing listens during server rendering and `createPressedKeys()` stays empty. The primitives are safe in SolidStart routes as they are.

@@ -147,6 +147,53 @@ const shortcuts = useShortcutter()
 </template>
 ```
 
+## A live help screen
+
+`useShortcuts(filter)` returns a ref with `shortcuts(filter)`, updated when shortcuts are added or removed and when contexts change:
+
+```vue
+<script setup lang="ts">
+import { useShortcuts } from '@shortcutter/vue';
+import { formatShortcut } from 'shortcutter/format';
+
+const shortcuts = useShortcuts({ active: true });
+</script>
+
+<template>
+  <ul>
+    <li v-for="s in shortcuts.filter((s) => s.description)" :key="`${s.context}:${s.shortcut}`">
+      <kbd>{{ formatShortcut(s.keys) }}</kbd> {{ s.description }}
+    </li>
+  </ul>
+</template>
+```
+
+## A settings screen
+
+For shortcuts users can change, `useKeymap(keymap)` returns a ref with the commands of a [keymap](/docs/guides/customizable-shortcuts/), updated after `remap()`, `disable()` and `reset()`. `useRecorder()` records a new shortcut; `recording` and `keys` are refs, and a recording still running on unmount is cancelled:
+
+```vue
+<script setup lang="ts">
+import { useKeymap, useRecorder } from '@shortcutter/vue';
+
+const { keymap } = defineProps<{ keymap: Keymap }>();
+const commands = useKeymap(keymap);
+const recorder = useRecorder();
+
+async function change(id: string) {
+  const shortcut = await recorder.start(); // null if cancelled with Escape
+  if (shortcut) keymap.remap(id, shortcut);
+}
+</script>
+
+<template>
+  <p v-if="recorder.recording.value">{{ recorder.keys.value.join(' + ') || 'Press keys…' }}</p>
+  <button v-for="c in commands" :key="c.id" @click="change(c.id)">
+    {{ c.description }}: {{ c.keys.join(', ') || 'None' }}
+  </button>
+</template>
+```
+
 ## Server rendering
 
 Shortcuts are registered and held keys tracked only after mount, which never happens on the server. Nothing listens during server rendering, so the composables are safe in Nuxt pages and components without `<ClientOnly>`.
