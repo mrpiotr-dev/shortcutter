@@ -5,7 +5,7 @@
  * @packageDocumentation
  * @module shortcutter/format
  */
-import { detectMac, isModifier, parseShortcutKeys } from './keys';
+import { detectMac, isModifier, own, parseShortcutKeys } from './keys';
 import type { ShortcutString } from './shortcut-types';
 
 export type FormatOptions = {
@@ -89,7 +89,8 @@ const LABELS: Record<string, string> = {
 };
 
 function label(key: string, mac: boolean, labels: Record<string, string> | undefined): string {
-  const custom = labels?.[key] ?? (mac ? MAC_LABELS : OTHER_LABELS)[key] ?? LABELS[key];
+  const custom =
+    (labels && own(labels, key)) ?? own(mac ? MAC_LABELS : OTHER_LABELS, key) ?? own(LABELS, key);
 
   if (custom !== undefined) return custom;
   if (key.length === 1 || /^f\d+$/.test(key)) return key.toUpperCase();

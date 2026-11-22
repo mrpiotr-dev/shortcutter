@@ -6,6 +6,11 @@ const mac = { mac: true };
 const other = { mac: false };
 
 describe('formatShortcut', () => {
+  it('labels Object.prototype names as plain keys', () => {
+    expect(formatShortcut('Control+constructor' as string, other)).toBe('Ctrl+Constructor');
+    expect(formatShortcut('__proto__' as string, { ...other, labels: {} })).toBe('__proto__');
+  });
+
   it('uses symbols without a separator on macOS', () => {
     expect(formatShortcut('ControlOrMeta+K', mac)).toBe('⌘K');
     expect(formatShortcut('Shift+Alt+Control+Meta+K', mac)).toBe('⌃⌥⇧⌘K');

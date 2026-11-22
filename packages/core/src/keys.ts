@@ -28,6 +28,14 @@ const ALIASES: Record<string, string> = {
 const CONTROL_OR_META = 'controlormeta';
 
 /**
+ * `record[key]` for own properties only: names such as `constructor` or `__proto__` must not reach
+ * `Object.prototype` (found by the property-based tests).
+ */
+export function own<T>(record: Record<string, T>, key: string): T | undefined {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+/**
  * Turns a `KeyboardEvent.code` into the canonical key name used for matching:
  * `KeyA` → `a`, `Digit1` → `1`, `ShiftRight` → `shift`, `ArrowUp` → `arrowup`.
  */
@@ -71,7 +79,7 @@ export function parseShortcutKeys(shortcut: string, isMac: boolean): string[] {
     if (name === CONTROL_OR_META) return isMac ? 'meta' : 'control';
     if (name.includes('*')) return name;
 
-    return keyFromCode(ALIASES[name] ?? name);
+    return keyFromCode(own(ALIASES, name) ?? name);
   });
   const unique = [...new Set(keys)];
 
@@ -103,7 +111,7 @@ const WILDCARD_GROUPS: Record<string, RegExp> = {
 };
 
 function wildcardToRegExp(key: string): RegExp {
-  const group = WILDCARD_GROUPS[key];
+  const group = own(WILDCARD_GROUPS, key);
 
   if (group) return group;
 
