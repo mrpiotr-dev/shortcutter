@@ -5,7 +5,7 @@
  * @packageDocumentation
  * @module shortcutter/format
  */
-import { detectMac, isModifier, own, parseShortcutKeys } from './keys';
+import { detectMac, isModifier, keyFromCode, own, parseShortcutKeys } from './keys';
 import type { ShortcutString } from './shortcut-types';
 
 export type FormatOptions = {
@@ -143,4 +143,48 @@ export function formatShortcut<S extends string>(
   const mac = options.mac ?? detectMac();
 
   return formatKeys(shortcut, { ...options, mac }).join(options.separator ?? (mac ? '' : '+'));
+}
+
+type LayoutMapKeyboard = { getLayoutMap?: () => Promise<ReadonlyMap<string, string>> };
+
+/**
+ * Labels for the user's keyboard layout, to pass as `labels` when shortcuts use physical keys
+ * (`match: 'code'`, the default). On German QWERTZ the key registered as `Y` prints Z, so
+ * `formatShortcut('Control+Y', { labels })` gives `Ctrl+Z`: the key the user has to press.
+ *
+ * Reads `navigator.keyboard.getLayoutMap()`, available in Chromium-based browsers. Elsewhere, in
+ * iframes without permission and during SSR it resolves to `{}`, which keeps the default labels.
+ * Digit keys keep their labels: on AZERTY they print `&`, `é`… but are still known as 1, 2…
+ *
+ * @example
+ * const labels = await getLayoutLabels();
+ * formatShortcut('Control+Y', { labels }); // 'Ctrl+Z' on QWERTZ, 'Ctrl+Y' on QWERTY
+ */
+export async function getLayoutLabels(): Promise<Record<string, string>> {
+  const keyboard =
+    typeof navigator === 'undefined'
+      ? undefined
+      : (navigator as Navigator & { keyboard?: LayoutMapKeyboard }).keyboard;
+
+  if (!keyboard?.getLayoutMap) return {};
+
+  try {
+    const labels: Record<string, string> = {};
+
+    for (const [code, printed] of await keyboard.getLayoutMap()) {
+      const key = keyFromCode(code);
+
+      if (key && !isModifier(key) && !/^digit/i.test(code) && printed.trim() !== '') {
+        const upper = printed.toUpperCase();
+
+        // 'ß'.toUpperCase() is 'SS': keep characters whose capital is not a single character.
+        labels[key] = upper.length === printed.length ? upper : printed;
+      }
+    }
+
+    return labels;
+  } catch {
+    // SecurityError in cross-origin iframes without the keyboard-map permission.
+    return {};
+  }
 }

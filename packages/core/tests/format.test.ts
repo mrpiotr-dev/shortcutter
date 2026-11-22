@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vite-plus/test';
-import { formatKeys, formatShortcut } from '../src/format';
+import { afterEach, describe, expect, it } from 'vite-plus/test';
+import { formatKeys, formatShortcut, getLayoutLabels } from '../src/format';
 import { createShortcutter } from '../src/index';
 
 const mac = { mac: true };
@@ -76,5 +76,49 @@ describe('formatShortcut', () => {
   it('throws on an invalid shortcut, like listen()', () => {
     // @ts-expect-error -- runtime guard for JS users
     expect(() => formatShortcut('', other)).toThrow();
+  });
+});
+
+describe('getLayoutLabels', () => {
+  const stub = (keyboard: unknown) =>
+    Object.defineProperty(navigator, 'keyboard', { value: keyboard, configurable: true });
+
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'keyboard');
+  });
+
+  it('labels physical keys with what the layout prints (QWERTZ)', async () => {
+    stub({
+      getLayoutMap: async () =>
+        new Map([
+          ['KeyY', 'z'],
+          ['KeyZ', 'y'],
+          ['Minus', 'ß'],
+          ['Digit1', '1'],
+          ['ShiftLeft', ''],
+        ]),
+    });
+
+    const labels = await getLayoutLabels();
+
+    expect(labels).toEqual({ y: 'Z', z: 'Y', minus: 'ß' });
+    expect(formatShortcut('Control+Y', { ...other, labels })).toBe('Ctrl+Z');
+  });
+
+  it('keeps digit labels, which print symbols on AZERTY', async () => {
+    stub({ getLayoutMap: async () => new Map([['Digit1', '&']]) });
+
+    expect(await getLayoutLabels()).toEqual({});
+  });
+
+  it('resolves to no labels without the Keyboard API or when it is refused', async () => {
+    expect(await getLayoutLabels()).toEqual({});
+
+    stub({
+      getLayoutMap: async () => {
+        throw new DOMException('Not allowed', 'SecurityError');
+      },
+    });
+    expect(await getLayoutLabels()).toEqual({});
   });
 });
