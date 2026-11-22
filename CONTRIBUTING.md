@@ -62,7 +62,7 @@ These are generated during the build and are not committed (see `apps/docs/.giti
 
 ### Deployment
 
-Cloudflare Workers Builds deploys `main` to www.shortcutter.dev and uploads a preview version for every other branch. Setup and URL rules are in [`apps/docs/README.md`](apps/docs/README.md).
+Cloudflare Workers Builds deploys `develop` to www.shortcutter.dev, so docs changes go live as soon as they are merged, and uploads a preview version for every other branch. Setup and URL rules are in [`apps/docs/README.md`](apps/docs/README.md).
 
 ## Branches
 

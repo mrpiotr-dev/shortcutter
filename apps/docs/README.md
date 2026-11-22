@@ -25,7 +25,7 @@ pnpm --filter docs run preview  # serves dist/ with wrangler, like production
    - Build command: `pnpm install && pnpm run build`
    - Deploy command: `pnpm --filter docs exec wrangler deploy`
    - Non-production branch deploy command: `pnpm --filter docs exec wrangler versions upload` (preview URLs per branch)
-   - Production branch: `main`
+   - Production branch: `develop`
    - Build variables: `ASTRO_TELEMETRY_DISABLED=1`
 2. The first deploy attaches `www.shortcutter.dev` and `shortcutter.dev` as custom domains (DNS records and certificates are created automatically).
 3. **shortcutter.dev → Rules → Redirect Rules → Create rule** ("Redirect from root to WWW" template):
