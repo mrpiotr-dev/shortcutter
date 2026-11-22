@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vite-plus/test';
 import { parseShortcut, parseShortcutKeys } from '../src/keys';
 import { createShortcutter } from '../src/index';
 import { keyboard } from './keyboard';
+import { AZERTY, DVORAK, QWERTY, QWERTZ, RUSSIAN } from './layouts';
 
 const MODIFIER_NAMES = [
   'Control',
@@ -130,13 +131,16 @@ const steps = fc.array(
   { maxLength: 40 },
 );
 
+const layouts = fc.constantFrom(QWERTY, QWERTZ, AZERTY, RUSSIAN, DVORAK);
+const matches = fc.constantFrom('code' as const, 'key' as const);
+
 describe('properties: key state', () => {
   it('never lists a key twice, and releasing everything leaves nothing pressed', () => {
     fc.assert(
-      fc.property(steps, (sequence: Step[]) => {
+      fc.property(steps, layouts, matches, (sequence: Step[], layout, match) => {
         const target = new EventTarget();
-        const sc = createShortcutter({ mac: false, target });
-        const kb = keyboard(target);
+        const sc = createShortcutter({ mac: false, match, target });
+        const kb = keyboard(target, layout);
         const held = new Set<string>();
 
         for (const step of sequence) {

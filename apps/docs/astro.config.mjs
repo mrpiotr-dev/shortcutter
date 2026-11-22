@@ -136,6 +136,7 @@ export default defineConfig({
             { slug: 'docs/guides/games' },
             { slug: 'docs/guides/apps' },
             { slug: 'docs/guides/websites' },
+            { slug: 'docs/guides/keyboard-layouts' },
           ],
         },
         {

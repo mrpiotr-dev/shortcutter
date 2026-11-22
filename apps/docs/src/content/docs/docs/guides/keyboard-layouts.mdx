@@ -1,0 +1,75 @@
+---
+title: Keyboard layouts
+description: Physical keys or printed letters, AltGr, non-Latin layouts and labels that match the user's keyboard.
+---
+
+The same physical key prints different letters on different layouts: the key that prints Z in the US prints Y in Germany and W in France. shortcutter can match a shortcut either way, and you pick per instance.
+
+## Physical keys or printed letters
+
+```ts
+import { createShortcutter } from 'shortcutter';
+
+// Default: physical keys (KeyboardEvent.code). Best for games and position-based controls.
+const game = createShortcutter();
+
+// Printed letters (KeyboardEvent.key). Best for app commands such as undo and copy.
+const app = createShortcutter({ match: 'key' });
+```
+
+| | `match: 'code'` (default) | `match: 'key'` |
+| --- | --- | --- |
+| `Control+Z` on German QWERTZ | the key printed **Y** (where US has Z) | the key printed **Z** |
+| `W` `A` `S` `D` on French AZERTY | the same four keys as on QWERTY (they print Z, Q, S, D) | the keys printed W, A, S, D, scattered around the keyboard |
+| Behaves like | game controls | the browser's own shortcuts (copy, paste, undo) |
+
+**Rule of thumb:** use `match: 'key'` when the letter is a mnemonic (Z for undo, B for bold, K for the command palette). Keep the default when the position matters (WASD, a row of tool keys, a numeric keypad).
+
+An app with both, such as a game with a menu, can create two instances: one listening on the game canvas, one for the rest of the page.
+
+## What `match: 'key'` does exactly
+
+- **Latin letters** match the letter the key prints, whatever its position: Dvorak, Colemak, AZERTY, QWERTZ.
+- **Digits, punctuation, arrows, F-keys and modifiers** stay physical. On AZERTY the digit row prints `&`, `é`, `"`… but `Control+1` still means the key with 1 on it, as in the browser.
+- **Non-Latin layouts** (Cyrillic, Greek, Arabic, Hebrew…) print no Latin letter, so letters fall back to the physical key: `Control+C` copies on a Russian layout as well, where that key prints `с`.
+- **Keys that print nothing** while a modifier is held (Option on macOS turns K into `˚`) use the letter the same key printed the last time it was pressed alone, or the physical key before that.
+- **Dead keys** (accents typed before a letter) are physical.
+
+`pressed()`, `subscribe()` and handler details report the names that matched, so in `'key'` mode a QWERTZ user pressing the key printed Z gives `'z'`.
+
+## AltGr
+
+On Windows and Linux, AltGr (the right Alt key on many European layouts) types characters: `@` on German, `ą` and `ę` on Polish, `€` almost everywhere. Windows reports it as Control+Alt, so a `Control+Alt+A` shortcut would fire while a Polish user types `ą`.
+
+shortcutter ignores Control and Alt while AltGr is held, in both modes. `Control+Alt+A` pressed with the left Alt key still works. macOS has no AltGr (Option is Alt), so nothing changes there.
+
+## Labels that match the keyboard
+
+With the default physical matching, a help screen that says <kbd>Ctrl</kbd> + <kbd>Y</kbd> is wrong for a German user, who has to press the key printed Z. `getLayoutLabels()` reads the user's layout and returns labels for `formatShortcut()` and `formatKeys()`:
+
+```ts
+import { formatShortcut, getLayoutLabels } from 'shortcutter/format';
+
+const labels = await getLayoutLabels();
+
+formatShortcut('Control+Y', { labels }); // 'Ctrl+Z' on QWERTZ, 'Ctrl+Y' on QWERTY
+```
+
+It uses the Keyboard Map API (`navigator.keyboard.getLayoutMap()`), available in Chromium-based browsers. Elsewhere it resolves to `{}` and the default labels stay. Digit keys keep their labels.
+
+With `match: 'key'`, letters already match what is printed, so the default labels are right without this.
+
+## Characters that move: `?`, `/`, `-`
+
+Punctuation stays physical in both modes, and it moves between layouts: `?` is <kbd>Shift</kbd> + <kbd>/</kbd> in the US and <kbd>Shift</kbd> + <kbd>ß</kbd> in Germany. For a global audience, prefer shortcuts built from letters, digits or named keys, such as `ControlOrMeta+Slash` for a help dialog, and also offer a visible button. The [websites guide](/docs/guides/websites/#help-dialog-and-keyboard-layouts) shows this for the `?` help shortcut.
+
+## Testing
+
+In unit tests, set both `code` and `key` on the events you dispatch, the way a real layout would:
+
+```ts
+// German QWERTZ: the key at the US Z position prints y.
+target.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyY', key: 'z', ctrlKey: true }));
+```
+
+To try a layout by hand, add it in your operating system's keyboard settings and switch with the language indicator.
