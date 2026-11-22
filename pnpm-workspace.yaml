@@ -35,7 +35,7 @@ catalog:
   solid-js: ^1.9.19
   svelte: ^5.57.3
   vue: ^3.5.45
-  wrangler: ^4.162.0
+  wrangler: ^4.165.0
 overrides:
   vite@*: 'catalog:'
   minimatch@>=7.0.0 <11.0.1: ^11.0.9
