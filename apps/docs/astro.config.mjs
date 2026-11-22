@@ -87,8 +87,11 @@ export default defineConfig({
           frames: { frameBoxShadowCssValue: 'none' },
         },
       },
-      // Adds the Privacy, llms.txt and GitHub links under every docs page.
-      components: { Footer: './src/components/overrides/Footer.astro' },
+      // Footer: Privacy, llms.txt, GitHub and Sponsor links under every docs page. SiteTitle: adds the version.
+      components: {
+        Footer: './src/components/overrides/Footer.astro',
+        SiteTitle: './src/components/overrides/SiteTitle.astro',
+      },
       customCss: [
         '@fontsource-variable/jost',
         '@fontsource-variable/jetbrains-mono',

@@ -4,6 +4,7 @@ import '@fontsource-variable/jetbrains-mono';
 import '../styles/landing.css';
 import logo from '../assets/logo.svg?raw';
 import { SPONSOR_URL } from '../data/sponsors';
+import { CHANGELOG_URL, VERSION } from '../data/version';
 
 interface Props {
   title: string;
@@ -42,10 +43,13 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="/" aria-label="shortcutter home">
-        <span class="brand-logo" set:html={logo} />
-        <span>shortcutter</span>
-      </a>
+      <div class="brand-wrap">
+        <a class="brand" href="/" aria-label="shortcutter home">
+          <span class="brand-logo" set:html={logo} />
+          <span>shortcutter</span>
+        </a>
+        <a class="version" href={CHANGELOG_URL} aria-label={`Version ${VERSION}, see the changelog`}>v{VERSION}</a>
+      </div>
       <nav aria-label="Main">
         <a href="/docs/">Docs</a>
         <a href="https://github.com/mrpiotr-dev/shortcutter" rel="external noopener" target="_blank">

@@ -1,0 +1,32 @@
+---
+// Starlight's site title plus the released version, linking to the changelog.
+import Default from '@astrojs/starlight/components/SiteTitle.astro';
+import { CHANGELOG_URL, VERSION } from '../../data/version';
+---
+
+<div class="sc-site-title">
+  <Default />
+  <a class="sc-version" href={CHANGELOG_URL} aria-label={`Version ${VERSION}, see the changelog`}>v{VERSION}</a>
+</div>
+
+<style>
+  .sc-site-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+  .sc-version {
+    padding: 0.1rem 0.45rem;
+    border: var(--sc-border) solid var(--sl-color-gray-5);
+    color: var(--sl-color-gray-2);
+    font-family: var(--sl-font-mono);
+    font-size: var(--sl-text-xs);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .sc-version:hover {
+    border-color: var(--sl-color-text-accent);
+    color: var(--sl-color-text-accent);
+  }
+</style>
