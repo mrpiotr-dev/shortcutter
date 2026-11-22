@@ -243,8 +243,6 @@ This library follows [Semantic Versioning](https://semver.org/).
 
 <a href="https://github.com/sponsors/mrpiotr-dev"><img src="https://img.shields.io/badge/Sponsor_Shortcutter-%E2%9D%A4-db61a2?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor Shortcutter on GitHub" /></a>
 
-Need hands-on help, such as integration, a keyboard UX review or a feature built to a deadline? That's a business inquiry: [contact@mrpiotr.dev](mailto:contact@mrpiotr.dev).
-
 ## License
 
 `Shortcutter` is available under the MIT license. See the [LICENSE](./LICENSE) file for more details.
