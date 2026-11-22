@@ -24,6 +24,7 @@
     "url": "git+https://github.com/mrpiotr-dev/shortcutter.git",
     "directory": "packages/core"
   },
+  "funding": "https://github.com/sponsors/mrpiotr-dev",
   "files": [
     "dist"
   ],

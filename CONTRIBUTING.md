@@ -68,7 +68,7 @@ Cloudflare Workers Builds deploys `main` to www.shortcutter.dev and uploads a pr
 
 - `main`: released code only. Pull requests come from `develop` (or `hotfix/*`) and are merged with a merge commit, never squashed: a squash would give `main` commits that `develop` does not have.
 - `develop`: the default branch where finished work is integrated. Task branches are merged into it with a merge commit, which keeps their commits; squash a branch only when its commits are not worth keeping.
-- Task branches follow [Conventional Branch](https://conventionalbranch.org): `<type>/<description>`, with type `feature` (or `feat`), `bugfix` (or `fix`), `hotfix`, `release` or `chore`. Use lowercase letters, digits and single hyphens; dots only in versions. Examples: `feat/issue-12-mod-key`, `fix/meta-stuck-keys`, `release/v0.3.0`.
+- Task branches follow [Conventional Branch](https://conventionalbranch.org): `<type>/<description>`, with type `feature` (or `feat`), `bugfix` (or `fix`), `hotfix`, `release`, `chore` or `docs`. Use lowercase letters, digits and single hyphens; dots only in versions. Examples: `feat/issue-12-mod-key`, `fix/meta-stuck-keys`, `release/v0.3.0`.
 - Hotfixes branch from `main`, merge into `main`, then back into `develop`.
 
 The `Branch rules` workflow checks branch names and the source branch of pull requests into `main`.

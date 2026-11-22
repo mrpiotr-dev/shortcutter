@@ -237,6 +237,12 @@ Also new: shortcuts are ignored while typing in inputs, `'down'` no longer fires
 
 This library follows [Semantic Versioning](https://semver.org/).
 
+## Sponsors
+
+**Be our first sponsor!** Shortcutter is free and MIT-licensed, and always will be. Sponsors fund what’s next: international keyboard layouts, customizable shortcuts and the road to 1.0.
+
+<a href="https://github.com/sponsors/mrpiotr-dev"><img src="https://img.shields.io/badge/Sponsor_Shortcutter-%E2%9D%A4-db61a2?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor Shortcutter on GitHub" /></a>
+
 ## License
 
 `Shortcutter` is available under the MIT license. See the [LICENSE](./LICENSE) file for more details.
