@@ -38,7 +38,7 @@
     "starlight-typedoc": "catalog:",
     "typedoc": "catalog:",
     "typedoc-plugin-markdown": "catalog:",
-    "typescript": "~6.0.3",
+    "typescript": "~7.0.2",
     "wrangler": "catalog:"
   }
 }
