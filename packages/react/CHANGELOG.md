@@ -1,5 +1,43 @@
 # @shortcutter/react
 
+## 0.5.0
+
+### Minor Changes
+
+- f3fad91: Customizable shortcuts:
+
+  - New optional entry `shortcutter/keymap`:
+    - `createKeymap()` declares commands as data;
+    - `remap()` throws a `KeymapConflictError` on conflicts (`{ force: true }` takes the keys over); `disable()` and `reset()`;
+    - `overrides()` returns the user's changes as plain JSON, restored with the `overrides` option;
+    - `conflicts()` covers overlapping contexts and wildcards;
+    - `reserved()` names combinations the browser or OS keeps;
+    - `subscribe()` for settings screens.
+  - New optional entry `shortcutter/record`: `recordShortcut()` captures a combination from the keyboard, pausing the shortcutter's shortcuts while it records. Escape cancels.
+  - Core: `watch(listener)` is called when shortcuts are added or removed and when contexts change.
+  - Adapters:
+    - React, Vue and Svelte: `useShortcuts()`, `useKeymap()` and `useRecorder()`;
+    - Solid: `createShortcuts()`, `createKeymapCommands()` and `createRecorder()`.
+  - New guides: "Customizable shortcuts" and "Accessibility (WCAG 2.1.4)".
+
+- 4e911ed: Keyboard layouts:
+
+  - New `match` option: `createShortcutter({ match: 'key' })` matches letters by the **printed** letter (`KeyboardEvent.key`) instead of the physical key, so `Control+Z` follows the key labelled Z on QWERTZ, AZERTY and Dvorak too. Digits, punctuation and named keys stay physical, and non-Latin layouts fall back to the physical key. The default stays `'code'`.
+  - AltGr no longer triggers `Control+Alt` shortcuts on Windows and Linux, so typing `ą`, `@` or `€` cannot fire them. Shortcuts pressed with the left Alt key are unchanged; macOS is unaffected.
+  - `shortcutter/format`: new `getLayoutLabels()` returns labels for the user's layout (Keyboard Map API, Chromium), so a help screen shows `Ctrl+Z` for the shortcut registered as `Control+Y` on QWERTZ.
+
+### Patch Changes
+
+- 857a0c7: Adds a `funding` link to GitHub Sponsors, so `npm fund` lists Shortcutter and npm shows a sponsor link.
+- 4b9541e: Fixes a `TypeError` when a shortcut string contains a key named like an `Object.prototype` member, such as `constructor` or `__proto__`; `shortcutter/format` no longer returns a function as the label for such keys. Found by the new property-based tests.
+- 00d2363: Security: wildcard shortcuts could take seconds to hours to match (regular-expression denial of service). A key with many `*` (`'a*a*a*a*a*a*b'`) was turned into a backtracking regex, and many wildcard keys in one shortcut were assigned by trying every order. Both are now polynomial: a two-pointer `*` matcher and a bipartite matching. Matching results are unchanged. Only affects apps that register shortcut strings from untrusted input, such as user-defined shortcuts.
+- Updated dependencies [f3fad91]
+- Updated dependencies [857a0c7]
+- Updated dependencies [4e911ed]
+- Updated dependencies [4b9541e]
+- Updated dependencies [00d2363]
+  - shortcutter@0.5.0
+
 ## 0.4.0
 
 ### Minor Changes
