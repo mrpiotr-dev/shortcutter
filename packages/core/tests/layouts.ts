@@ -8,7 +8,9 @@ const letters = 'abcdefghijklmnopqrstuvwxyz';
 
 /** US QWERTY: every letter where its code says, digits with their shifted symbols. */
 export const QWERTY: Layout = {
-  ...Object.fromEntries([...letters].map((c) => [`Key${c.toUpperCase()}`, [c, c.toUpperCase()]])),
+  ...Object.fromEntries(
+    letters.split('').map((c) => [`Key${c.toUpperCase()}`, [c, c.toUpperCase()]]),
+  ),
   Digit1: ['1', '!'],
   Digit2: ['2', '@'],
   Comma: [',', '<'],
