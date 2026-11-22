@@ -134,6 +134,29 @@ shortcutter.contexts.activate('modal', 'default'); // both run, modal first
 shortcutter.contexts.active(); // ['modal', 'default']
 ```
 
+## Stopping propagation
+
+There is no `stopPropagation` option: whether an event should go further is usually decided in the handler, so call it there. Every handler gets the event:
+
+```ts
+const page = createShortcutter(); // listens on window
+const editor = createShortcutter({ target: editorElement });
+
+page.listen('Escape', closePanel, { ignoreInputs: false });
+
+editor.listen(
+  'Escape',
+  (event) => {
+    if (!autocomplete.isOpen) return; // not handled here: the page closes the panel
+    autocomplete.close();
+    event.stopPropagation(); // handled: the page's Escape does not run
+  },
+  { ignoreInputs: false },
+);
+```
+
+This only matters when the shortcutter listens on an element and something above it listens too: another shortcutter on `window`, or a framework's or editor's own key handler. With the default target, `window`, the event has nowhere further to go. A shortcutter that does not see a keydown because it was stopped does not count that key as held, and ignores its keyup.
+
 ## API
 
 ### `createShortcutter(options?)`
