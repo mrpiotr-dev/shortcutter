@@ -89,7 +89,13 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
   const learned = new Map<string, string>();
   const subscribers = new Set<KeysListener>();
   const observers = new Set<PhaseListener>();
+  const watchers = new Set<() => void>();
   let active: string[] = [defaultContext];
+
+  /** Tells watchers that shortcuts() or the active contexts changed. */
+  function changed(): void {
+    for (const watcher of watchers) watcher();
+  }
 
   /** Tells subscribers about a change of the held keys (`before` is the combination before it). */
   function notify(before: string, event: KeyboardEvent | Event): void {
@@ -283,6 +289,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
     names.clear();
     subscribers.clear();
     observers.clear();
+    watchers.clear();
   }
 
   if (options.signal?.aborted) {
@@ -317,6 +324,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
       registrations.delete(registration);
       wildcards.get(context)?.delete(binding);
     }
+    changed();
   }
 
   function listen(shortcut: string, handler: ShortcutHandler, opts: ListenOptions = {}) {
@@ -363,6 +371,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
 
       wildcards.set(context, set.add(binding));
     }
+    changed();
 
     return () => {
       // `only`: leave it alone if someone registered the shortcut again in the meantime.
@@ -412,6 +421,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
         }
 
         active = [...new Set(names)];
+        changed();
       },
       active: () => [...active],
       isActive: (name: string) => active.includes(name),
@@ -435,6 +445,14 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
 
       observers.add(listener);
       return () => void observers.delete(listener);
+    },
+    watch(listener: () => void) {
+      if (typeof listener !== 'function') {
+        throw new Error('Listener has to be a function.');
+      }
+
+      watchers.add(listener);
+      return () => void watchers.delete(listener);
     },
     destroy,
   };

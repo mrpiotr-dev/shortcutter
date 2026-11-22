@@ -158,6 +158,11 @@ export type Shortcutter = {
    * Returns an unsubscribe function. Useful for key loggers, visualizers and analytics.
    */
   observe(listener: PhaseListener): () => void;
+  /**
+   * Calls `listener` after a shortcut is added or removed and after the active contexts change, so
+   * a help screen built from `shortcuts()` can refresh. Returns an unsubscribe function.
+   */
+  watch(listener: () => void): () => void;
   /** Removes all event listeners. Registered shortcuts stop firing. Safe to call twice. */
   destroy(): void;
 };
