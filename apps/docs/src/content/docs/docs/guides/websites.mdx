@@ -45,7 +45,7 @@ function openHelp() {
 ```
 
 :::note[Why Shift+Slash and not ?]
-Shortcuts follow physical keys (`KeyboardEvent.code`), so they work the same on every layout, but the characters printed on the keys move. On US layouts <kbd>?</kbd> is <kbd>Shift</kbd> + <kbd>/</kbd>, so it is declared as `Shift+Slash`. On a German layout <kbd>?</kbd> is <kbd>Shift</kbd> + <kbd>ß</kbd>, which is `Shift+Minus`. If your audience is mostly on one layout, register that combination. For a global audience, lead with a shortcut that does not depend on the printed character, such as `ControlOrMeta+Slash` (the Slash key exists on every layout, only its label differs), and also offer a visible button. The home page of this site does exactly that.
+Punctuation keys are matched by position (`KeyboardEvent.code`), also with [`match: 'key'`](/docs/guides/keyboard-layouts/), so they work the same on every layout, but the characters printed on them move. On US layouts <kbd>?</kbd> is <kbd>Shift</kbd> + <kbd>/</kbd>, so it is declared as `Shift+Slash`. On a German layout <kbd>?</kbd> is <kbd>Shift</kbd> + <kbd>ß</kbd>, which is `Shift+Minus`. If your audience is mostly on one layout, register that combination. For a global audience, lead with a shortcut that does not depend on the printed character, such as `ControlOrMeta+Slash` (the Slash key exists on every layout, only its label differs), and also offer a visible button. The home page of this site does exactly that.
 :::
 
 ## Close with Escape

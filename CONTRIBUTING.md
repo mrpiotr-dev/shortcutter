@@ -3,6 +3,16 @@
 I'm glad you reach this repository!
 The community's pull requests will be unavailable until the `Contributor License Agreement` document and form are ready.
 
+## Reporting bugs and giving feedback
+
+Issues and discussions are open to everyone:
+
+- **Bugs:** use the [bug report form](https://github.com/mrpiotr-dev/shortcutter/issues/new?template=bug_report.yml). It asks for the package version, browser, OS, keyboard layout and a minimal reproduction.
+- **Questions, ideas and feedback:** [GitHub Discussions](https://github.com/mrpiotr-dev/shortcutter/discussions).
+- **Feature requests:** the [feature request form](https://github.com/mrpiotr-dev/shortcutter/issues/new?template=feature_request.yml).
+- **Documentation problems:** "Report a problem with this page" at the bottom of every docs page, or the [docs issue form](https://github.com/mrpiotr-dev/shortcutter/issues/new?template=docs.yml).
+- **Security issues:** never in public, see [SECURITY.md](SECURITY.md).
+
 ## Development
 
 The repository is a [pnpm](https://pnpm.io) workspace driven by [Vite+](https://viteplus.dev) (`vp`):
@@ -62,13 +72,13 @@ These are generated during the build and are not committed (see `apps/docs/.giti
 
 ### Deployment
 
-Cloudflare Workers Builds deploys `main` to www.shortcutter.dev and uploads a preview version for every other branch. Setup and URL rules are in [`apps/docs/README.md`](apps/docs/README.md).
+Cloudflare Workers Builds deploys `main` to www.shortcutter.dev, so the site always matches the packages on npm, and uploads a preview version for every other branch (including `develop`, to check upcoming docs). Docs for unreleased features go live with the release. A site-only fix that cannot wait goes through a `hotfix/*` branch into `main`, then back into `develop`. Setup and URL rules are in [`apps/docs/README.md`](apps/docs/README.md).
 
 ## Branches
 
 - `main`: released code only. Pull requests come from `develop` (or `hotfix/*`) and are merged with a merge commit, never squashed: a squash would give `main` commits that `develop` does not have.
 - `develop`: the default branch where finished work is integrated. Task branches are merged into it with a merge commit, which keeps their commits; squash a branch only when its commits are not worth keeping.
-- Task branches follow [Conventional Branch](https://conventionalbranch.org): `<type>/<description>`, with type `feature` (or `feat`), `bugfix` (or `fix`), `hotfix`, `release` or `chore`. Use lowercase letters, digits and single hyphens; dots only in versions. Examples: `feat/issue-12-mod-key`, `fix/meta-stuck-keys`, `release/v0.3.0`.
+- Task branches follow [Conventional Branch](https://conventionalbranch.org): `<type>/<description>`, with type `feature` (or `feat`), `bugfix` (or `fix`), `hotfix`, `release`, `chore` or `docs`. Use lowercase letters, digits and single hyphens; dots only in versions. Examples: `feat/issue-12-mod-key`, `fix/meta-stuck-keys`, `release/v0.3.0`.
 - Hotfixes branch from `main`, merge into `main`, then back into `develop`.
 
 The `Branch rules` workflow checks branch names and the source branch of pull requests into `main`.

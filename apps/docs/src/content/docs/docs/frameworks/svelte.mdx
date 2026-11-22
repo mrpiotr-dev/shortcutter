@@ -158,6 +158,49 @@ Every `description` is listed by `shortcuts()`, and `shortcutter/format` writes 
 </dl>
 ```
 
+## A live help screen
+
+`useShortcuts(filter)` returns an object whose `current` holds `shortcuts(filter)`, updated when shortcuts are added or removed and when contexts change:
+
+```svelte
+<script lang="ts">
+  import { useShortcuts } from '@shortcutter/svelte';
+  import { formatShortcut } from 'shortcutter/format';
+
+  const shortcuts = useShortcuts({ active: true });
+</script>
+
+<ul>
+  {#each shortcuts.current.filter((s) => s.description) as s (`${s.context}:${s.shortcut}`)}
+    <li><kbd>{formatShortcut(s.keys)}</kbd> {s.description}</li>
+  {/each}
+</ul>
+```
+
+## A settings screen
+
+For shortcuts users can change, `useKeymap(keymap)` returns an object whose `current` holds the commands of a [keymap](/docs/guides/customizable-shortcuts/), updated after `remap()`, `disable()` and `reset()`. `useRecorder()` records a new shortcut; `recording` and `keys` are reactive, and a recording still running when the component is destroyed is cancelled:
+
+```svelte
+<script lang="ts">
+  import { useKeymap, useRecorder } from '@shortcutter/svelte';
+
+  let { keymap }: { keymap: Keymap } = $props();
+  const commands = useKeymap(keymap);
+  const recorder = useRecorder();
+
+  async function change(id: string) {
+    const shortcut = await recorder.start(); // null if cancelled with Escape
+    if (shortcut) keymap.remap(id, shortcut);
+  }
+</script>
+
+{#if recorder.recording}<p>{recorder.keys.join(' + ') || 'Press keys…'}</p>{/if}
+{#each commands.current as c (c.id)}
+  <button onclick={() => change(c.id)}>{c.description}: {c.keys.join(', ') || 'None'}</button>
+{/each}
+```
+
 ## Server rendering
 
 `onMount` and attachments do not run on the server, so nothing listens during server rendering and `usePressedKeys()` subscribes only in the browser. The functions are safe in SvelteKit pages and layouts as they are.

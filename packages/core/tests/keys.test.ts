@@ -28,6 +28,11 @@ describe('keyFromCode', () => {
 });
 
 describe('parseShortcut', () => {
+  it('treats Object.prototype names as plain keys', () => {
+    expect(parseShortcut('constructor', false)).toBe('constructor');
+    expect(parseShortcut('Control+__proto__', false)).toBe('__proto__+control');
+  });
+
   it('is case- and order-insensitive', () => {
     expect(parseShortcut('Control+Shift+K', false)).toBe('control+k+shift');
     expect(parseShortcut('k+SHIFT+control', false)).toBe('control+k+shift');

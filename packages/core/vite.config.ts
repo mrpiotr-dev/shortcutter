@@ -6,15 +6,26 @@ const pack = libraryPack(pkg);
 
 export default defineConfig({
   pack: [
-    // shortcutter/sequences and shortcutter/format are optional entries: apps that do not import
-    // them do not ship them, and the core <script> build stays small.
-    { ...pack, entry: ['src/index.ts', 'src/sequences.ts', 'src/format.ts'] },
+    // sequences, format, record and keymap are optional entries: apps that do not import them do
+    // not ship them, and the core <script> build stays small.
+    {
+      ...pack,
+      entry: [
+        'src/index.ts',
+        'src/sequences.ts',
+        'src/format.ts',
+        'src/record.ts',
+        'src/keymap.ts',
+      ],
+    },
     {
       ...pack,
       // Minified <script>-tag build for CDNs: window.Shortcutter
       format: ['iife'],
       globalName: 'Shortcutter',
       minify: true,
+      // PURE annotations only help bundlers; a <script> build is never bundled again.
+      outputOptions: { comments: { legal: false, annotation: false } },
       dts: false,
       exports: false,
       publint: false,
@@ -27,6 +38,8 @@ export default defineConfig({
       format: ['iife'],
       globalName: 'ShortcutterSequences',
       minify: true,
+      // PURE annotations only help bundlers; a <script> build is never bundled again.
+      outputOptions: { comments: { legal: false, annotation: false } },
       dts: false,
       exports: false,
       publint: false,
@@ -39,6 +52,36 @@ export default defineConfig({
       format: ['iife'],
       globalName: 'ShortcutterFormat',
       minify: true,
+      // PURE annotations only help bundlers; a <script> build is never bundled again.
+      outputOptions: { comments: { legal: false, annotation: false } },
+      dts: false,
+      exports: false,
+      publint: false,
+      attw: false,
+    },
+    {
+      ...pack,
+      // <script>-tag build of the optional record entry: window.ShortcutterRecord
+      entry: ['src/record.ts'],
+      format: ['iife'],
+      globalName: 'ShortcutterRecord',
+      minify: true,
+      // PURE annotations only help bundlers; a <script> build is never bundled again.
+      outputOptions: { comments: { legal: false, annotation: false } },
+      dts: false,
+      exports: false,
+      publint: false,
+      attw: false,
+    },
+    {
+      ...pack,
+      // <script>-tag build of the optional keymap entry: window.ShortcutterKeymap
+      entry: ['src/keymap.ts'],
+      format: ['iife'],
+      globalName: 'ShortcutterKeymap',
+      minify: true,
+      // PURE annotations only help bundlers; a <script> build is never bundled again.
+      outputOptions: { comments: { legal: false, annotation: false } },
       dts: false,
       exports: false,
       publint: false,
@@ -47,6 +90,7 @@ export default defineConfig({
   ],
   test: {
     environment: 'happy-dom',
-    coverage: { provider: 'v8', include: ['src/**/*.ts'] },
+    // json-summary feeds the coverage badge on shortcutter.dev (apps/docs/src/pages/badges/coverage.json.ts).
+    coverage: { provider: 'v8', include: ['src/**/*.ts'], reporter: ['text', 'json-summary'] },
   },
 });

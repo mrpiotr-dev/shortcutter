@@ -1,0 +1,131 @@
+---
+title: Customizable shortcuts
+description: A settings screen where users change shortcuts, with a recorder, conflict checks and saved overrides.
+---
+
+Two optional entries turn fixed shortcuts into ones your users can change:
+
+- `shortcutter/keymap` declares commands as data, applies the user's changes, checks conflicts and gives you the changes as plain JSON to save.
+- `shortcutter/record` captures a combination from the keyboard: "press the new shortcut".
+
+Apps that do not import them do not ship them.
+
+## Declare commands
+
+```ts
+import { createShortcutter } from 'shortcutter';
+import { createKeymap } from 'shortcutter/keymap';
+
+const shortcutter = createShortcutter({ match: 'key' });
+
+const keymap = createKeymap(
+  shortcutter,
+  {
+    undo: { keys: 'ControlOrMeta+Z', description: 'Undo', run: undo, preventDefault: true },
+    palette: { keys: ['ControlOrMeta+K', 'ControlOrMeta+P'], description: 'Command palette', run: openPalette },
+    bold: { keys: 'ControlOrMeta+B', description: 'Bold', context: 'editor', run: toggleBold },
+    focusSearch: { keys: 'Slash', description: 'Focus search', run: focusSearch },
+  },
+  { overrides: JSON.parse(localStorage.getItem('shortcuts') ?? '{}') },
+);
+```
+
+Each command is registered on the shortcutter like a `listen()` call, with the same options (`context`, `phases`, `preventDefault`, `ignoreInputs`, `description`), so help screens built from `shortcuts()` list them too. A command can have several shortcuts, or none (`keys: []`) until the user adds one.
+
+## Let users change them
+
+```ts
+import { recordShortcut } from 'shortcutter/record';
+import { KeymapConflictError } from 'shortcutter/keymap';
+
+async function change(id: 'undo' | 'palette' | 'bold' | 'focusSearch') {
+  const shortcut = await recordShortcut(shortcutter); // null if cancelled with Escape
+  if (!shortcut) return;
+
+  const reserved = keymap.reserved(shortcut);
+  if (reserved) return showError(`The browser uses this shortcut: ${reserved}.`);
+
+  try {
+    keymap.remap(id, shortcut);
+  } catch (error) {
+    if (!(error instanceof KeymapConflictError)) throw error;
+    // error.conflicts: [{ shortcut, context, command?, description? }]
+    if (await confirmReplace(error.conflicts)) keymap.remap(id, shortcut, { force: true });
+  }
+
+  localStorage.setItem('shortcuts', JSON.stringify(keymap.overrides()));
+}
+```
+
+- **`recordShortcut()`** waits for a combination with a non-modifier key and resolves to a string such as `'ControlOrMeta+Shift+K'`. While it records, the shortcutter's shortcuts are paused, so pressing a combination that is in use does not run its command. Escape cancels; pass `cancelKey: null` to record Escape itself. The platform's main modifier is saved as `ControlOrMeta`, so a shortcut recorded with <kbd>⌘</kbd> on a Mac works with <kbd>Ctrl</kbd> on Windows.
+- **`remap()`** throws a `KeymapConflictError` when the keys are already used in the same context, by another command or by a shortcut registered outside the keymap, or when a wildcard covers them. With `{ force: true }`, the other command loses those keys; a shortcut registered outside the keymap is never taken over.
+- **`reserved()`** names combinations the browser or the OS keeps for itself, such as <kbd>Ctrl</kbd> + <kbd>W</kbd> (closes the tab) or <kbd>⌘</kbd> + <kbd>Q</kbd>: pages never receive them, so a shortcut there would never fire.
+- **`disable(id)`** removes all shortcuts of a command, **`reset(id)`** restores its defaults and **`reset()`** restores all of them.
+
+## Contexts that are active together
+
+By default, only shortcuts in the same context conflict: `ControlOrMeta+B` can mean Bold in the `editor` context and something else in `canvas`. If one context is always active next to the others, tell the keymap, so it reports those clashes too:
+
+```ts
+createKeymap(shortcutter, commands, {
+  overlaps: (a, b) => a === b || a === 'default' || b === 'default',
+});
+```
+
+## Save and restore
+
+`overrides()` returns only what the user changed: the new shortcuts per command, and `[]` for a disabled command. It is plain JSON, so store it wherever your settings live: `localStorage`, IndexedDB or your server. Pass it back as `overrides` when the app starts. Commands that no longer exist are ignored, so old saved settings do not break a new version.
+
+```json
+{ "palette": ["ControlOrMeta+Shift+P"], "focusSearch": [] }
+```
+
+## The settings screen
+
+`commands()` lists every command with its current shortcuts, its defaults and whether the user changed it. `subscribe()` tells you when to render again; the framework adapters do that for you:
+
+```tsx
+import { useKeymap, useRecorder } from '@shortcutter/react';
+import { formatShortcut } from 'shortcutter/format';
+
+function ShortcutSettings({ keymap }: { keymap: Keymap }) {
+  const commands = useKeymap(keymap);
+  const recorder = useRecorder();
+  const [editing, setEditing] = useState<string>();
+
+  async function change(id: string) {
+    setEditing(id);
+    const shortcut = await recorder.start();
+    setEditing(undefined);
+    if (shortcut) keymap.remap(id, shortcut); // add the conflict handling from above
+  }
+
+  return (
+    <table>
+      <tbody>
+        {commands.map((command) => (
+          <tr key={command.id}>
+            <td>{command.description}</td>
+            <td>
+              {editing === command.id
+                ? recorder.keys.join(' + ') || 'Press the new shortcut…'
+                : command.keys.map((keys) => formatShortcut(keys)).join(', ') || 'None'}
+            </td>
+            <td>
+              <button onClick={() => change(command.id)}>Change</button>
+              <button onClick={() => keymap.disable(command.id)}>Turn off</button>
+              {command.customized && <button onClick={() => keymap.reset(command.id)}>Reset</button>}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+```
+
+Vue, Svelte and Solid have the same building blocks: see the [framework guides](/docs/frameworks/react/#a-settings-screen).
+
+## Accessibility
+
+A settings screen like this one also covers WCAG 2.1.4 (Character Key Shortcuts): users can turn off or remap shortcuts that use a single key. See [Accessibility](/docs/guides/accessibility/).

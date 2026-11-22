@@ -4,6 +4,8 @@ import ReactCounter from '../components/demos/react/Counter.tsx';
 import SolidCounter from '../components/demos/solid/Counter.tsx';
 import SvelteCounter from '../components/demos/svelte/Counter.svelte';
 import VueCounter from '../components/demos/vue/Counter.vue';
+import TrustBadges from '../components/TrustBadges.astro';
+import { SPONSOR_URL, sponsors } from '../data/sponsors';
 import Landing from '../layouts/Landing.astro';
 
 const snippets = {
@@ -129,6 +131,7 @@ help.forEach(({ keys, description }) => addRow(keys, description));`;
             GitHub
           </a>
         </div>
+        <TrustBadges />
       </div>
 
       <div class="visualizer" aria-label="Live keyboard visualizer">
@@ -269,6 +272,44 @@ help.forEach(({ keys, description }) => addRow(keys, description));`;
         ))
       }
     </section>
+
+    <section class="sponsors" id="sponsors" aria-labelledby="sponsors-title">
+      {
+        sponsors.length > 0 && (
+          <>
+            <h2 id="sponsors-title">Sponsors</h2>
+            <ul class="sponsor-list">
+              {sponsors.map((s) => (
+                <li class={`sponsor sponsor-${s.tier}`}>
+                  <a href={s.url} rel="external noopener sponsored" target="_blank">
+                    <img src={s.image} alt={s.name} loading="lazy" />
+                    {s.tier === 'backer' && <span>{s.name}</span>}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      }
+      <div class="sponsor-banner">
+        <div>
+          {
+            sponsors.length > 0 ? (
+              <p class="sponsor-banner-title">Join them!</p>
+            ) : (
+              <h2 id="sponsors-title" class="sponsor-banner-title">
+                Be our first sponsor!
+              </h2>
+            )
+          }
+          <p>
+            Shortcutter is free and MIT-licensed, and always will be. Sponsors fund what’s next: international keyboard
+            layouts, customizable shortcuts and the road to 1.0.
+          </p>
+        </div>
+        <a class="btn btn-ink" href={SPONSOR_URL} rel="external noopener" target="_blank">Sponsor Shortcutter ♥</a>
+      </div>
+    </section>
   </main>
 
   <dialog class="palette" data-palette aria-label="Command palette">
@@ -280,6 +321,7 @@ help.forEach(({ keys, description }) => addRow(keys, description));`;
       <li role="option" data-command="copy">Copy the install command</li>
       <li role="option" data-command="example">Jump to the live example</li>
       <li role="option" data-command="help">Show keyboard shortcuts</li>
+      <li role="option" data-command="sponsor">Sponsor Shortcutter</li>
     </ul>
     <p class="palette-help">
       <kbd class="keycap">↑</kbd> <kbd class="keycap">↓</kbd> move · <kbd class="keycap">Enter</kbd> run ·

@@ -45,6 +45,16 @@ type Binding = {
 
 const PHASE_NAMES: readonly Phase[] = ['down', 'press', 'up'];
 
+/** Adds `listener` to `set` and returns the function that removes it. */
+function addListener<T>(set: Set<T>, listener: T): () => void {
+  if (typeof listener !== 'function') {
+    throw new Error('Listener has to be a function.');
+  }
+
+  set.add(listener);
+  return () => void set.delete(listener);
+}
+
 function toPhases(phases: Phases): Phase[] {
   const list: readonly unknown[] = Array.isArray(phases) ? phases : [phases];
 
@@ -75,6 +85,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
   const ignoreInputs = options.ignoreInputs ?? true;
   const preventDefault = options.preventDefault ?? false;
   const mac = options.mac ?? detectMac();
+  const byKey = options.match === 'key';
 
   /** context → `${pattern}|${phase}` → binding (exact and wildcard shortcuts alike) */
   const registry = new Map<string, Map<string, Binding>>();
@@ -82,9 +93,19 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
   const wildcards = new Map<string, Set<Binding>>();
   const registrations = new Set<Registration>();
   const pressed = new Set<string>();
+  /** `event.code` → the name it was pressed as, so its keyup releases the same name. */
+  const names = new Map<string, string>();
+  /** `match: 'key'`: the letter each physical key printed last time, for presses that print none. */
+  const learned = new Map<string, string>();
   const subscribers = new Set<KeysListener>();
   const observers = new Set<PhaseListener>();
+  const watchers = new Set<() => void>();
   let active: string[] = [defaultContext];
+
+  /** Tells watchers that shortcuts() or the active contexts changed. */
+  function changed(): void {
+    for (const watcher of watchers) watcher();
+  }
 
   /** Tells subscribers about a change of the held keys (`before` is the combination before it). */
   function notify(before: string, event: KeyboardEvent | Event): void {
@@ -130,26 +151,78 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
   }
 
   /**
+   * AltGr types characters (`@`, `ą`, `€`). Windows reports it as Control+Alt, so without this a
+   * `Control+Alt+…` shortcut would fire while typing. macOS has no AltGr: Option is Alt there.
+   */
+  function isAltGraph(event: KeyboardEvent): boolean {
+    return !mac && event.ctrlKey && event.altKey && event.getModifierState?.('AltGraph') === true;
+  }
+
+  /**
+   * The canonical name of the key behind `event`: its physical position (`match: 'code'`), or the
+   * Latin letter it prints (`match: 'key'`), see {@link ShortcutterOptions.match}.
+   */
+  function nameOf(event: KeyboardEvent): string {
+    const physical = keyFromCode(event.code);
+
+    if (!byKey || isModifier(physical)) return physical;
+
+    const printed = event.key?.length === 1 ? event.key.toLowerCase() : '';
+
+    if (/^[a-z]$/.test(printed)) {
+      learned.set(event.code, printed);
+      return printed;
+    }
+
+    const known = learned.get(event.code);
+
+    if (known) return known;
+
+    // Punctuation on a letter key (`,` where QWERTY has M, on AZERTY) must not take that letter's
+    // name, because the letter is printed by another key. Other scripts keep the physical name.
+    if (/^[a-z]$/.test(physical) && printed && !event.altKey && /[^\p{L}\p{M}]/u.test(printed)) {
+      return printed;
+    }
+
+    return physical;
+  }
+
+  /**
    * Trusts the event's modifier flags over our own record: drops modifiers released where we could
    * not see it (keyup lost), and adds modifiers pressed before the page had focus (keydown lost).
+   * Under AltGr, Control and Alt are not counted.
    */
   function syncModifiers(event: KeyboardEvent, key: string): void {
-    for (const modifier of MODIFIERS) {
-      if (modifier === key) continue;
+    const altGraph = isAltGraph(event);
 
-      if (isModifierHeld(event, modifier)) pressed.add(modifier);
+    for (const modifier of MODIFIERS) {
+      if (altGraph && (modifier === 'control' || modifier === 'alt')) pressed.delete(modifier);
+      else if (modifier === key) continue;
+      else if (isModifierHeld(event, modifier)) pressed.add(modifier);
       else pressed.delete(modifier);
     }
   }
 
+  /** Forgets the names of keys that are no longer pressed. */
+  function forget(): void {
+    for (const [code, name] of names) {
+      if (!pressed.has(name)) names.delete(code);
+    }
+  }
+
   function onKeyDown(event: KeyboardEvent): void {
-    const key = keyFromCode(event.code);
+    const key = names.get(event.code) ?? nameOf(event);
 
     if (!key) return;
 
     const before = combination(pressed);
 
     syncModifiers(event, key);
+
+    if (isAltGraph(event) && (key === 'control' || key === 'alt')) {
+      notify(before, event);
+      return;
+    }
 
     const previous = combination(pressed);
 
@@ -160,13 +233,14 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
     }
 
     pressed.add(key);
+    names.set(event.code, key);
     notify(before, event);
     dispatch(previous, 'up', event);
     dispatch(combination(pressed), 'down', event);
   }
 
   function onKeyUp(event: KeyboardEvent): void {
-    const key = keyFromCode(event.code);
+    const key = names.get(event.code) ?? nameOf(event);
     const before = combination(pressed);
 
     syncModifiers(event, key);
@@ -187,6 +261,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
       }
     }
 
+    forget();
     notify(before, event);
     dispatch(previous, 'up', event);
   }
@@ -201,6 +276,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
     const previous = combination(pressed);
 
     pressed.clear();
+    names.clear();
     notify(previous, event);
     dispatch(previous, 'up', event);
   }
@@ -220,8 +296,10 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
   function destroy(): void {
     listeners.abort();
     pressed.clear();
+    names.clear();
     subscribers.clear();
     observers.clear();
+    watchers.clear();
   }
 
   if (options.signal?.aborted) {
@@ -256,6 +334,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
       registrations.delete(registration);
       wildcards.get(context)?.delete(binding);
     }
+    changed();
   }
 
   function listen(shortcut: string, handler: ShortcutHandler, opts: ListenOptions = {}) {
@@ -302,6 +381,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
 
       wildcards.set(context, set.add(binding));
     }
+    changed();
 
     return () => {
       // `only`: leave it alone if someone registered the shortcut again in the meantime.
@@ -351,6 +431,7 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
         }
 
         active = [...new Set(names)];
+        changed();
       },
       active: () => [...active],
       isActive: (name: string) => active.includes(name),
@@ -359,22 +440,9 @@ export function createShortcutter(options: ShortcutterOptions = {}): Shortcutter
     resolve: (shortcut: string) => parseShortcutKeys(shortcut, mac),
     isPressed,
     pressed: () => [...pressed].sort(),
-    subscribe(listener: KeysListener) {
-      if (typeof listener !== 'function') {
-        throw new Error('Listener has to be a function.');
-      }
-
-      subscribers.add(listener);
-      return () => void subscribers.delete(listener);
-    },
-    observe(listener: PhaseListener) {
-      if (typeof listener !== 'function') {
-        throw new Error('Listener has to be a function.');
-      }
-
-      observers.add(listener);
-      return () => void observers.delete(listener);
-    },
+    subscribe: (listener: KeysListener) => addListener(subscribers, listener),
+    observe: (listener: PhaseListener) => addListener(observers, listener),
+    watch: (listener: () => void) => addListener(watchers, listener),
     destroy,
   };
 }

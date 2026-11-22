@@ -1,0 +1,76 @@
+---
+title: Accessibility
+description: Single-key shortcuts and WCAG 2.1.4, typing in form fields, and help screens for keyboard users.
+---
+
+Keyboard shortcuts help keyboard and switch users a lot, but single-key shortcuts can also get in their way. Speech-input users dictate words that arrive as keystrokes, so a shortcut on <kbd>S</kbd> can fire while they say "search". People with tremors press keys by accident.
+
+## WCAG 2.1.4: Character Key Shortcuts (level A)
+
+If a shortcut uses only a letter, a digit, punctuation or a symbol (no <kbd>Ctrl</kbd>, <kbd>Alt</kbd> or <kbd>⌘</kbd>), at least one of these must be true:
+
+1. **Turn off:** users can turn the shortcut off.
+2. **Remap:** users can change it to include a modifier key such as <kbd>Ctrl</kbd> or <kbd>Alt</kbd>.
+3. **Active only on focus:** it only works while the component it belongs to has focus.
+
+Shortcuts with a modifier (`ControlOrMeta+K`) and with named keys such as `Escape`, `Enter`, the arrows or `F1` are outside this rule.
+
+## Turn off and remap: a keymap
+
+[`shortcutter/keymap`](/docs/guides/customizable-shortcuts/) covers the first two conditions. Declare single-key shortcuts as keymap commands and give users a settings screen:
+
+```ts
+import { createKeymap } from 'shortcutter/keymap';
+
+const keymap = createKeymap(shortcutter, {
+  focusSearch: { keys: 'Slash', description: 'Focus search', run: focusSearch },
+  nextItem: { keys: 'J', description: 'Next item', run: nextItem },
+  previousItem: { keys: 'K', description: 'Previous item', run: previousItem },
+});
+
+keymap.disable('nextItem'); // condition 1: turned off
+keymap.remap('focusSearch', 'Alt+Slash'); // condition 2: remapped with a modifier
+```
+
+A simpler option, if users do not need to pick their own keys: one switch that turns all single-key shortcuts off.
+
+```ts
+const singleKey = ['focusSearch', 'nextItem', 'previousItem'] as const;
+
+function setSingleKeyShortcuts(enabled: boolean) {
+  for (const id of singleKey) enabled ? keymap.reset(id) : keymap.disable(id);
+}
+```
+
+## Active only on focus: contexts or a target
+
+Contexts can limit shortcuts to the component that has focus. Activate the context on `focusin` and go back on `focusout`:
+
+```ts
+shortcutter.listen('J', nextRow, { context: 'table' });
+
+table.addEventListener('focusin', () => shortcutter.contexts.activate('default', 'table'));
+table.addEventListener('focusout', () => shortcutter.contexts.activate('default'));
+```
+
+Or give the component its own shortcutter that listens on the element itself, so its keys only arrive while focus is inside:
+
+```ts
+const tableKeys = createShortcutter({ target: table });
+
+tableKeys.listen('J', nextRow);
+```
+
+## Typing is safe by default
+
+Shortcuts do not fire while users type in `<input>`, `<textarea>`, `<select>` or a contenteditable element, or while an IME composes text. Keep this default (`ignoreInputs: true`) for character keys. Turn it off only for shortcuts that are meant to work in fields, such as `Escape` to close or `ControlOrMeta+Enter` to submit.
+
+## Tell users which shortcuts exist
+
+Shortcuts nobody knows about help nobody. Describe them, list them in a help screen (`shortcuts()` and `shortcutter/format`, see the [websites guide](/docs/guides/websites/#help-dialog-and-keyboard-layouts)), and show them next to the buttons they trigger, for example in a `title` or with `aria-keyshortcuts`:
+
+```html
+<button aria-keyshortcuts="Control+K">Search</button>
+```
+
+Every action with a shortcut should also be reachable without it, through a visible button, link or menu.

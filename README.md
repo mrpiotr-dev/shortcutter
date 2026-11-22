@@ -1,5 +1,16 @@
 # SHORTCUTTER
 
+[![npm](https://img.shields.io/npm/v/shortcutter)](https://www.npmjs.com/package/shortcutter)
+[![CI](https://github.com/mrpiotr-dev/shortcutter/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/mrpiotr-dev/shortcutter/actions/workflows/ci.yml)
+[![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fwww.shortcutter.dev%2Fbadges%2Fcoverage.json)](https://github.com/mrpiotr-dev/shortcutter/actions/workflows/ci.yml)
+[![size](https://img.shields.io/bundlejs/size/shortcutter)](https://bundlejs.com/?q=shortcutter)
+[![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/shortcutter?activeTab=dependencies)
+[![Socket](https://socket.dev/api/badge/npm/package/shortcutter)](https://socket.dev/npm/package/shortcutter)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/mrpiotr-dev/shortcutter/badge)](https://scorecard.dev/viewer/?uri=github.com/mrpiotr-dev/shortcutter)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/17003/badge)](https://www.bestpractices.dev/projects/17003)
+[![types](https://img.shields.io/npm/types/shortcutter)](https://www.npmjs.com/package/shortcutter)
+[![license](https://img.shields.io/npm/l/shortcutter)](./LICENSE)
+
 Tiny, dependency-free keyboard shortcuts for the browser, with **contexts** and **key phases**. Framework-agnostic and SSR-safe, with adapters for React, Vue, Svelte and Solid.
 
 ## Getting started
@@ -37,7 +48,8 @@ Without a bundler, load the script build, which exposes `window.Shortcutter`:
 A shortcut is a `+`-separated list of keys. Names are case-insensitive and the order does not matter.
 
 - Modifiers: `Control` (`Ctrl`), `Shift`, `Alt` (`Option`), `Meta` (`Cmd`, `Command`), `ControlOrMeta`. Left and right keys match alike.
-- Keys follow [`KeyboardEvent.code`](https://developer.mozilla.org/docs/Web/API/UI_Events/Keyboard_event_code_values), so they match the physical key whatever the keyboard layout: `K` (or `KeyK`), `1` (or `Digit1`), `Escape` (`Esc`), `Enter` (`Return`), `ArrowUp` (`Up`), `Space`, `F1`, `Equal`, `Numpad1`, and so on.
+- Keys are named after [`KeyboardEvent.code`](https://developer.mozilla.org/docs/Web/API/UI_Events/Keyboard_event_code_values): `K` (or `KeyK`), `1` (or `Digit1`), `Escape` (`Esc`), `Enter` (`Return`), `ArrowUp` (`Up`), `Space`, `F1`, `Equal`, `Numpad1`, and so on.
+- By default they match the **physical** key, whatever the layout. With `createShortcutter({ match: 'key' })`, letters match the **printed** letter instead, so `Control+Z` follows the key labelled Z on QWERTZ and AZERTY too. Control and Alt are ignored while AltGr is held, so `Control+Alt` shortcuts do not fire while typing `ą` or `@`. See [Keyboard layouts](https://www.shortcutter.dev/docs/guides/keyboard-layouts/).
 
 ```ts
 shortcutter.listen('Shift+ArrowUp', selectAbove);
@@ -122,6 +134,29 @@ shortcutter.contexts.activate('modal', 'default'); // both run, modal first
 shortcutter.contexts.active(); // ['modal', 'default']
 ```
 
+## Stopping propagation
+
+There is no `stopPropagation` option: whether an event should go further is usually decided in the handler, so call it there. Every handler gets the event:
+
+```ts
+const page = createShortcutter(); // listens on window
+const editor = createShortcutter({ target: editorElement });
+
+page.listen('Escape', closePanel, { ignoreInputs: false });
+
+editor.listen(
+  'Escape',
+  (event) => {
+    if (!autocomplete.isOpen) return; // not handled here: the page closes the panel
+    autocomplete.close();
+    event.stopPropagation(); // handled: the page's Escape does not run
+  },
+  { ignoreInputs: false },
+);
+```
+
+This only matters when the shortcutter listens on an element and something above it listens too: another shortcutter on `window`, or a framework's or editor's own key handler. With the default target, `window`, the event has nowhere further to go. A shortcutter that does not see a keydown because it was stopped does not count that key as held, and ignores its keyup.
+
 ## API
 
 ### `createShortcutter(options?)`
@@ -134,6 +169,7 @@ shortcutter.contexts.active(); // ['modal', 'default']
 | `ignoreInputs`   | `true`      | Skip shortcuts while typing in inputs, textareas, selects, contenteditable or during IME composition. |
 | `preventDefault` | `false`     | Call `event.preventDefault()` when a handler runs.                                                    |
 | `mac`            | detected    | Treat the platform as macOS (`ControlOrMeta` = Meta).                                                 |
+| `match`          | `'code'`    | `'code'`: physical keys. `'key'`: letters match the printed letter (see Keyboard layouts).            |
 
 Returns:
 
@@ -146,6 +182,7 @@ Returns:
 - `pressed()`: keys held right now, e.g. `['k', 'shift']`.
 - `subscribe(listener)`: calls `listener(pressed, event)` whenever the held keys change and returns an unsubscribe function. Useful for key visualizers or React's `useSyncExternalStore`.
 - `observe(listener)`: calls `listener(event, { phase, shortcut })` for every `down`, `press` and `up` of any key combination, matched or not, before handlers run. Useful for key loggers and visualizers.
+- `watch(listener)`: calls `listener()` after a shortcut is added or removed and after the active contexts change. Useful for help screens that stay open.
 - `destroy()`: removes all event listeners.
 
 ## Sequences (optional)
@@ -167,6 +204,37 @@ sequences.sequences(); // for help screens, like shortcuts()
 The framework adapters wrap it too: `useSequence` (React, Vue, Svelte), `createSequence` (Solid) and the Svelte `sequence` attachment.
 
 Steps are separated by spaces and each step is a shortcut (modifiers and wildcards work). Steps must follow each other within `timeout` milliseconds; pressing a modifier on its own does not count as a step. Sequences respect contexts, the input guard and `preventDefault`, like `listen()`.
+
+## Customizable shortcuts (optional)
+
+Two more optional entries let users change shortcuts: `shortcutter/keymap` (about 2 kB gzipped) declares commands as data, applies the user's changes, checks conflicts and returns the changes as plain JSON; `shortcutter/record` (about 1 kB) captures a combination from the keyboard.
+
+```ts
+import { createKeymap, KeymapConflictError } from 'shortcutter/keymap';
+import { recordShortcut } from 'shortcutter/record';
+
+const keymap = createKeymap(
+  shortcutter,
+  {
+    undo: { keys: 'ControlOrMeta+Z', description: 'Undo', run: undo },
+    palette: { keys: 'ControlOrMeta+K', description: 'Command palette', run: openPalette },
+  },
+  { overrides: JSON.parse(localStorage.getItem('shortcuts') ?? '{}') },
+);
+
+const shortcut = await recordShortcut(shortcutter); // 'ControlOrMeta+Shift+P', or null on Escape
+
+if (shortcut) {
+  keymap.reserved(shortcut); // 'Closes the tab' for Ctrl+W: the browser keeps it
+  keymap.remap('palette', shortcut); // throws KeymapConflictError if in use; { force: true } takes it over
+  localStorage.setItem('shortcuts', JSON.stringify(keymap.overrides()));
+}
+
+keymap.disable('undo'); // or reset('undo') / reset()
+keymap.commands(); // current and default shortcuts per command, for the settings screen
+```
+
+While recording, the shortcutter's shortcuts are paused, so pressing a combination in use does not run it. See [Customizable shortcuts](https://www.shortcutter.dev/docs/guides/customizable-shortcuts/) for a full settings screen, and [Accessibility](https://www.shortcutter.dev/docs/guides/accessibility/) for how this covers WCAG 2.1.4 (single-key shortcuts that users can turn off or remap).
 
 ## Frameworks
 
@@ -218,6 +286,15 @@ const pressed = usePressedKeys(); // React
 const speed = pressed.includes('shift') ? 2 : 1;
 ```
 
+For help and settings screens, the adapters also keep `shortcuts()`, a keymap's commands and a recorder up to date:
+
+| Adapter | Registered shortcuts | Keymap commands                | Recorder           |
+| ------- | -------------------- | ------------------------------ | ------------------ |
+| React   | `useShortcuts()`     | `useKeymap(keymap)`            | `useRecorder()`    |
+| Vue     | `useShortcuts()`     | `useKeymap(keymap)`            | `useRecorder()`    |
+| Svelte  | `useShortcuts()`     | `useKeymap(keymap)`            | `useRecorder()`    |
+| Solid   | `createShortcuts()`  | `createKeymapCommands(keymap)` | `createRecorder()` |
+
 ## Migrating from 0.2
 
 | 0.2                                                    | 0.3                                                             |
@@ -236,6 +313,22 @@ Also new: shortcuts are ignored while typing in inputs, `'down'` no longer fires
 ## Versioning
 
 This library follows [Semantic Versioning](https://semver.org/).
+
+## Feedback and bug reports
+
+- **Bugs:** open a [bug report](https://github.com/mrpiotr-dev/shortcutter/issues/new?template=bug_report.yml). Include the package version, browser, OS and keyboard layout.
+- **Questions and feedback:** [GitHub Discussions](https://github.com/mrpiotr-dev/shortcutter/discussions).
+- **Feature requests:** open a [feature request](https://github.com/mrpiotr-dev/shortcutter/issues/new?template=feature_request.yml).
+- **Docs problems:** use "Report a problem with this page" at the bottom of any docs page.
+- **Security issues:** report them privately, see [SECURITY.md](./SECURITY.md).
+
+More in [Feedback and support](https://www.shortcutter.dev/docs/support/).
+
+## Sponsors
+
+**Be our first sponsor!** Shortcutter is free and MIT-licensed, and always will be. Sponsors fund what’s next: international keyboard layouts, customizable shortcuts and the road to 1.0.
+
+<a href="https://github.com/sponsors/mrpiotr-dev"><img src="https://img.shields.io/badge/Sponsor_Shortcutter-%E2%9D%A4-db61a2?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor Shortcutter on GitHub" /></a>
 
 ## License
 

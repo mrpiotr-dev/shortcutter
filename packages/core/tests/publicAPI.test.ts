@@ -20,6 +20,7 @@ describe('publicAPI', () => {
       'shortcuts',
       'subscribe',
       'unlisten',
+      'watch',
     ]);
     expect(Object.keys(sc.contexts).sort()).toEqual(['activate', 'active', 'isActive']);
   });

@@ -4,8 +4,11 @@ description: Install shortcutter and register your first keyboard shortcut.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import TrustBadges from '../../../components/TrustBadges.astro';
 
 shortcutter is a tiny, dependency-free library for keyboard shortcuts in the browser. Shortcuts live in **contexts** and fire in **phases**, so a modal, an editor and the rest of your app can each have their own keys.
+
+<TrustBadges />
 
 ## Install
 
@@ -94,3 +97,26 @@ shortcutter.contexts.activate('modal', 'default'); // both, modal first
 :::caution
 Shortcuts are ignored while typing in inputs, textareas and contenteditable elements. Pass `ignoreInputs: false` for keys like <kbd>Esc</kbd> that should work there too.
 :::
+
+## Stopping propagation
+
+There is no `stopPropagation` option: whether an event should go further is usually decided in the handler, so call it there. Every handler gets the event:
+
+```ts
+const page = createShortcutter(); // listens on window
+const editor = createShortcutter({ target: editorElement });
+
+page.listen('Escape', closePanel, { ignoreInputs: false });
+
+editor.listen(
+  'Escape',
+  (event) => {
+    if (!autocomplete.isOpen) return; // not handled here: the page closes the panel
+    autocomplete.close();
+    event.stopPropagation(); // handled: the page's Escape does not run
+  },
+  { ignoreInputs: false },
+);
+```
+
+This only matters when the shortcutter listens on an element and something above it listens too: another shortcutter on `window`, or a framework's or editor's own key handler. With the default target, `window`, the event has nowhere further to go. A shortcutter that does not see a keydown because it was stopped does not count that key as held, and ignores its keyup.

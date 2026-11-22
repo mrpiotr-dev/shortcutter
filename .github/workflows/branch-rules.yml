@@ -18,12 +18,12 @@ jobs:
           HEAD: ${{ github.head_ref }}
           BASE: ${{ github.base_ref }}
         run: |
-          pattern='^(feature|feat|bugfix|fix|hotfix|release|chore)/[a-z0-9]+(\.[a-z0-9]+)*(-[a-z0-9]+(\.[a-z0-9]+)*)*$'
+          pattern='^(feature|feat|bugfix|fix|hotfix|release|chore|docs)/[a-z0-9]+(\.[a-z0-9]+)*(-[a-z0-9]+(\.[a-z0-9]+)*)*$'
 
           if [[ "$HEAD" == dependabot/* || "$HEAD" == renovate/* ]]; then
             echo "Bot branch $HEAD, skipping name check."
           elif [[ "$HEAD" != "develop" && ! "$HEAD" =~ $pattern ]]; then
-            echo "::error::Branch '$HEAD' must be <type>/<description>: type is feature|feat|bugfix|fix|hotfix|release|chore, description uses a-z, 0-9, single hyphens, dots only in versions."
+            echo "::error::Branch '$HEAD' must be <type>/<description>: type is feature|feat|bugfix|fix|hotfix|release|chore|docs, description uses a-z, 0-9, single hyphens, dots only in versions."
             exit 1
           fi
 

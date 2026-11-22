@@ -1,6 +1,6 @@
 {
   "name": "shortcutter",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Tiny, dependency-free keyboard shortcuts with contexts and key phases. SSR-safe.",
   "keywords": [
     "hotkey",
@@ -24,6 +24,7 @@
     "url": "git+https://github.com/mrpiotr-dev/shortcutter.git",
     "directory": "packages/core"
   },
+  "funding": "https://github.com/sponsors/mrpiotr-dev",
   "files": [
     "dist"
   ],
@@ -42,6 +43,14 @@
     "./format": {
       "import": "./dist/format.js",
       "require": "./dist/format.cjs"
+    },
+    "./keymap": {
+      "import": "./dist/keymap.js",
+      "require": "./dist/keymap.cjs"
+    },
+    "./record": {
+      "import": "./dist/record.js",
+      "require": "./dist/record.cjs"
     },
     "./sequences": {
       "import": "./dist/sequences.js",
@@ -64,6 +73,7 @@
   "devDependencies": {
     "@arethetypeswrong/core": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "fast-check": "catalog:",
     "happy-dom": "catalog:",
     "publint": "catalog:",
     "typescript": "catalog:",

@@ -1,0 +1,97 @@
+---
+/**
+ * Facts about the published packages, computed at build time and rendered as plain links:
+ * no third-party badge images, so the site keeps its no-third-party-requests promise (see /privacy/).
+ * Used on the landing page and the Getting started page.
+ */
+import { coverageOrFail, formatPercent } from '../data/coverage';
+import { coreSize } from '../data/size';
+import { VERSION } from '../data/version';
+
+const coverage = coverageOrFail();
+const size = coreSize();
+const npm = 'https://www.npmjs.com/package/shortcutter';
+const repo = 'https://github.com/mrpiotr-dev/shortcutter';
+
+const badges: { label: string; value: string; href: string; title: string }[] = [
+  { label: 'npm', value: `v${VERSION}`, href: npm, title: 'Latest release on npm' },
+  ...(size
+    ? [{ label: 'size', value: size, href: '/docs/comparison/', title: 'Core, minified and gzipped' }]
+    : []),
+  { label: 'dependencies', value: '0', href: `${npm}?activeTab=dependencies`, title: 'No runtime dependencies' },
+  ...(coverage
+    ? [
+        {
+          label: 'coverage',
+          value: formatPercent(coverage.percent),
+          href: `${repo}/actions/workflows/ci.yml`,
+          title: `Line coverage of all packages: ${coverage.covered} of ${coverage.total} lines`,
+        },
+      ]
+    : []),
+  { label: 'provenance', value: 'signed', href: npm, title: 'Published from CI with npm provenance' },
+  {
+    label: 'OpenSSF',
+    value: 'Scorecard',
+    href: 'https://scorecard.dev/viewer/?uri=github.com/mrpiotr-dev/shortcutter',
+    title: 'Security practices, rated by OpenSSF Scorecard',
+  },
+  {
+    label: 'OpenSSF best practices',
+    value: 'passing',
+    href: 'https://www.bestpractices.dev/projects/17003',
+    title: 'OpenSSF Best Practices badge: passing',
+  },
+  { label: 'license', value: 'MIT', href: `${repo}/blob/main/LICENSE`, title: 'MIT License' },
+];
+---
+
+<ul class="trust-badges" aria-label="Project facts">
+  {
+    badges.map((b) => (
+      <li>
+        <a href={b.href} title={b.title} rel={b.href.startsWith('/') ? undefined : 'external noopener'}>
+          <span class="trust-label">{b.label}</span>
+          <span class="trust-value">{b.value}</span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .trust-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .trust-badges li {
+    margin: 0;
+  }
+  .trust-badges a {
+    display: inline-flex;
+    border: 2px solid var(--line, var(--sl-color-gray-5));
+    font: 0.8rem var(--mono, var(--sl-font-mono));
+    line-height: 1.6;
+    text-decoration: none;
+  }
+  .trust-label {
+    padding: 0 0.45rem;
+    color: var(--fg-2, var(--sl-color-gray-2));
+  }
+  .trust-value {
+    padding: 0 0.45rem;
+    background: var(--fg, var(--sl-color-white));
+    color: var(--bg, var(--sl-color-black));
+    font-weight: 600;
+  }
+  .trust-badges a:hover {
+    border-color: var(--cobalt, var(--sl-color-text-accent));
+  }
+  .trust-badges a:hover .trust-label {
+    color: var(--cobalt, var(--sl-color-text-accent));
+  }
+</style>

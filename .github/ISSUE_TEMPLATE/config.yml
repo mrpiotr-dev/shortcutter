@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea to discuss
+    url: https://github.com/mrpiotr-dev/shortcutter/discussions
+    about: Ask how to do something, or discuss an idea before opening an issue.
+  - name: Security vulnerability
+    url: https://github.com/mrpiotr-dev/shortcutter/security/advisories/new
+    about: Report security issues privately, please do not open a public issue.
+  - name: Documentation
+    url: https://www.shortcutter.dev/docs/
+    about: Guides, framework adapters and the API reference.

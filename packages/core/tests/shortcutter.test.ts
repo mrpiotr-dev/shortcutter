@@ -415,6 +415,72 @@ describe('createShortcutter', () => {
     });
   });
 
+  describe('stopping propagation in a handler', () => {
+    it('lets an inner shortcutter decide whether an outer one sees the key', () => {
+      const outerTarget = document.createElement('div');
+      const innerTarget = outerTarget.appendChild(document.createElement('div'));
+      const outer = createShortcutter({ mac: false, target: outerTarget });
+      const inner = createShortcutter({ mac: false, target: innerTarget });
+      const kb = keyboard(innerTarget);
+      const closePanel = vi.fn();
+      let autocompleteOpen = true;
+
+      outer.listen('Escape', closePanel);
+      inner.listen('Escape', (event) => {
+        if (!autocompleteOpen) return;
+        autocompleteOpen = false;
+        event.stopPropagation();
+      });
+
+      kb.down('Escape');
+      expect(closePanel).not.toHaveBeenCalled();
+      expect(outer.pressed()).toEqual([]); // the stopped keydown never reached it
+
+      kb.up('Escape'); // its keyup is ignored
+      expect(outer.pressed()).toEqual([]);
+
+      kb.press('Escape'); // autocomplete closed: not stopped any more
+      expect(closePanel).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('watch', () => {
+    it('is called when shortcuts are added or removed and when contexts change', () => {
+      const { sc } = setup();
+      const watcher = vi.fn();
+      const stop = sc.watch(watcher);
+
+      const off = sc.listen('K', vi.fn());
+      expect(watcher).toHaveBeenCalledTimes(1);
+
+      sc.contexts.activate('default', 'editor');
+      expect(watcher).toHaveBeenCalledTimes(2);
+
+      off();
+      expect(watcher).toHaveBeenCalledTimes(3);
+
+      sc.listen('J', vi.fn());
+      sc.unlisten('J');
+      expect(watcher).toHaveBeenCalledTimes(5);
+
+      stop();
+      sc.listen('L', vi.fn());
+      expect(watcher).toHaveBeenCalledTimes(5);
+    });
+
+    it('stops after destroy() and rejects non-functions', () => {
+      const { sc } = setup();
+      const watcher = vi.fn();
+
+      sc.watch(watcher);
+      sc.destroy();
+      sc.listen('K', vi.fn());
+
+      expect(watcher).not.toHaveBeenCalled();
+      expect(() => sc.watch('nope' as never)).toThrow('Listener has to be a function.');
+    });
+  });
+
   describe('observe', () => {
     it('reports every phase of every combination, registered or not', () => {
       const { sc, kb } = setup();

@@ -156,6 +156,53 @@ function HelpDialog() {
 useShortcut('Shift+Slash', () => setHelpOpen(true), { description: 'Show keyboard shortcuts' });
 ```
 
+## A live help screen
+
+`useShortcuts(filter)` returns `shortcuts(filter)` and re-renders when shortcuts are added or removed and when contexts change, so a help panel that stays open keeps up:
+
+```tsx
+import { useShortcuts } from '@shortcutter/react';
+import { formatShortcut } from 'shortcutter/format';
+
+function ShortcutsPanel() {
+  const shortcuts = useShortcuts({ active: true }).filter((s) => s.description);
+
+  return (
+    <ul>
+      {shortcuts.map((s) => (
+        <li key={`${s.context}:${s.shortcut}`}>
+          <kbd>{formatShortcut(s.keys)}</kbd> {s.description}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## A settings screen
+
+For shortcuts users can change, `useKeymap(keymap)` returns the commands of a [keymap](/docs/guides/customizable-shortcuts/) and re-renders after `remap()`, `disable()` and `reset()`. `useRecorder()` records a new shortcut; `recording` and `keys` show what is being pressed, and a recording still running on unmount is cancelled:
+
+```tsx
+import { useKeymap, useRecorder } from '@shortcutter/react';
+
+function ShortcutRow({ keymap, id }: { keymap: Keymap; id: string }) {
+  const command = useKeymap(keymap).find((c) => c.id === id)!;
+  const recorder = useRecorder();
+
+  async function change() {
+    const shortcut = await recorder.start(); // null if cancelled with Escape
+    if (shortcut) keymap.remap(id, shortcut);
+  }
+
+  return (
+    <button onClick={change}>
+      {recorder.recording ? recorder.keys.join(' + ') || 'Press keys…' : command.keys.join(', ')}
+    </button>
+  );
+}
+```
+
 ## Server rendering
 
 Hooks register in effects, which do not run on the server, so nothing listens during server rendering and `usePressedKeys()` is empty. In the Next.js App Router, components that use the hooks are client components: add `'use client'` at the top of their file.

@@ -87,8 +87,11 @@ export default defineConfig({
           frames: { frameBoxShadowCssValue: 'none' },
         },
       },
-      // Adds the Privacy, llms.txt and GitHub links under every docs page.
-      components: { Footer: './src/components/overrides/Footer.astro' },
+      // Footer: Privacy, llms.txt, GitHub and Sponsor links under every docs page. SiteTitle: adds the version.
+      components: {
+        Footer: './src/components/overrides/Footer.astro',
+        SiteTitle: './src/components/overrides/SiteTitle.astro',
+      },
       customCss: [
         '@fontsource-variable/jost',
         '@fontsource-variable/jetbrains-mono',
@@ -103,6 +106,8 @@ export default defineConfig({
             '../../packages/core/src/index.ts',
             '../../packages/core/src/sequences.ts',
             '../../packages/core/src/format.ts',
+            '../../packages/core/src/record.ts',
+            '../../packages/core/src/keymap.ts',
           ],
           tsconfig: '../../packages/core/tsconfig.build.json',
           output: 'docs/api',
@@ -133,6 +138,9 @@ export default defineConfig({
             { slug: 'docs/guides/games' },
             { slug: 'docs/guides/apps' },
             { slug: 'docs/guides/websites' },
+            { slug: 'docs/guides/keyboard-layouts' },
+            { slug: 'docs/guides/customizable-shortcuts' },
+            { slug: 'docs/guides/accessibility' },
           ],
         },
         {
@@ -144,6 +152,7 @@ export default defineConfig({
           })),
         },
         { label: 'Comparison', slug: 'docs/comparison' },
+        { label: 'Feedback and support', slug: 'docs/support' },
         {
           label: 'Changelog',
           items: makeChangelogsSidebarLinks([
