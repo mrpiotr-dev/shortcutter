@@ -7,7 +7,7 @@ catalogMode: prefer
 catalog:
   '@changesets/cli': ^3.0.3
   astro: ^7.4.12
-  '@vitest/coverage-v8': 5.1.0
+  '@vitest/coverage-v8': 5.1.1
   publint: ^0.3.25
   '@arethetypeswrong/core': ^0.18.5
   happy-dom: ^21.0.4
