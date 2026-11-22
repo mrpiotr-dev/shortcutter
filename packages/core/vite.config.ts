@@ -24,6 +24,8 @@ export default defineConfig({
       format: ['iife'],
       globalName: 'Shortcutter',
       minify: true,
+      // PURE annotations only help bundlers; a <script> build is never bundled again.
+      outputOptions: { comments: { legal: false, annotation: false } },
       dts: false,
       exports: false,
       publint: false,
@@ -36,6 +38,8 @@ export default defineConfig({
       format: ['iife'],
       globalName: 'ShortcutterSequences',
       minify: true,
+      // PURE annotations only help bundlers; a <script> build is never bundled again.
+      outputOptions: { comments: { legal: false, annotation: false } },
       dts: false,
       exports: false,
       publint: false,
@@ -48,6 +52,8 @@ export default defineConfig({
       format: ['iife'],
       globalName: 'ShortcutterFormat',
       minify: true,
+      // PURE annotations only help bundlers; a <script> build is never bundled again.
+      outputOptions: { comments: { legal: false, annotation: false } },
       dts: false,
       exports: false,
       publint: false,
@@ -60,6 +66,8 @@ export default defineConfig({
       format: ['iife'],
       globalName: 'ShortcutterRecord',
       minify: true,
+      // PURE annotations only help bundlers; a <script> build is never bundled again.
+      outputOptions: { comments: { legal: false, annotation: false } },
       dts: false,
       exports: false,
       publint: false,
@@ -72,6 +80,8 @@ export default defineConfig({
       format: ['iife'],
       globalName: 'ShortcutterKeymap',
       minify: true,
+      // PURE annotations only help bundlers; a <script> build is never bundled again.
+      outputOptions: { comments: { legal: false, annotation: false } },
       dts: false,
       exports: false,
       publint: false,
