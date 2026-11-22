@@ -147,6 +147,7 @@ export default defineConfig({
           })),
         },
         { label: 'Comparison', slug: 'docs/comparison' },
+        { label: 'Feedback and support', slug: 'docs/support' },
         {
           label: 'Changelog',
           items: makeChangelogsSidebarLinks([

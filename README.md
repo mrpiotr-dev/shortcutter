@@ -247,6 +247,16 @@ Also new: shortcuts are ignored while typing in inputs, `'down'` no longer fires
 
 This library follows [Semantic Versioning](https://semver.org/).
 
+## Feedback and bug reports
+
+- **Bugs:** open a [bug report](https://github.com/mrpiotr-dev/shortcutter/issues/new?template=bug_report.yml). Include the package version, browser, OS and keyboard layout.
+- **Questions and feedback:** [GitHub Discussions](https://github.com/mrpiotr-dev/shortcutter/discussions).
+- **Feature requests:** open a [feature request](https://github.com/mrpiotr-dev/shortcutter/issues/new?template=feature_request.yml).
+- **Docs problems:** use "Report a problem with this page" at the bottom of any docs page.
+- **Security issues:** report them privately, see [SECURITY.md](./SECURITY.md).
+
+More in [Feedback and support](https://www.shortcutter.dev/docs/support/).
+
 ## Sponsors
 
 **Be our first sponsor!** Shortcutter is free and MIT-licensed, and always will be. Sponsors fund what’s next: international keyboard layouts, customizable shortcuts and the road to 1.0.
