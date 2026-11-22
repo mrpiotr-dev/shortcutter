@@ -239,9 +239,9 @@ This library follows [Semantic Versioning](https://semver.org/).
 
 ## Sponsors
 
-No sponsors yet. Shortcutter is MIT-licensed and free, and always will be. Sponsorship buys focused time for the hard parts: international keyboard layouts, customizable shortcuts, real-browser testing and the road to 1.0.
+**Be our first sponsor!** Shortcutter is free and MIT-licensed, and always will be. Sponsors fund what’s next: international keyboard layouts, customizable shortcuts and the road to 1.0.
 
-<a href="https://github.com/sponsors/mrpiotr-dev"><img src="https://img.shields.io/badge/Become_the_first_sponsor-%E2%9D%A4-db61a2?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Become the first sponsor on GitHub" /></a>
+<a href="https://github.com/sponsors/mrpiotr-dev"><img src="https://img.shields.io/badge/Sponsor_Shortcutter-%E2%9D%A4-db61a2?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor Shortcutter on GitHub" /></a>
 
 Need hands-on help, such as integration, a keyboard UX review or a feature built to a deadline? That's a business inquiry: [contact@mrpiotr.dev](mailto:contact@mrpiotr.dev).
 

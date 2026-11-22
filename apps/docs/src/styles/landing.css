@@ -769,12 +769,52 @@ h2::before {
   padding-block: 2.5rem;
 }
 
-.sponsors .muted {
+.sponsor-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: var(--border) solid var(--line);
+  background: var(--yellow);
+  color: #000000;
+}
+
+.sponsor-banner > div {
+  flex: 1 1 28rem;
+}
+
+.sponsor-banner p {
   max-width: 44rem;
+  margin: 0;
+}
+
+.sponsor-banner .sponsor-banner-title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 600;
+  line-height: 1.05;
+}
+
+/* No red square marker on the banner title: the banner itself is the accent. */
+.sponsor-banner h2::before {
+  content: none;
+}
+
+.btn-ink {
+  background: #000000;
+  border-color: #000000;
+  color: #ffffff;
+}
+
+.btn-ink:hover {
+  background: #ffffff;
+  color: #000000;
 }
 
 .sponsors .also {
-  margin: 0.75rem 0 0;
+  margin: 1rem 0 0;
   color: var(--fg-2);
   font-size: 0.95rem;
 }

@@ -272,32 +272,41 @@ help.forEach(({ keys, description }) => addRow(keys, description));`;
     </section>
 
     <section class="sponsors" id="sponsors" aria-labelledby="sponsors-title">
-      <h2 id="sponsors-title">Sponsors</h2>
       {
-        sponsors.length > 0 ? (
-          <ul class="sponsor-list">
-            {sponsors.map((s) => (
-              <li class={`sponsor sponsor-${s.tier}`}>
-                <a href={s.url} rel="external noopener sponsored" target="_blank">
-                  <img src={s.image} alt={s.name} loading="lazy" />
-                  {s.tier === 'backer' && <span>{s.name}</span>}
-                </a>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p class="muted">
-            No sponsors yet. Shortcutter is MIT-licensed and free, and always will be. Sponsorship buys focused time
-            for the hard parts: international keyboard layouts, customizable shortcuts, real-browser testing and the
-            road to 1.0.
-          </p>
+        sponsors.length > 0 && (
+          <>
+            <h2 id="sponsors-title">Sponsors</h2>
+            <ul class="sponsor-list">
+              {sponsors.map((s) => (
+                <li class={`sponsor sponsor-${s.tier}`}>
+                  <a href={s.url} rel="external noopener sponsored" target="_blank">
+                    <img src={s.image} alt={s.name} loading="lazy" />
+                    {s.tier === 'backer' && <span>{s.name}</span>}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
         )
       }
-      <p>
-        <a class="btn btn-primary" href={SPONSOR_URL} rel="external noopener" target="_blank">
-          {sponsors.length > 0 ? 'Sponsor on GitHub' : 'Become the first sponsor'}
-        </a>
-      </p>
+      <div class="sponsor-banner">
+        <div>
+          {
+            sponsors.length > 0 ? (
+              <p class="sponsor-banner-title">Join them!</p>
+            ) : (
+              <h2 id="sponsors-title" class="sponsor-banner-title">
+                Be our first sponsor!
+              </h2>
+            )
+          }
+          <p>
+            Shortcutter is free and MIT-licensed, and always will be. Sponsors fund what’s next: international keyboard
+            layouts, customizable shortcuts and the road to 1.0.
+          </p>
+        </div>
+        <a class="btn btn-ink" href={SPONSOR_URL} rel="external noopener" target="_blank">Sponsor Shortcutter ♥</a>
+      </div>
       <p class="also">
         Need hands-on help, such as integration, a keyboard UX review or a feature built to a deadline? That’s a
         business inquiry: <a href={`mailto:${BUSINESS_EMAIL}`}>{BUSINESS_EMAIL}</a>.
