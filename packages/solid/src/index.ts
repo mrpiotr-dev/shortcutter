@@ -21,7 +21,16 @@ import {
   type UseSequenceOptions,
   type UseShortcutOptions,
 } from './shared';
-import type { SequenceString, ShortcutHandler, ShortcutString, Shortcutter } from 'shortcutter';
+import type {
+  SequenceString,
+  ShortcutHandler,
+  ShortcutInfo,
+  ShortcutsFilter,
+  ShortcutString,
+  Shortcutter,
+} from 'shortcutter';
+import type { Keymap, KeymapEntry } from 'shortcutter/keymap';
+import { recordShortcut, type RecordOptions } from 'shortcutter/record';
 import type { SequenceHandler } from 'shortcutter/sequences';
 
 export type { UseSequenceOptions, UseShortcutOptions } from './shared';
@@ -112,4 +121,107 @@ export function createPressedKeys(): Accessor<string[]> {
   });
 
   return keys;
+}
+
+/**
+ * The registered shortcuts (`shortcutter.shortcuts(filter)`) as a signal, updated when shortcuts
+ * are added or removed and when contexts change. For help screens. Empty during server rendering.
+ *
+ * @example
+ * const shortcuts = createShortcuts({ active: true });
+ * <For each={shortcuts()}>{(s) => <li>{s.description}</li>}</For>
+ */
+export function createShortcuts(filter: ShortcutsFilter = {}): Accessor<ShortcutInfo[]> {
+  const shortcutter = useShortcutter();
+  const [list, setList] = createSignal<ShortcutInfo[]>([]);
+
+  // onMount does not run during server rendering.
+  onMount(() => {
+    const read = () => setList(shortcutter.shortcuts(filter));
+
+    read();
+    onCleanup(shortcutter.watch(read));
+  });
+
+  return list;
+}
+
+/**
+ * The commands of a keymap from `shortcutter/keymap` as a signal, updated after `remap()`,
+ * `disable()` and `reset()`. For settings screens.
+ *
+ * @example
+ * const commands = createKeymapCommands(keymap);
+ */
+export function createKeymapCommands<Id extends string>(
+  keymap: Keymap<Id>,
+): Accessor<KeymapEntry<Id>[]> {
+  const [commands, setCommands] = createSignal(keymap.commands());
+
+  onMount(() => {
+    setCommands(keymap.commands());
+    onCleanup(keymap.subscribe(() => setCommands(keymap.commands())));
+  });
+
+  return commands;
+}
+
+export type Recorder = {
+  /** Whether a recording is running. */
+  recording: Accessor<boolean>;
+  /** The keys held while recording (canonical names), to show them live. */
+  keys: Accessor<string[]>;
+  /** Starts recording; resolves to the shortcut string, or `null` if cancelled. Cancels a running one. */
+  start(): Promise<string | null>;
+  /** Cancels the running recording. */
+  cancel(): void;
+};
+
+/**
+ * Records a shortcut from the keyboard with `shortcutter/record`, for "press a new shortcut"
+ * buttons. A recording still running when the owner is disposed is cancelled.
+ *
+ * @example
+ * const recorder = createRecorder();
+ * const change = async () => {
+ *   const shortcut = await recorder.start();
+ *   if (shortcut) keymap.remap('palette', shortcut);
+ * };
+ */
+export function createRecorder(options: Omit<RecordOptions, 'signal' | 'onKeys'> = {}): Recorder {
+  const shortcutter = useShortcutter();
+  const [recording, setRecording] = createSignal(false);
+  const [keys, setKeys] = createSignal<string[]>([]);
+  let controller: AbortController | undefined;
+
+  onCleanup(() => controller?.abort());
+
+  return {
+    recording,
+    keys,
+    async start() {
+      controller?.abort();
+
+      const own = new AbortController();
+
+      controller = own;
+      setRecording(true);
+      setKeys([]);
+
+      try {
+        return await recordShortcut(shortcutter, {
+          ...options,
+          signal: own.signal,
+          onKeys: (held) => setKeys(held),
+        });
+      } finally {
+        if (controller === own) {
+          controller = undefined;
+          setRecording(false);
+          setKeys([]);
+        }
+      }
+    },
+    cancel: () => controller?.abort(),
+  };
 }

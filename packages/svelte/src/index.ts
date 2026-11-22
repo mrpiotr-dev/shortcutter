@@ -15,7 +15,16 @@ import {
   type UseSequenceOptions,
   type UseShortcutOptions,
 } from './shared';
-import type { SequenceString, ShortcutHandler, ShortcutString, Shortcutter } from 'shortcutter';
+import type {
+  SequenceString,
+  ShortcutHandler,
+  ShortcutInfo,
+  ShortcutsFilter,
+  ShortcutString,
+  Shortcutter,
+} from 'shortcutter';
+import type { Keymap, KeymapEntry } from 'shortcutter/keymap';
+import { recordShortcut, type RecordOptions } from 'shortcutter/record';
 import type { SequenceHandler } from 'shortcutter/sequences';
 
 export type { UseSequenceOptions, UseShortcutOptions } from './shared';
@@ -129,5 +138,123 @@ export function usePressedKeys(): { readonly current: string[] } {
       track();
       return shortcutter.pressed();
     },
+  };
+}
+
+/**
+ * The registered shortcuts (`shortcutter.shortcuts(filter)`), reactive: updates when shortcuts are
+ * added or removed and when contexts change. For help screens. Call it during component
+ * initialisation.
+ *
+ * @example
+ * const shortcuts = useShortcuts({ active: true });
+ * // {#each shortcuts.current as s}<li>{s.description}</li>{/each}
+ */
+export function useShortcuts(filter: ShortcutsFilter = {}): { readonly current: ShortcutInfo[] } {
+  const shortcutter = getShortcutter();
+  // Subscribes while something reactive reads `current`, so nothing runs during server rendering.
+  const track = createSubscriber((update) => shortcutter.watch(update));
+
+  return {
+    get current() {
+      track();
+      return shortcutter.shortcuts(filter);
+    },
+  };
+}
+
+/**
+ * The commands of a keymap from `shortcutter/keymap`, reactive: updates after `remap()`,
+ * `disable()` and `reset()`. For settings screens.
+ *
+ * @example
+ * const commands = useKeymap(keymap);
+ */
+export function useKeymap<Id extends string>(
+  keymap: Keymap<Id>,
+): { readonly current: KeymapEntry<Id>[] } {
+  const track = createSubscriber((update) => keymap.subscribe(update));
+
+  return {
+    get current() {
+      track();
+      return keymap.commands();
+    },
+  };
+}
+
+export type Recorder = {
+  /** Whether a recording is running. */
+  readonly recording: boolean;
+  /** The keys held while recording (canonical names), to show them live. */
+  readonly keys: string[];
+  /** Starts recording; resolves to the shortcut string, or `null` if cancelled. Cancels a running one. */
+  start(): Promise<string | null>;
+  /** Cancels the running recording. */
+  cancel(): void;
+};
+
+/**
+ * Records a shortcut from the keyboard with `shortcutter/record`, for "press a new shortcut"
+ * buttons. `recording` and `keys` are reactive. A recording still running when the component is
+ * destroyed is cancelled. Call it during component initialisation.
+ *
+ * @example
+ * const recorder = useRecorder();
+ * async function change() {
+ *   const shortcut = await recorder.start();
+ *   if (shortcut) keymap.remap('palette', shortcut);
+ * }
+ */
+export function useRecorder(options: Omit<RecordOptions, 'signal' | 'onKeys'> = {}): Recorder {
+  const shortcutter = getShortcutter();
+  const updates = new Set<() => void>();
+  const track = createSubscriber((update) => {
+    updates.add(update);
+    return () => void updates.delete(update);
+  });
+  let recording = false;
+  let keys: string[] = [];
+  let controller: AbortController | undefined;
+
+  const set = (nextRecording: boolean, nextKeys: string[]) => {
+    recording = nextRecording;
+    keys = nextKeys;
+    for (const update of updates) update();
+  };
+
+  onMount(() => () => controller?.abort());
+
+  return {
+    get recording() {
+      track();
+      return recording;
+    },
+    get keys() {
+      track();
+      return keys;
+    },
+    async start() {
+      controller?.abort();
+
+      const own = new AbortController();
+
+      controller = own;
+      set(true, []);
+
+      try {
+        return await recordShortcut(shortcutter, {
+          ...options,
+          signal: own.signal,
+          onKeys: (held) => set(true, held),
+        });
+      } finally {
+        if (controller === own) {
+          controller = undefined;
+          set(false, []);
+        }
+      }
+    },
+    cancel: () => controller?.abort(),
   };
 }

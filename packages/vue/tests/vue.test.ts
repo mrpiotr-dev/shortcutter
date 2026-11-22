@@ -1,13 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import { createApp, defineComponent, h, nextTick, ref, type App } from 'vue';
 import { createShortcutter } from 'shortcutter';
+import { createKeymap } from 'shortcutter/keymap';
 import {
   provideShortcutter,
   shortcutterKey,
+  useKeymap,
   usePressedKeys,
+  useRecorder,
   useSequence,
   useShortcut,
+  useShortcuts,
   useShortcutter,
+  type Recorder,
 } from '../src/index';
 import { keyboard } from '../../core/tests/keyboard';
 
@@ -127,5 +132,55 @@ describe('vue adapter', () => {
     };
 
     expect(compileOnly).toBeTypeOf('function');
+  });
+
+  it('lists shortcuts and updates when they or the contexts change', () => {
+    let shortcuts: ReturnType<typeof useShortcuts> | undefined;
+    const { shortcutter } = mount(() => (shortcuts = useShortcuts({ active: true })));
+
+    expect(shortcuts!.value).toEqual([]);
+    shortcutter.listen('K', () => {});
+    shortcutter.listen('J', () => {}, { context: 'editor' });
+    expect(shortcuts!.value.map((s) => s.shortcut)).toEqual(['K']);
+
+    shortcutter.contexts.activate('default', 'editor');
+    expect(shortcuts!.value.map((s) => s.shortcut)).toEqual(['K', 'J']);
+  });
+
+  it('updates a keymap settings screen after changes', () => {
+    let commands: ReturnType<typeof useKeymap> | undefined;
+    let keymap: ReturnType<typeof createKeymap> | undefined;
+
+    mount(() => {
+      keymap = createKeymap(useShortcutter(), {
+        palette: { keys: 'ControlOrMeta+K', run: () => {} },
+      });
+      commands = useKeymap(keymap);
+    });
+
+    keymap!.remap('palette', 'ControlOrMeta+P');
+    expect(commands!.value[0]!.keys).toEqual(['ControlOrMeta+P']);
+  });
+
+  it('records a shortcut and cancels on unmount', async () => {
+    let recorder: Recorder | undefined;
+    const { shortcutter, kb } = mount(() => (recorder = useRecorder()));
+
+    const result = recorder!.start();
+    expect(recorder!.recording.value).toBe(true);
+    kb.down('ShiftLeft');
+    expect(recorder!.keys.value).toEqual(['shift']);
+    kb.down('KeyK');
+    await expect(result).resolves.toBe('Shift+K');
+    expect(recorder!.recording.value).toBe(false);
+    kb.up('KeyK');
+    kb.up('ShiftLeft');
+
+    const second = recorder!.start();
+    app!.unmount();
+    app = undefined;
+    await expect(second).resolves.toBeNull();
+    await Promise.resolve();
+    expect(shortcutter.contexts.active()).toEqual(['default']);
   });
 });

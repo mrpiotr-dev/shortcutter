@@ -15,6 +15,7 @@ import {
   watchEffect,
   type InjectionKey,
   type MaybeRefOrGetter,
+  type Ref,
   type ShallowRef,
 } from 'vue';
 import {
@@ -25,7 +26,16 @@ import {
   type UseSequenceOptions,
   type UseShortcutOptions,
 } from './shared';
-import type { SequenceString, ShortcutHandler, ShortcutString, Shortcutter } from 'shortcutter';
+import type {
+  SequenceString,
+  ShortcutHandler,
+  ShortcutInfo,
+  ShortcutsFilter,
+  ShortcutString,
+  Shortcutter,
+} from 'shortcutter';
+import type { Keymap, KeymapEntry } from 'shortcutter/keymap';
+import { recordShortcut, type RecordOptions } from 'shortcutter/record';
 import type { SequenceHandler } from 'shortcutter/sequences';
 
 export type { UseSequenceOptions, UseShortcutOptions } from './shared';
@@ -128,4 +138,114 @@ export function usePressedKeys(): Readonly<ShallowRef<readonly string[]>> {
   onUnmounted(() => stop?.());
 
   return readonly(keys);
+}
+
+/**
+ * The registered shortcuts (`shortcutter.shortcuts(filter)`), updated when shortcuts are added or
+ * removed and when contexts change. For help screens. Empty during server rendering.
+ *
+ * @example
+ * const shortcuts = useShortcuts({ active: true });
+ */
+export function useShortcuts(
+  filter: ShortcutsFilter = {},
+): Readonly<ShallowRef<readonly ShortcutInfo[]>> {
+  const shortcutter = useShortcutter();
+  const list = shallowRef<readonly ShortcutInfo[]>([]);
+  const read = () => (list.value = shortcutter.shortcuts(filter));
+  let stop: (() => void) | undefined;
+
+  onMounted(() => {
+    read();
+    stop = shortcutter.watch(read);
+  });
+  onUnmounted(() => stop?.());
+
+  // Read-only through the type: Vue's readonly() would deep-freeze the entries' types.
+  return list;
+}
+
+/**
+ * The commands of a keymap from `shortcutter/keymap`, with their current and default shortcuts,
+ * updated after `remap()`, `disable()` and `reset()`. For settings screens.
+ *
+ * @example
+ * const commands = useKeymap(keymap);
+ */
+export function useKeymap<Id extends string>(
+  keymap: Keymap<Id>,
+): Readonly<ShallowRef<readonly KeymapEntry<Id>[]>> {
+  const commands = shallowRef<readonly KeymapEntry<Id>[]>(keymap.commands());
+  let stop: (() => void) | undefined;
+
+  // Subscribing on mount: onUnmounted never runs during server rendering.
+  onMounted(() => {
+    commands.value = keymap.commands();
+    stop = keymap.subscribe(() => (commands.value = keymap.commands()));
+  });
+  onUnmounted(() => stop?.());
+
+  return commands;
+}
+
+export type Recorder = {
+  /** Whether a recording is running. */
+  recording: Readonly<Ref<boolean>>;
+  /** The keys held while recording (canonical names), to show them live. */
+  keys: Readonly<ShallowRef<readonly string[]>>;
+  /** Starts recording; resolves to the shortcut string, or `null` if cancelled. Cancels a running one. */
+  start(): Promise<string | null>;
+  /** Cancels the running recording. */
+  cancel(): void;
+};
+
+/**
+ * Records a shortcut from the keyboard with `shortcutter/record`, for "press a new shortcut"
+ * buttons. A recording still running when the component unmounts is cancelled.
+ *
+ * @example
+ * const recorder = useRecorder();
+ * async function change() {
+ *   const shortcut = await recorder.start();
+ *   if (shortcut) keymap.remap('palette', shortcut);
+ * }
+ */
+export function useRecorder(options: Omit<RecordOptions, 'signal' | 'onKeys'> = {}): Recorder {
+  const shortcutter = useShortcutter();
+  const recording = shallowRef(false);
+  const keys = shallowRef<readonly string[]>([]);
+  let controller: AbortController | undefined;
+
+  onUnmounted(() => controller?.abort());
+
+  async function start(): Promise<string | null> {
+    controller?.abort();
+
+    const own = new AbortController();
+
+    controller = own;
+    recording.value = true;
+    keys.value = [];
+
+    try {
+      return await recordShortcut(shortcutter, {
+        ...options,
+        signal: own.signal,
+        onKeys: (held) => (keys.value = held),
+      });
+    } finally {
+      if (controller === own) {
+        controller = undefined;
+        recording.value = false;
+        keys.value = [];
+      }
+    }
+  }
+
+  return {
+    recording: readonly(recording),
+    keys: readonly(keys),
+    start,
+    cancel: () => controller?.abort(),
+  };
 }
