@@ -4,6 +4,7 @@ import ReactCounter from '../components/demos/react/Counter.tsx';
 import SolidCounter from '../components/demos/solid/Counter.tsx';
 import SvelteCounter from '../components/demos/svelte/Counter.svelte';
 import VueCounter from '../components/demos/vue/Counter.vue';
+import TrustBadges from '../components/TrustBadges.astro';
 import { SPONSOR_URL, sponsors } from '../data/sponsors';
 import Landing from '../layouts/Landing.astro';
 
@@ -130,6 +131,7 @@ help.forEach(({ keys, description }) => addRow(keys, description));`;
             GitHub
           </a>
         </div>
+        <TrustBadges />
       </div>
 
       <div class="visualizer" aria-label="Live keyboard visualizer">

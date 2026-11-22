@@ -1,5 +1,15 @@
 # SHORTCUTTER
 
+[![npm](https://img.shields.io/npm/v/shortcutter)](https://www.npmjs.com/package/shortcutter)
+[![CI](https://github.com/mrpiotr-dev/shortcutter/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/mrpiotr-dev/shortcutter/actions/workflows/ci.yml)
+[![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fwww.shortcutter.dev%2Fbadges%2Fcoverage.json)](https://github.com/mrpiotr-dev/shortcutter/actions/workflows/ci.yml)
+[![size](https://img.shields.io/bundlejs/size/shortcutter)](https://bundlejs.com/?q=shortcutter)
+[![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/shortcutter?activeTab=dependencies)
+[![Socket](https://socket.dev/api/badge/npm/package/shortcutter)](https://socket.dev/npm/package/shortcutter)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/mrpiotr-dev/shortcutter/badge)](https://scorecard.dev/viewer/?uri=github.com/mrpiotr-dev/shortcutter)
+[![types](https://img.shields.io/npm/types/shortcutter)](https://www.npmjs.com/package/shortcutter)
+[![license](https://img.shields.io/npm/l/shortcutter)](./LICENSE)
+
 Tiny, dependency-free keyboard shortcuts for the browser, with **contexts** and **key phases**. Framework-agnostic and SSR-safe, with adapters for React, Vue, Svelte and Solid.
 
 ## Getting started
