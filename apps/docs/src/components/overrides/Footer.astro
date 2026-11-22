@@ -1,10 +1,25 @@
 ---
-// Starlight's footer (edit link, pagination) plus the site links the landing page has too.
+// Starlight's footer (pagination) plus a "report a problem" link for the current page and the site
+// links the landing page has too. Community pull requests are closed for now (see CONTRIBUTING.md),
+// so docs fixes come in as issues instead of an "Edit page" link.
 import Default from '@astrojs/starlight/components/Footer.astro';
 import { SPONSOR_URL } from '../../data/sponsors';
+
+const page = new URL(Astro.url.pathname, Astro.site).href;
+const title = Astro.locals.starlightRoute.entry.data.title;
+const report = new URL('https://github.com/mrpiotr-dev/shortcutter/issues/new');
+
+report.searchParams.set('template', 'docs.yml');
+report.searchParams.set('title', `Docs: ${title}`);
+report.searchParams.set('page', page);
 ---
 
 <Default />
+<p class="sc-report">
+  <a href={report.href} rel="external noopener">Report a problem with this page</a>{' · '}<a href="/docs/support/"
+    >Feedback and support</a
+  >
+</p>
 <p class="sc-footer-links">
   <a href="/privacy/">Privacy</a>{' · '}<a href="/llms.txt">llms.txt</a>{' · '}<a
     href="https://github.com/mrpiotr-dev/shortcutter"
@@ -13,8 +28,12 @@ import { SPONSOR_URL } from '../../data/sponsors';
 </p>
 
 <style>
+  .sc-report {
+    margin-top: 2rem;
+    font-size: var(--sl-text-sm);
+  }
   .sc-footer-links {
-    margin-top: 1.5rem;
+    margin-top: 1rem;
     font-size: var(--sl-text-sm);
     color: var(--sl-color-gray-3);
   }

@@ -65,6 +65,7 @@
   "devDependencies": {
     "@arethetypeswrong/core": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "fast-check": "catalog:",
     "happy-dom": "catalog:",
     "publint": "catalog:",
     "typescript": "catalog:",

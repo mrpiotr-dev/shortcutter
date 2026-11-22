@@ -11,6 +11,7 @@ catalog:
   publint: ^0.3.25
   '@arethetypeswrong/core': ^0.18.5
   happy-dom: ^21.0.4
+  fast-check: ~4.10.3
   typescript: ^7.0.2
   vite: npm:@voidzero-dev/vite-plus-core@1.6.0
   vite-plus: 1.6.0

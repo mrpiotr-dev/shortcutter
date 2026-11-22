@@ -3,6 +3,16 @@
 I'm glad you reach this repository!
 The community's pull requests will be unavailable until the `Contributor License Agreement` document and form are ready.
 
+## Reporting bugs and giving feedback
+
+Issues and discussions are open to everyone:
+
+- **Bugs:** use the [bug report form](https://github.com/mrpiotr-dev/shortcutter/issues/new?template=bug_report.yml). It asks for the package version, browser, OS, keyboard layout and a minimal reproduction.
+- **Questions, ideas and feedback:** [GitHub Discussions](https://github.com/mrpiotr-dev/shortcutter/discussions).
+- **Feature requests:** the [feature request form](https://github.com/mrpiotr-dev/shortcutter/issues/new?template=feature_request.yml).
+- **Documentation problems:** "Report a problem with this page" at the bottom of every docs page, or the [docs issue form](https://github.com/mrpiotr-dev/shortcutter/issues/new?template=docs.yml).
+- **Security issues:** never in public, see [SECURITY.md](SECURITY.md).
+
 ## Development
 
 The repository is a [pnpm](https://pnpm.io) workspace driven by [Vite+](https://viteplus.dev) (`vp`):

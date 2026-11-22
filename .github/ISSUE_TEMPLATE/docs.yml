@@ -1,0 +1,23 @@
+name: Documentation problem
+description: A mistake, an unclear explanation or a broken example on shortcutter.dev.
+labels: [documentation]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The address of the page. Filled in when you come from the "Report a problem with this page" link.
+      placeholder: https://www.shortcutter.dev/docs/
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong or unclear?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested fix
+      description: Optional. The wording or the example you would expect.

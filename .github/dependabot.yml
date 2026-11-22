@@ -1,4 +1,4 @@
-# Weekly update PRs for GitHub Actions and the pnpm workspace (development dependencies only:
+# Weekly update PRs for GitHub Actions and the pnpm workspace (development and docs dependencies:
 # the published packages have no runtime dependencies). Version updates target develop.
 version: 2
 updates:
@@ -18,6 +18,24 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     groups:
-      dev-dependencies:
-        dependency-type: development
+      # One PR for all minor and patch updates; majors come one by one.
+      minor-and-patch:
+        patterns: ['*']
         update-types: [minor, patch]
+    ignore:
+      # The Vite+ toolchain is upgraded by hand: vite-plus, its `vite` alias (vite-plus-core) and
+      # @vitest/coverage-v8 (must match the Vitest bundled in vite-plus) have to move together.
+      - dependency-name: vite-plus
+      - dependency-name: vite
+      - dependency-name: '@vitest/coverage-v8'
+      # A new framework major needs adapter work and a release note, so it is planned, not bumped.
+      - dependency-name: react
+        update-types: ['version-update:semver-major']
+      - dependency-name: react-dom
+        update-types: ['version-update:semver-major']
+      - dependency-name: vue
+        update-types: ['version-update:semver-major']
+      - dependency-name: svelte
+        update-types: ['version-update:semver-major']
+      - dependency-name: solid-js
+        update-types: ['version-update:semver-major']
