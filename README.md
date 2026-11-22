@@ -7,6 +7,7 @@
 [![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/shortcutter?activeTab=dependencies)
 [![Socket](https://socket.dev/api/badge/npm/package/shortcutter)](https://socket.dev/npm/package/shortcutter)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/mrpiotr-dev/shortcutter/badge)](https://scorecard.dev/viewer/?uri=github.com/mrpiotr-dev/shortcutter)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/17003/badge)](https://www.bestpractices.dev/projects/17003)
 [![types](https://img.shields.io/npm/types/shortcutter)](https://www.npmjs.com/package/shortcutter)
 [![license](https://img.shields.io/npm/l/shortcutter)](./LICENSE)
 
