@@ -21,6 +21,7 @@
     "url": "git+https://github.com/mrpiotr-dev/shortcutter.git",
     "directory": "packages/solid"
   },
+  "funding": "https://github.com/sponsors/mrpiotr-dev",
   "files": [
     "dist"
   ],

@@ -8,6 +8,7 @@ import {
 import { formatKeys, formatShortcut } from 'shortcutter/format';
 import { createSequences } from 'shortcutter/sequences';
 import { DEMO_EVENT } from '../components/demos/active';
+import { SPONSOR_URL } from '../data/sponsors';
 
 const GITHUB = 'https://github.com/mrpiotr-dev/shortcutter';
 const INSTALL = 'pnpm add shortcutter';
@@ -137,6 +138,7 @@ const commands: Record<string, () => void> = {
   copy: () => void copyInstall(),
   example: showExample,
   help: () => openHelp(),
+  sponsor: () => window.open(SPONSOR_URL, '_blank', 'noopener'),
 };
 
 $('[data-copy]').addEventListener('click', () => void copyInstall());

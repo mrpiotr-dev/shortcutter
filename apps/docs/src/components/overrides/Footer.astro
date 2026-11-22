@@ -1,6 +1,7 @@
 ---
 // Starlight's footer (edit link, pagination) plus the site links the landing page has too.
 import Default from '@astrojs/starlight/components/Footer.astro';
+import { SPONSOR_URL } from '../../data/sponsors';
 ---
 
 <Default />
@@ -8,7 +9,7 @@ import Default from '@astrojs/starlight/components/Footer.astro';
   <a href="/privacy/">Privacy</a>{' · '}<a href="/llms.txt">llms.txt</a>{' · '}<a
     href="https://github.com/mrpiotr-dev/shortcutter"
     rel="external noopener">GitHub</a
-  >
+  >{' · '}<a href={SPONSOR_URL} rel="external noopener">Sponsor ♥</a>
 </p>
 
 <style>

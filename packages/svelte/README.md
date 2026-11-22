@@ -32,4 +32,6 @@ Shortcuts are registered only after mount, so nothing runs during server renderi
 
 Guide with recipes (modals, help screens, testing): https://www.shortcutter.dev/docs/frameworks/svelte/
 
+Shortcutter is free and MIT-licensed. If it helps you, consider [sponsoring it on GitHub](https://github.com/sponsors/mrpiotr-dev).
+
 MIT © SLAVICTECH PIOTR LASZCZKOWSKI
