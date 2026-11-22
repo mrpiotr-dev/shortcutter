@@ -1,78 +1,94 @@
 # Security Policy
 
-This document explains how to report security vulnerabilities for Shortcutter and what to expect during triage and remediation.
+This document explains how to report security vulnerabilities in Shortcutter, what to expect after you report one, and how to check that a release is genuine.
 
-## Supported Versions
+## Supported versions
 
-Security updates are provided for the latest release line.
+Security fixes go into the **latest minor release** of each package below. Shortcutter is pre-1.0, so upgrading within the latest minor line is the supported path; older lines get no backports.
 
-| Version        | Supported |
-| -------------- | --------- |
-| 0.2.x (latest) | Yes       |
-| < 0.2.0        | No        |
+| Package               | Supported            |
+| --------------------- | -------------------- |
+| `shortcutter`         | latest minor release |
+| `@shortcutter/react`  | latest minor release |
+| `@shortcutter/vue`    | latest minor release |
+| `@shortcutter/svelte` | latest minor release |
+| `@shortcutter/solid`  | latest minor release |
 
-If you are running an unsupported version, please upgrade before reporting unless the issue also reproduces on the latest version.
+All five packages are released together with the same version number. If you use an older version, please check that the issue also happens on the latest release before reporting it.
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
-Please do not report security vulnerabilities in public GitHub issues.
+Please **do not** report security vulnerabilities in public GitHub issues, discussions or pull requests.
 
-Report vulnerabilities through GitHub private vulnerability reporting for this repository.
+- **Preferred:** [GitHub private vulnerability reporting](https://github.com/mrpiotr-dev/shortcutter/security/advisories/new) for this repository.
+- **Alternative:** email [contact@mrpiotr.dev](mailto:contact@mrpiotr.dev) with "Security" in the subject.
 
-Include as much detail as possible:
+Include as much detail as you can:
 
-- A clear description of the issue and potential impact
-- Affected versions and environment details
-- Reproduction steps or proof of concept
-- Any known mitigations or suggested fixes
+- a description of the issue and its impact
+- affected packages and versions, browser and environment
+- steps to reproduce or a proof of concept
+- any known mitigations or suggested fixes
 
-You may report anonymously if needed, but including a contact method helps coordinate fixes.
+You may report anonymously, but a contact method helps coordinate the fix.
 
-## Disclosure Process
+## What happens next
 
-After receiving a report, the maintainer aims to:
+The maintainer aims to:
 
-- Acknowledge receipt within 72 hours
-- Provide an initial triage decision within 7 days
-- Share progress updates at least every 14 days until resolution
-- Release a fix and publish an advisory as soon as practical, based on severity and complexity
+- acknowledge your report within 72 hours
+- give an initial assessment within 7 days
+- send progress updates at least every 14 days until it is resolved
+- release a fix and publish a GitHub security advisory as soon as practical, depending on severity and complexity
 
-For valid reports, disclosure is coordinated. Please allow time for users to patch before public disclosure.
+Disclosure is coordinated: please allow time for a fix to ship before sharing details publicly.
 
-## Severity and Remediation
+## Severity and fixes
 
-Severity is assessed using CVSS-style impact considerations (confidentiality, integrity, availability, and exploitability).
+Severity is assessed with CVSS-style criteria (confidentiality, integrity, availability, exploitability).
 
-Remediation priority:
-
-- Critical and High: expedited fix and release
-- Medium: fix in the next planned patch release
-- Low: fix when practical or document as accepted risk
+- **Critical and high:** fixed and released as soon as possible
+- **Medium:** fixed in the next patch release
+- **Low:** fixed when practical, or documented as an accepted risk
 
 ## Scope
 
 In scope:
 
-- Vulnerabilities in source code under src/ and distributed artifacts under bundle/
-- Build and release pipeline issues that could affect package integrity
+- source code of the published packages under `packages/*`
+- the files published to npm (`dist/`) and the browser builds served from unpkg and jsDelivr
+- the build and release pipeline (`.github/workflows/`), where an issue could affect package integrity
 
 Out of scope:
 
-- Theoretical issues without a practical exploit path
-- Vulnerabilities only present in unsupported versions
-- Social engineering, phishing, or physical attacks
-- Denial-of-service requiring unrealistic resources for this project scale
+- the documentation site (www.shortcutter.dev), unless the issue affects package users
+- theoretical issues without a practical exploit path
+- issues that only affect unsupported versions
+- social engineering, phishing or physical attacks
+- denial of service that needs unrealistic resources
 
-## Dependency and Supply Chain Notes
+## Verifying releases
 
-Shortcutter has no runtime dependencies by design. Development dependencies are periodically updated and may receive security patches independent of feature releases.
+Since 0.4.0, every package is published from GitHub Actions through npm Trusted Publishing, without a stored npm token, and carries a signed [provenance attestation](https://docs.npmjs.com/generating-provenance-statements) that links it to the exact commit and workflow run that built it. Releases are first staged on npm and only made public after the maintainer approves them with two-factor authentication.
 
-## Security Best Practices for Users
+To check the packages installed in an npm project:
 
-- Keep Shortcutter on the latest supported version
-- Pin and verify package versions in your lockfile
-- Run dependency and CI security scanning in your own project
+```sh
+npm audit signatures
+```
+
+The npm page of each version also shows its provenance under "Provenance".
+
+## Supply chain
+
+Shortcutter has **no runtime dependencies**. Development dependencies are kept up to date and may receive security updates independently of feature releases.
+
+## Recommendations for users
+
+- stay on the latest release
+- pin versions with a lockfile and verify them with `npm audit signatures`
+- use dependency and security scanning in your own CI
 
 ## Recognition
 
-Responsible disclosure is appreciated. Reporters may be credited in advisories unless they prefer to remain anonymous.
+Responsible disclosure is appreciated. Reporters are credited in the advisory unless they prefer to stay anonymous.
