@@ -3,53 +3,54 @@ title: Comparison
 description: Size and behaviour of shortcutter next to tinykeys, hotkeys-js, mousetrap, keymaster, @github/hotkey, react-hotkeys-hook and @tanstack/hotkeys.
 ---
 
-Every number on this page was measured, not copied from a README. Sizes were measured on 21 November 2026 and behaviour on 15 November 2026, with the versions listed; the method is at the end so you can repeat it.
+Every number on this page was measured, not copied from a README, on 22 November 2026 with the versions listed. The scripts that measure them are in the repository ([`scripts/compare/`](https://github.com/mrpiotr-dev/shortcutter/tree/main/scripts/compare)), so you can repeat them.
 
 ## Size
 
-All exports of each library, bundled with its dependencies, minified and gzipped. Frameworks are left out for the React-only library.
+All exports of each library, bundled with its dependencies, fully minified and gzipped. React is left out for the React-only libraries.
 
 | Library | Version | Minified | Gzipped |
 | --- | --- | --- | --- |
-| tinykeys | 4.0.1 | 2.4 kB | **1.23 kB** |
-| keymaster | 1.6.2 | 5.0 kB | **2.07 kB** |
-| @github/hotkey | 3.1.4 | 6.2 kB | **2.78 kB** |
-| **shortcutter** | 0.4 | 7.5 kB | **2.81 kB** |
-| mousetrap | 1.6.5 | 7.8 kB | **2.98 kB** |
-| **shortcutter + @shortcutter/react**, `useShortcut` only | 0.4 | 8.1 kB | **3.04 kB** |
-| react-hotkeys-hook (React only) | 5.4.0 | 10.1 kB | **3.45 kB** |
-| **shortcutter + sequences** | 0.4 | 9.9 kB | **3.52 kB** |
-| **shortcutter + format** | 0.4 | 9.3 kB | **3.55 kB** |
-| **shortcutter + @shortcutter/react**, all exports | 0.4 | 11.5 kB | **4.02 kB** |
-| hotkeys-js | 4.1.3 | 12.8 kB | **4.69 kB** |
-| @tanstack/hotkeys | 0.33.0 | 60.3 kB | **16.93 kB** |
+| tinykeys | 4.0.1 | 1.8 kB | **0.98 kB** |
+| keymaster | 1.6.2 | 3.6 kB | **1.83 kB** |
+| @github/hotkey | 3.1.4 | 4.8 kB | **2.43 kB** |
+| mousetrap | 1.6.5 | 5.7 kB | **2.67 kB** |
+| **shortcutter** | 0.5 | 6.7 kB | **2.82 kB** |
+| react-hotkeys-hook (React only) | 5.4.0 | 7.9 kB | **2.96 kB** |
+| **shortcutter + @shortcutter/react**, `useShortcut` only | 0.5 | 7.2 kB | **2.98 kB** |
+| **shortcutter + record** | 0.5 | 7.9 kB | **3.30 kB** |
+| **shortcutter + sequences** | 0.5 | 8.6 kB | **3.43 kB** |
+| **shortcutter + format** | 0.5 | 8.5 kB | **3.66 kB** |
+| **shortcutter + keymap** | 0.5 | 10.0 kB | **3.95 kB** |
+| hotkeys-js | 4.1.3 | 9.8 kB | **4.09 kB** |
+| **shortcutter + keymap + record** | 0.5 | 11.2 kB | **4.41 kB** |
+| **shortcutter + @shortcutter/react**, all exports | 0.5 | 11.8 kB | **4.59 kB** |
+| @tanstack/hotkeys | 0.33.0 | 43.7 kB | **14.94 kB** |
 
-None of them has runtime dependencies. shortcutter's sequences (`shortcutter/sequences`) and key labels (`shortcutter/format`) live in separate entries, so they cost nothing unless imported. The adapters' sequence hooks pull in the sequences entry, which is why all exports of `@shortcutter/react` weigh more than `useShortcut` alone: a bundler keeps only what the app imports.
+None of them has runtime dependencies. shortcutter's sequences, key labels, recorder and keymap live in separate entries (`shortcutter/sequences`, `shortcutter/format`, `shortcutter/record`, `shortcutter/keymap`), so they cost nothing unless imported. The adapters' sequence, recorder and keymap hooks pull in those entries, which is why all exports of `@shortcutter/react` weigh more than `useShortcut` alone: a bundler keeps only what the app imports.
 
 ## Game input: movement and sprint
 
-Measured with shortcutter 0.3, hotkeys-js 4.1.2 and @tanstack/hotkeys 0.29.0, and the versions in the size table for the others. shortcutter's key handling did not change in 0.4.
-
-A player holds <kbd>A</kbd>, adds <kbd>Shift</kbd>, adds <kbd>W</kbd>, releases <kbd>A</kbd>, releases <kbd>W</kbd>, presses <kbd>D</kbd> and releases <kbd>Shift</kbd>. After each of the 10 steps the game reads which directions are held and whether the player sprints. Events were realistic: `key` turns uppercase while <kbd>Shift</kbd> is held, `keyCode` is set for older libraries, and the last key auto-repeats.
+A player holds <kbd>A</kbd>, adds <kbd>Shift</kbd>, adds <kbd>W</kbd> (which auto-repeats once), releases <kbd>A</kbd>, releases <kbd>W</kbd>, presses <kbd>D</kbd> (auto-repeats once), releases <kbd>Shift</kbd> and releases <kbd>D</kbd>. After each of the 10 steps the game reads which directions are held and whether the player sprints. Events were realistic: `key` turns uppercase while <kbd>Shift</kbd> is held, `keyCode` is set for older libraries, and auto-repeats have `repeat` set.
 
 | Library | How the game reads input | Steps right |
 | --- | --- | --- |
-| shortcutter | `isPressed()` / `subscribe()` | **10 / 10** |
+| shortcutter | `isPressed()` | **10 / 10** |
 | hotkeys-js | `isPressed()` | **10 / 10** |
-| keymaster | `isPressed()` | **10 / 10** |
+| keymaster | `isPressed()` and the `shift` flag | **10 / 10** |
 | @tanstack/hotkeys | `KeyStateTracker` | **10 / 10** |
 | react-hotkeys-hook | `isHotkeyPressed()` | **10 / 10** |
-| tinykeys | a keydown and keyup binding per key | 2 / 10 |
+| tinykeys | a keydown and a keyup binding per key | 2 / 10 |
 | tinykeys | the same, plus `Shift+…` bindings for every key | **10 / 10** |
-| mousetrap | a keydown and keyup binding per key | 2 / 10 |
+| mousetrap | a keydown and a keyup binding per key | 2 / 10 |
 | mousetrap | the same, plus `shift+…` bindings for every key | **10 / 10** |
-| shortcutter | `listen()` per key (wrong tool, see below) | 1 / 10 |
+| shortcutter | `listen()` per key (wrong tool, see below) | 2 / 10 |
 
 `listen()` matches whole combinations, which is right for app shortcuts and wrong for movement: see the [Games guide](/docs/guides/games/).
 
 ## Stuck keys after alt-tab
 
-<kbd>W</kbd> + <kbd>Shift</kbd> held, the window loses focus (the keyups happen elsewhere), the player comes back holding nothing and presses <kbd>D</kbd>. The right answer is "nothing held", then "D".
+<kbd>W</kbd> + <kbd>Shift</kbd> held, the window loses focus (the keyups happen elsewhere), the player comes back holding nothing, presses <kbd>D</kbd> and releases it. The right answers are "W", "W and sprint", "nothing held", "D", "nothing held".
 
 | Library | Steps right |
 | --- | --- |
@@ -63,17 +64,45 @@ A player holds <kbd>A</kbd>, adds <kbd>Shift</kbd>, adds <kbd>W</kbd>, releases 
 
 shortcutter also releases keys when the tab is hidden or the page is left, and trusts each event's modifier flags, so a modifier pressed or released outside the page does not get stuck.
 
+## Keyboard layouts
+
+How each library matches a key, from its own documentation and type definitions:
+
+| Library | Matches keys by |
+| --- | --- |
+| shortcutter | physical key by default; printed letter with `match: 'key'` |
+| tinykeys | `key` or `code`, whichever matches |
+| keymaster | legacy `keyCode` |
+| @github/hotkey | `key` (printed character) |
+| mousetrap | legacy `keyCode`; characters on `keypress` |
+| react-hotkeys-hook | physical key by default; printed character with `useKey` |
+| hotkeys-js | legacy `keyCode` |
+| @tanstack/hotkeys | printed key by default; physical with `[KeyQ]` |
+
+Physical keys keep `W` `A` `S` `D` in place on every layout; printed keys make `Control+Z` follow the key labelled Z. See [Keyboard layouts](/docs/guides/keyboard-layouts/) for when to use which.
+
+## Customizable shortcuts
+
+| Library | Recorder | Conflict detection | User overrides as data |
+| --- | --- | --- | --- |
+| shortcutter | Yes | Yes | Yes |
+| react-hotkeys-hook | Yes | No | No |
+| @tanstack/hotkeys | Yes | Yes | Yes |
+| tinykeys, keymaster, @github/hotkey, mousetrap, hotkeys-js | No | No | No |
+
+shortcutter's recorder and keymap are optional entries (`shortcutter/record`, `shortcutter/keymap`); see [Customizable shortcuts](/docs/guides/customizable-shortcuts/).
+
 ## What each one is built around
 
 From each library's own README:
 
-- **tinykeys**: the smallest. Physical-key matching (`event.code`), a cross-platform modifier, sequences, keyup through an option.
+- **tinykeys**: the smallest. Matching on `key` or `code`, a cross-platform modifier, sequences, keyup through an option.
 - **keymaster**: scopes and a pressed-key query, in a small, older package.
 - **@github/hotkey**: declarative `data-hotkey` attributes that click or focus elements, sequences, scoping to a form field.
 - **mousetrap**: sequences and keyup bindings; widely used, last released as 1.6.5.
-- **react-hotkeys-hook**: React only. Scopes, sequences, and a `description` option with a list of registered hotkeys for help panels.
+- **react-hotkeys-hook**: React only. Scopes, sequences, a `description` option with a list of registered hotkeys for help panels, and a hotkey recorder.
 - **hotkeys-js**: scopes, keyup, a catch-all `*` listener and a pressed-keys query.
-- **@tanstack/hotkeys**: the most complete. Type-safe shortcut strings, a cross-platform `Mod` key, keydown and keyup, `preventDefault` and `stopPropagation`, sequences, key-state tracking, recorder UI helpers, framework adapters and devtools.
+- **@tanstack/hotkeys**: the most complete. Type-safe shortcut strings, a cross-platform `Mod` key, keydown and keyup, `preventDefault` and `stopPropagation`, sequences, key-state tracking, a recorder, conflict detection, user-customizable app hotkeys, layout-aware labels, framework adapters and devtools.
 
 ## Where shortcutter fits
 
@@ -87,5 +116,8 @@ Pick something else when:
 
 ## Method
 
-- **Size:** each library installed from npm with install scripts disabled (shortcutter 0.4 from its release build); an entry file re-exporting everything (the default export for the CommonJS packages keymaster and mousetrap, or only `useShortcut` where the table says so) was bundled with Vite (Rolldown, as shipped in Vite+ 1.6.0) in library mode, minified, and gzipped at level 9. React and React DOM were external.
-- **Behaviour:** each library ran in happy-dom with synthetic keyboard events dispatched on the document body; game state was read after each step through the library's documented API.
+The scripts are in [`scripts/compare/`](https://github.com/mrpiotr-dev/shortcutter/tree/main/scripts/compare): `install.mjs` installs the pinned versions from `libraries.mjs` into a separate folder with install scripts disabled, `size.mjs` and `behaviour.mjs` measure.
+
+- **Size:** an entry file re-exporting everything from each library (its default export for keymaster, mousetrap and hotkeys-js, or only `useShortcut` where the table says so) was bundled with Vite+ 1.6.0 (Rolldown) in library mode, fully minified, and gzipped at level 9. React and React DOM were external. shortcutter was measured from its release build.
+- **Behaviour:** each library ran in its own Node process on happy-dom 21, with synthetic keyboard events dispatched on the document body; game state was read after each step through the library's documented API.
+- **Versions:** the latest of each library that had been on npm for at least a day (@tanstack/hotkeys 0.33.1 came out the day before).
