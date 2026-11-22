@@ -51,11 +51,12 @@ const CODES = [
 
 /** Random casing, so case-insensitivity is exercised too. */
 const anyCase = (name: string) =>
-  fc
-    .array(fc.boolean(), { minLength: name.length, maxLength: name.length })
-    .map((upper) =>
-      [...name].map((c, i) => (upper[i] ? c.toUpperCase() : c.toLowerCase())).join(''),
-    );
+  fc.array(fc.boolean(), { minLength: name.length, maxLength: name.length }).map((upper) =>
+    name
+      .split('')
+      .map((c, i) => (upper[i] ? c.toUpperCase() : c.toLowerCase()))
+      .join(''),
+  );
 
 const shortcutParts = fc
   .tuple(
