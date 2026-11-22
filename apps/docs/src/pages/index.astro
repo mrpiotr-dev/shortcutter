@@ -4,7 +4,7 @@ import ReactCounter from '../components/demos/react/Counter.tsx';
 import SolidCounter from '../components/demos/solid/Counter.tsx';
 import SvelteCounter from '../components/demos/svelte/Counter.svelte';
 import VueCounter from '../components/demos/vue/Counter.vue';
-import { BUSINESS_EMAIL, SPONSOR_URL, sponsors } from '../data/sponsors';
+import { SPONSOR_URL, sponsors } from '../data/sponsors';
 import Landing from '../layouts/Landing.astro';
 
 const snippets = {
@@ -307,10 +307,6 @@ help.forEach(({ keys, description }) => addRow(keys, description));`;
         </div>
         <a class="btn btn-ink" href={SPONSOR_URL} rel="external noopener" target="_blank">Sponsor Shortcutter ♥</a>
       </div>
-      <p class="also">
-        Need hands-on help, such as integration, a keyboard UX review or a feature built to a deadline? That’s a
-        business inquiry: <a href={`mailto:${BUSINESS_EMAIL}`}>{BUSINESS_EMAIL}</a>.
-      </p>
     </section>
   </main>
 

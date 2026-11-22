@@ -1,9 +1,6 @@
 /** GitHub Sponsors page: the "Sponsor" buttons, footers and the command palette link here. */
 export const SPONSOR_URL = 'https://github.com/sponsors/mrpiotr-dev';
 
-/** Business inquiries (integration help, custom work) go here, not through sponsorship. */
-export const BUSINESS_EMAIL = 'contact@mrpiotr.dev';
-
 export type Sponsor = {
   name: string;
   url: string;

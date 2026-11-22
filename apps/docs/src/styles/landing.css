@@ -813,12 +813,6 @@ h2::before {
   color: #000000;
 }
 
-.sponsors .also {
-  margin: 1rem 0 0;
-  color: var(--fg-2);
-  font-size: 0.95rem;
-}
-
 .sponsor-list {
   display: flex;
   flex-wrap: wrap;
